@@ -30,6 +30,8 @@ import { SchemaVersions } from '../yamlTypes';
 import Ajv, { DefinedError } from 'ajv';
 import { getSchemaTitle } from '../utils/schemaUtils';
 
+import * as actionSchema from "../../../src/action_schema.json";
+
 const localize = nls.loadMessageBundle();
 
 const ajv = new Ajv();
@@ -501,14 +503,14 @@ export class YAMLSchemaService extends JSONSchemaService {
     return priorityMapping.get(highestPrio) || [];
   }
 
-  private async resolveCustomSchema(schemaUri, doc): ResolvedSchema {
+  private async resolveCustomSchema(schemaUri, _doc): ResolvedSchema {
     const unresolvedSchema = await this.loadSchema(schemaUri);
     const schema = await this.resolveSchemaContent(unresolvedSchema, schemaUri, []);
     if (schema.schema && typeof schema.schema === 'object') {
       schema.schema.url = schemaUri;
     }
-    if (schema.schema && schema.schema.schemaSequence && schema.schema.schemaSequence[doc.currentDocIndex]) {
-      return new ResolvedSchema(schema.schema.schemaSequence[doc.currentDocIndex], schema.errors);
+    if (schema.schema && schema.schema.schemaSequence && schema.schema.schemaSequence[0]) {
+      return new ResolvedSchema(schema.schema.schemaSequence[0], schema.errors);
     }
     return schema;
   }
@@ -634,9 +636,12 @@ export class YAMLSchemaService extends JSONSchemaService {
     const requestService = this.requestService;
     return super.loadSchema(schemaUri).then((unresolvedJsonSchema: UnresolvedSchema) => {
       // If json-language-server failed to parse the schema, attempt to parse it as YAML instead.
-      if (unresolvedJsonSchema.errors && unresolvedJsonSchema.schema === undefined) {
+
+      if (schemaUri == "action_schema.json") {
+      // if (unresolvedJsonSchema.errors && unresolvedJsonSchema.schema === undefined) {
         return requestService(schemaUri).then(
           (content) => {
+            content = JSON.stringify(actionSchema);
             if (!content) {
               const errorMessage = localize(
                 'json.schema.nocontent',

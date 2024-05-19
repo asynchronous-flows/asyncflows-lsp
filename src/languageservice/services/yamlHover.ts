@@ -50,12 +50,13 @@ export class YAMLHover {
         return Promise.resolve(undefined);
       }
 
+
       setKubernetesParserOption(doc.documents, isKubernetes);
       const currentDocIndex = doc.documents.indexOf(currentDoc);
       currentDoc.currentDocIndex = currentDocIndex;
       return this.getHover(document, position, currentDoc);
-    } catch (error) {
-      this.telemetry?.sendError('yaml.hover.error', { error: convertErrorToTelemetryMsg(error) });
+    } catch (_error) {
+      // this.telemetry?.sendError('yaml.hover.error', { error: convertErrorToTelemetryMsg(error) });
     }
   }
 

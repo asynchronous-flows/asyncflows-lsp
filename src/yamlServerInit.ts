@@ -18,6 +18,10 @@ import { WorkspaceHandlers } from './languageserver/handlers/workspaceHandlers';
 import { commandExecutor } from './languageserver/commandExecutor';
 import { Telemetry } from './languageservice/telemetry';
 import { registerCommands } from './languageservice/services/yamlCommands';
+import { readPyProject } from './helper';
+import Parser, {Point} from "tree-sitter";
+import { initQuery, initYamlParser } from './tree_sitter_queries/queries';
+
 
 export class YAMLServerInit {
   languageService: LanguageService;
@@ -42,6 +46,14 @@ export class YAMLServerInit {
       return this.connectionInitialized(params);
     });
     this.connection.onInitialized(() => {
+      const result = readPyProject();      
+      if (typeof result == 'string') {
+        console.log(`Config error is: ${result}`);
+      }
+      else if(typeof result == 'object') {
+        console.log(`Config is validated`);
+        this.yamlSettings.asyncflowsConfig = result;
+      }
       if (this.yamlSettings.hasWsChangeWatchedFileDynamicRegistration) {
         this.connection.workspace.onDidChangeWorkspaceFolders((changedFolders) => {
           this.yamlSettings.workspaceFolders = workspaceFoldersChanged(this.yamlSettings.workspaceFolders, changedFolders);
@@ -105,6 +117,7 @@ export class YAMLServerInit {
         documentFormattingProvider: false,
         documentOnTypeFormattingProvider: {
           firstTriggerCharacter: '\n',
+          moreTriggerCharacter: [":", " "]
         },
         documentRangeFormattingProvider: false,
         definitionProvider: true,

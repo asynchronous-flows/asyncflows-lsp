@@ -3,18 +3,15 @@
   "description": "YAML language server",
   "version": "1.15.0",
   "author": "Gorkem Ercan (Red Hat)",
-  "license": "MIT",
+  "license": "See LICENSE file",
   "contributors": [
     {
-      "name": "Joshua Pinkney",
-      "email": "joshpinkney@gmail.com"
+      "name": "Uroš Mrkobrada",
+      "email": "uros.mrkobrada@gmail.com"
     },
     {
-      "name": "Yevhen Vydolob",
-      "email": "yvydolob@redhat.com"
-    },
-    {
-      "name": "Google LLC"
+      "name": "Rafael Irgolič",
+      "email": "hello@irgolic.com"
     }
   ],
   "bin": {
@@ -23,26 +20,31 @@
   "main": "./out/server/src/index.js",
   "keywords": [
     "yaml",
-    "LSP"
+    "LSP",
+    "asyncflows"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/redhat-developer/yaml-language-server.git"
+    "url": "https://github.com/asynchronous-flows/asyncflows-lsp.git"
   },
   "optionalDependencies": {
     "prettier": "2.8.7"
   },
   "dependencies": {
+    "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
     "ajv": "^8.11.0",
     "lodash": "4.17.21",
     "request-light": "^0.5.7",
+    "toml": "^3.0.0",
     "vscode-json-languageservice": "4.1.8",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.1",
     "vscode-languageserver-types": "^3.16.0",
     "vscode-nls": "^5.0.0",
     "vscode-uri": "^3.0.2",
-    "yaml": "2.2.2"
+    "yaml": "2.2.2",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-compat": "^0.1.0"
   },
   "devDependencies": {
     "@microsoft/eslint-formatter-sarif": "3.0.0",
@@ -76,15 +78,17 @@
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p .",
     "watch": "tsc --watch -p .",
-    "test": "mocha --require ts-node/register --timeout 5000 --ui bdd ./test/*.test.ts",
+    "test2": "mocha --require ts-node/register --timeout 5000 --ui bdd ./test/*.test.ts",
+    "test-ts": "mocha --require ts-node/register ./test/*.test.ts",
     "coverage": "nyc mocha --require ts-node/register --timeout 5000 --require source-map-support/register --recursive --ui bdd ./test/*.test.ts",
     "coveralls": "nyc --reporter=lcov --reporter=text mocha --timeout 5000 --require ts-node/register --require source-map-support/register --recursive --ui bdd ./test/*.test.ts",
     "lint": "eslint --max-warnings 0 -c .eslintrc.js --ext .ts src test",
     "lint-ci": "eslint --max-warnings 0 -c .eslintrc.js -f @microsoft/eslint-formatter-sarif -o eslint-result.sarif --ext .ts src test",
     "prettier-fix": "yarn prettier --write .",
     "build": "yarn clean && yarn lint && yarn compile && yarn build:libs",
-    "build:libs": "yarn compile:umd && yarn compile:esm",
-    "compile:umd": "tsc -p ./tsconfig.umd.json",
+    "build2": "yarn clean && yarn compile && yarn build:libs",
+    "build:libs": "yarn compile:esm",
+    "compile:umd2": "tsc -p ./tsconfig.umd.json",
     "compile:esm": "tsc -p ./tsconfig.esm.json",
     "check-dependencies": "node ./scripts/check-dependencies.js",
     "pull-remote": "git pull https://github.com/redhat-developer/yaml-language-server.git main"

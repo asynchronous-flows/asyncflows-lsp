@@ -22,7 +22,6 @@ import { expect } from 'chai';
 import { SettingsState, TextDocumentTestManager } from '../src/yamlSettings';
 import { ValidationHandler } from '../src/languageserver/handlers/validationHandlers';
 import { LanguageService } from '../src/languageservice/yamlLanguageService';
-import { KUBERNETES_SCHEMA_URL } from '../src/languageservice/utils/schemaUrls';
 import { IProblem } from '../src/languageservice/parser/jsonParser07';
 import { JSONSchema } from '../src/languageservice/jsonSchema';
 import { TestTelemetry } from './utils/testsTypes';
@@ -40,9 +39,6 @@ describe('Validation Tests', () => {
       .withValidate()
       .withCompletion()
       .withCustomTags(['!Test', '!Ref sequence'])
-      .withSchemaFileMatch({ uri: KUBERNETES_SCHEMA_URL, fileMatch: ['.drone.yml'] })
-      .withSchemaFileMatch({ uri: 'https://json.schemastore.org/drone', fileMatch: ['.drone.yml'] })
-      .withSchemaFileMatch({ uri: KUBERNETES_SCHEMA_URL, fileMatch: ['test.yml'] })
       .withSchemaFileMatch({
         uri: 'https://raw.githubusercontent.com/composer/composer/master/res/composer-schema.json',
         fileMatch: ['test.yml'],
