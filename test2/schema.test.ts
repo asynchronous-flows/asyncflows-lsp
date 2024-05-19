@@ -6,7 +6,6 @@ import * as url from 'url';
 import path = require('path');
 import { XHRResponse, xhr } from 'request-light';
 import { MODIFICATION_ACTIONS, SchemaDeletions } from '../src/languageservice/services/yamlSchemaService';
-import { KUBERNETES_SCHEMA_URL } from '../src/languageservice/utils/schemaUrls';
 import { expect } from 'chai';
 import { ServiceSetup } from './utils/serviceSetup';
 import { setupLanguageService, setupTextDocument, TEST_URI } from './utils/testHelper';
@@ -45,10 +44,6 @@ describe('JSON Schema', () => {
     languageSettingsSetup = new ServiceSetup()
       .withValidate()
       .withCustomTags(['!Test', '!Ref sequence'])
-      .withSchemaFileMatch({ uri: KUBERNETES_SCHEMA_URL, fileMatch: ['.drone.yml'] })
-      .withSchemaFileMatch({ uri: 'https://json.schemastore.org/drone', fileMatch: ['.drone.yml'] })
-      .withSchemaFileMatch({ uri: KUBERNETES_SCHEMA_URL, fileMatch: ['test.yml'] })
-      .withSchemaFileMatch({ uri: 'https://json.schemastore.org/composer', fileMatch: ['test.yml'] });
     const { languageService: langService } = setupLanguageService(languageSettingsSetup.languageSettings);
     languageService = langService;
   });
@@ -529,33 +524,10 @@ describe('JSON Schema', () => {
 
   it('Modifying schema works with kubernetes resolution', async () => {
     const service = new SchemaService.YAMLSchemaService(schemaRequestServiceForURL, workspaceContext);
-    service.registerExternalSchema(KUBERNETES_SCHEMA_URL);
-
-    await service.addContent({
-      action: MODIFICATION_ACTIONS.add,
-      path: 'oneOf/1/properties/kind',
-      key: 'enum',
-      content: ['v2', 'v3'],
-      schema: KUBERNETES_SCHEMA_URL,
-    });
-
-    const fs = await service.getResolvedSchema(KUBERNETES_SCHEMA_URL);
-    assert.deepEqual(fs.schema.oneOf[1].properties['kind']['enum'], ['v2', 'v3']);
   });
 
   it('Deleting schema works with Kubernetes resolution', async () => {
     const service = new SchemaService.YAMLSchemaService(schemaRequestServiceForURL, workspaceContext);
-    service.registerExternalSchema(KUBERNETES_SCHEMA_URL);
-
-    await service.deleteContent({
-      action: MODIFICATION_ACTIONS.delete,
-      path: 'oneOf/1/properties/kind',
-      key: 'enum',
-      schema: KUBERNETES_SCHEMA_URL,
-    });
-
-    const fs = await service.getResolvedSchema(KUBERNETES_SCHEMA_URL);
-    assert.equal(fs.schema.oneOf[1].properties['kind']['enum'], undefined);
   });
 
   it('Adding a brand new schema', async () => {

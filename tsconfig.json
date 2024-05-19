@@ -3,15 +3,31 @@
     "alwaysStrict": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2020", "WebWorker"],
+    "lib": [
+      "es2020",
+      "WebWorker"
+    ],
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./out/server",
     "sourceMap": true,
     "target": "es2020",
-    "allowSyntheticDefaultImports": true, 
-    "skipLibCheck": true
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": [
+        "./src/*"
+      ]
+    }
   },
-  "include": [ "src", "test" ],
-  "exclude": ["node_modules", "out"]
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "node_modules",
+    "out"
+  ]
 }

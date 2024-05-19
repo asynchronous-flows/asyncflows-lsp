@@ -4,8 +4,8 @@ import { ISchemaAssociations } from './requestTypes';
 import { URI } from 'vscode-uri';
 import { JSONSchema } from './languageservice/jsonSchema';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { JSON_SCHEMASTORE_URL } from './languageservice/utils/schemaUrls';
 import { YamlVersion } from './languageservice/parser/yamlParser07';
+import { TomlConfig } from './helper';
 
 // Client settings interface to grab settings relevant for the language server
 export interface Settings {
@@ -76,7 +76,6 @@ export class SettingsState {
   schemaStoreSettings = [];
   customTags = [];
   schemaStoreEnabled = true;
-  schemaStoreUrl = JSON_SCHEMASTORE_URL;
   indentation: string | undefined = undefined;
   disableAdditionalProperties = false;
   disableDefaultProperties = false;
@@ -111,6 +110,8 @@ export class SettingsState {
   useSchemaSelectionRequests = false;
   hasWsChangeWatchedFileDynamicRegistration = false;
   fileExtensions: string[] = ['.yml', '.yaml'];
+  fileExtensions2: string[] = ['.yml', '.yaml', 'py'];
+  asyncflowsConfig: TomlConfig
 }
 
 export class TextDocumentTestManager extends TextDocuments<TextDocument> {

@@ -6,6 +6,7 @@
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ClientCapabilities } from 'vscode-languageserver';
 import {
+  CompletionItem as CompletionItem2,
   CompletionItem as CompletionItemBase,
   CompletionItemKind,
   CompletionList,
@@ -37,6 +38,7 @@ import { indexOf, isInComment, isMapContainsEmptyPair } from '../utils/astUtils'
 import { isModeline } from './modelineUtil';
 import { getSchemaTypeName, isAnyOfAllOfOneOfType, isPrimitiveType } from '../utils/schemaUtils';
 import { YamlNode } from '../jsonASTTypes';
+import { NODE_TYPE } from 'yaml/dist/nodes/Node';
 
 const localize = nls.loadMessageBundle();
 
@@ -85,7 +87,7 @@ export class YamlCompletion {
     private clientCapabilities: ClientCapabilities = {},
     private yamlDocument: YamlDocuments,
     private readonly telemetry?: Telemetry
-  ) {}
+  ) { }
 
   configure(languageSettings: LanguageSettings): void {
     if (languageSettings) {
@@ -96,6 +98,56 @@ export class YamlCompletion {
     this.configuredIndentation = languageSettings.indentation;
     this.disableDefaultProperties = languageSettings.disableDefaultProperties;
     this.parentSkeletonSelectedFirst = languageSettings.parentSkeletonSelectedFirst;
+  }
+
+  getFlows(currentDoc: SingleYAMLDocument, document: TextDocument): null | CompletionList{
+    const flowsItems = [];
+    const node = currentDoc.root;
+    if (node) {
+      for (let i = 0; i < node.children.length; i++) {
+        const children = node.children[i];
+        const offset = children.offset;
+        let flowNode = currentDoc.getNodeFromOffset(offset);
+        if (!flowNode) {
+          return null;
+        }
+        if (flowNode.value == "flow") {
+          const flows = flowNode.internalNode.clone();
+          if (flows) {
+            const flowItems = children.internalNode.toJSON();
+            const entries = Object.entries(flowItems['flow']);
+            entries.forEach(item => {
+              flowsItems.push(item[0]);
+            })
+          }
+        }
+      }
+    }
+    if (flowsItems.length == 0) {
+      return null;
+    }
+    const completionItems: CompletionItem[] = [];
+    flowsItems.forEach(item => {
+      const completionItem = CompletionItem2.create(item);
+      completionItems.push(completionItem);
+    })
+    const items = CompletionList.create(completionItems, false);
+    return items;
+  }
+
+  doComplete2(document: TextDocument, position: Position, currentDoc: SingleYAMLDocument): CompletionList | undefined {
+    const offset = document.offsetAt(position);
+    let node = currentDoc.getNodeFromOffset(offset);
+    if (node.parent) {
+      const children = node.parent.children;
+      if (children.length == 2) {
+        const key = children[0];
+        const value = children[1];
+        if ((key.value == "link" || key.value == "default_output") && value.value == null) {
+          return this.getFlows(currentDoc, document);
+        }
+      }
+    }
   }
 
   async doComplete(document: TextDocument, position: Position, isKubernetes = false, doComplete = true): Promise<CompletionList> {
@@ -134,6 +186,10 @@ export class YamlCompletion {
 
     // as we modify AST for completion, we need to use copy of original document
     currentDoc = currentDoc.clone();
+    const completion = this.doComplete2(document, position, currentDoc);
+    if (completion) {
+      return completion;
+    }
 
     let [node, foundByClosest] = currentDoc.getNodeFromPosition(offset, textBuffer, this.indentation.length);
 
@@ -186,7 +242,7 @@ export class YamlCompletion {
     const proposed: { [key: string]: CompletionItem } = {};
     const collector: CompletionsCollector = {
       add: (completionItem: CompletionItem, oneOfSchema: boolean) => {
-        const addSuggestionForParent = function (completionItem: CompletionItem): void {
+        const addSuggestionForParent = function(completionItem: CompletionItem): void {
           const existsInYaml = proposed[completionItem.label]?.label === existingProposeItem;
           //don't put to parent suggestion if already in yaml
           if (existsInYaml) {
@@ -1041,9 +1097,8 @@ export class YamlCompletion {
       if (propertySchema.properties) {
         return `${resultText}\n${this.getInsertTextForObject(propertySchema, separatorAfter, indent).insertText}`;
       } else if (propertySchema.items) {
-        return `${resultText}\n${indent}- ${
-          this.getInsertTextForArray(propertySchema.items, separatorAfter, 1, indent).insertText
-        }`;
+        return `${resultText}\n${indent}- ${this.getInsertTextForArray(propertySchema.items, separatorAfter, 1, indent).insertText
+          }`;
       }
       if (nValueProposals === 0) {
         switch (type) {
@@ -1161,7 +1216,7 @@ export class YamlCompletion {
             insertText += `${indent}${
               //added quote if key is null
               key === 'null' ? this.getInsertTextForValue(key, '', 'string') : key
-            }: \${${insertIndex++}:${propertySchema.default}}\n`;
+              }: \${${insertIndex++}:${propertySchema.default}}\n`;
             break;
           case 'string':
             insertText += `${indent}${key}: \${${insertIndex++}:${convertToStringValue(propertySchema.default)}}\n`;
@@ -1341,7 +1396,7 @@ export class YamlCompletion {
     }
     const type = schema.type;
     if (Array.isArray(type)) {
-      type.forEach(function (t) {
+      type.forEach(function(t) {
         return (types[t] = true);
       });
     } else if (type) {

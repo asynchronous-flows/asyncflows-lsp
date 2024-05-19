@@ -6,12 +6,13 @@ import { configure as configureHttpRequests, xhr } from 'request-light';
 import { Connection, DidChangeConfigurationNotification, DocumentFormattingRequest } from 'vscode-languageserver';
 import { convertErrorToTelemetryMsg } from '../../languageservice/utils/objects';
 import { isRelativePath, relativeToAbsolutePath } from '../../languageservice/utils/paths';
-import { checkSchemaURI, JSON_SCHEMASTORE_URL, KUBERNETES_SCHEMA_URL } from '../../languageservice/utils/schemaUrls';
+import { checkSchemaURI } from '../../languageservice/utils/schemaUrls';
 import { LanguageService, LanguageSettings, SchemaPriority } from '../../languageservice/yamlLanguageService';
 import { SchemaSelectionRequests } from '../../requestTypes';
 import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
+import actionSchema from '@src/action_schema.json';
 
 export class SettingsHandler {
   constructor(
@@ -20,7 +21,7 @@ export class SettingsHandler {
     private readonly yamlSettings: SettingsState,
     private readonly validationHandler: ValidationHandler,
     private readonly telemetry: Telemetry
-  ) {}
+  ) { }
 
   async registerHandlers(): Promise<void> {
     if (this.yamlSettings.hasConfigurationCapability && this.yamlSettings.clientDynamicRegisterSupport) {
@@ -82,7 +83,6 @@ export class SettingsHandler {
       if (settings.yaml.schemaStore) {
         this.yamlSettings.schemaStoreEnabled = settings.yaml.schemaStore.enable;
         if (settings.yaml.schemaStore.url.length !== 0) {
-          this.yamlSettings.schemaStoreUrl = settings.yaml.schemaStore.url;
         }
       }
       if (settings.files?.associations) {
@@ -136,18 +136,29 @@ export class SettingsHandler {
     if (settings.yamlEditor && settings.yamlEditor['editor.tabSize']) {
       this.yamlSettings.indentation = ' '.repeat(tabSize);
     }
+    // const globPattern = this.yamlSettings.yamlConfigurationSettings[uri];
 
-    for (const uri in this.yamlSettings.yamlConfigurationSettings) {
-      const globPattern = this.yamlSettings.yamlConfigurationSettings[uri];
-
+    if (this.yamlSettings.asyncflowsConfig && this.yamlSettings.schemaStoreSettings.length == 0) {
+      const globPattern = this.yamlSettings.asyncflowsConfig.configs;
       const schemaObj = {
         fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
-        uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, uri, this.telemetry),
+        uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, "action_schema.json", this.telemetry),
       };
       this.yamlSettings.schemaConfigurationSettings.push(schemaObj);
     }
 
-    await this.setSchemaStoreSettingsIfNotSet();
+    // for (const uri in this.yamlSettings.yamlConfigurationSettings) {
+    //   const globPattern = this.yamlSettings.yamlConfigurationSettings[uri];
+    //   console.log(JSON.stringify(globPattern))
+
+    //   const schemaObj = {
+    //     fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
+    //     uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, uri, this.telemetry),
+    //   };
+    //   this.yamlSettings.schemaConfigurationSettings.push(schemaObj);
+    // }
+
+    // await this.setSchemaStoreSettingsIfNotSet();
     this.updateConfiguration();
     if (this.yamlSettings.useSchemaSelectionRequests) {
       this.connection.sendNotification(SchemaSelectionRequests.schemaStoreInitialized, {});
@@ -179,17 +190,9 @@ export class SettingsHandler {
    */
   private async setSchemaStoreSettingsIfNotSet(): Promise<void> {
     const schemaStoreIsSet = this.yamlSettings.schemaStoreSettings.length !== 0;
-    let schemaStoreUrl = '';
-    if (this.yamlSettings.schemaStoreUrl.length !== 0) {
-      schemaStoreUrl = this.yamlSettings.schemaStoreUrl;
-    } else {
-      schemaStoreUrl = JSON_SCHEMASTORE_URL;
-    }
 
     if (this.yamlSettings.schemaStoreEnabled && !schemaStoreIsSet) {
       try {
-        const schemaStore = await this.getSchemaStoreMatchingSchemas(schemaStoreUrl);
-        this.yamlSettings.schemaStoreSettings = schemaStore.schemas;
       } catch (err) {
         // ignore
       }
@@ -237,6 +240,26 @@ export class SettingsHandler {
       }
     }
     return languageSettings;
+  }
+
+  storeActionSchema(fileMatch: string) {
+    const languageSettings = {
+      schemas: [],
+    };
+    if (fileMatch.endsWith("/")) {
+      fileMatch += "*";
+    }
+    else {
+      fileMatch += "/*"
+    }
+    languageSettings.schemas.push({
+      uri: "action_schema.json",
+      fileMatch: [fileMatch],
+      priority: SchemaPriority.SchemaAssociation,
+      name: "asyncflows",
+      description: "Description",
+    });
+    return languageSettings
   }
 
   /**
@@ -304,9 +327,11 @@ export class SettingsHandler {
         }
       });
     }
-
     if (this.yamlSettings.schemaStoreSettings) {
-      languageSettings.schemas = languageSettings.schemas.concat(this.yamlSettings.schemaStoreSettings);
+      const config = this.yamlSettings.asyncflowsConfig;
+      if (config) {
+        languageSettings.schemas = this.storeActionSchema(config.configs).schemas;
+      }
     }
 
     this.languageService.configure(languageSettings);
@@ -336,14 +361,6 @@ export class SettingsHandler {
       languageSettings.schemas.push({ uri, fileMatch: fileMatch, priority: priorityLevel });
     } else {
       languageSettings.schemas.push({ uri, fileMatch: fileMatch, schema: schema, priority: priorityLevel });
-    }
-
-    if (fileMatch.constructor === Array && uri === KUBERNETES_SCHEMA_URL) {
-      fileMatch.forEach((url) => {
-        this.yamlSettings.specificValidatorPaths.push(url);
-      });
-    } else if (uri === KUBERNETES_SCHEMA_URL) {
-      this.yamlSettings.specificValidatorPaths.push(fileMatch);
     }
 
     return languageSettings;
