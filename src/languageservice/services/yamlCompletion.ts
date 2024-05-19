@@ -117,7 +117,7 @@ export class YamlCompletion {
             const flowItems = children.internalNode.toJSON();
             const entries = Object.entries(flowItems['flow']);
             entries.forEach(item => {
-              flowsItems.push(item[0]);
+              flowsItems.push(`${item[0]}.result`);
             })
           }
         }

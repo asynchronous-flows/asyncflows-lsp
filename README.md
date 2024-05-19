@@ -400,16 +400,22 @@ This repository only contains the server implementation. Here are some known cli
 3. Install the dependencies
    ```bash
    cd yaml-language-server
-   $ yarn install
+   $ npm install
    ```
 4. Build the language server
    ```bash
-   $ yarn run build
+   $ npm run build2
    ```
 5. The new built server is now located in ./out/server/src/server.js.
    ```bash
    node (Yaml Language Server Location)/out/server/src/server.js [--stdio]
    ```
+6. VsCode
+
+   Update `SERVER_PATH` in editors/code/.vscode/launch.json
+   Open 'Run and Debug'. Select 'Client' + Server'.
+   Close watch task.
+   In Extension Host select example directory.
 
 ### Connecting to the language server via stdio
 
