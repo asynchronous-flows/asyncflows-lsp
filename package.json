@@ -38,21 +38,22 @@
     "lodash": "4.17.21",
     "request-light": "^0.5.7",
     "toml": "^3.0.0",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-compat": "^0.1.0",
     "vscode-json-languageservice": "4.1.8",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.1",
     "vscode-languageserver-types": "^3.16.0",
     "vscode-nls": "^5.0.0",
     "vscode-uri": "^3.0.2",
-    "yaml": "2.2.2",
-    "tree-sitter": "^0.21.1",
-    "tree-sitter-compat": "^0.1.0"
+    "yaml": "2.2.2"
   },
   "devDependencies": {
     "@microsoft/eslint-formatter-sarif": "3.0.0",
     "@types/chai": "^4.2.12",
+    "@types/jest": "^29.5.12",
     "@types/mocha": "8.2.2",
-    "@types/node": "16.x",
+    "@types/node": "20.12.12",
     "@types/prettier": "2.7.2",
     "@types/sinon": "^9.0.5",
     "@types/sinon-chai": "^3.2.5",
@@ -73,8 +74,9 @@
     "sinon": "^9.0.3",
     "sinon-chai": "^3.5.0",
     "source-map-support": "^0.5.19",
-    "ts-node": "^10.0.0",
-    "typescript": "^4.8.3"
+    "ts-node": "^10.9.2",
+    "typescript": "^4.8.3",
+    "vitest": "^1.6.0"
   },
   "scripts": {
     "clean": "rimraf out/server && rimraf lib",
@@ -87,13 +89,14 @@
     "lint": "eslint --max-warnings 0 -c .eslintrc.js --ext .ts src test",
     "lint-ci": "eslint --max-warnings 0 -c .eslintrc.js -f @microsoft/eslint-formatter-sarif -o eslint-result.sarif --ext .ts src test",
     "prettier-fix": "yarn prettier --write .",
-    "build": "yarn clean && yarn lint && yarn compile && yarn build:libs",
-    "build2": "yarn clean && yarn compile && yarn build:libs",
+    "build": "npm run clean && npm run lint && npm run compile && npm run build:libs",
+    "build2": "npm run clean && npm run compile && npm run build:libs",
     "build:libs": "yarn compile:esm",
     "compile:umd2": "tsc -p ./tsconfig.umd.json",
     "compile:esm": "tsc -p ./tsconfig.esm.json",
     "check-dependencies": "node ./scripts/check-dependencies.js",
-    "pull-remote": "git pull https://github.com/redhat-developer/yaml-language-server.git main"
+    "pull-remote": "git pull https://github.com/redhat-developer/yaml-language-server.git main",
+    "tests": "vitest"
   },
   "nyc": {
     "extension": [
