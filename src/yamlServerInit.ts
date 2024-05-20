@@ -19,7 +19,6 @@ import { commandExecutor } from './languageserver/commandExecutor';
 import { Telemetry } from './languageservice/telemetry';
 import { registerCommands } from './languageservice/services/yamlCommands';
 import { readPyProject } from './helper';
-import Parser, {Point} from "tree-sitter";
 import { initQuery, initYamlParser } from './tree_sitter_queries/queries';
 
 

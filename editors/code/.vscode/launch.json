@@ -16,9 +16,6 @@
       "preLaunchTask": {
         "type": "npm",
         "script": "watch"
-      },
-      "env": {
-        "SERVER_PATH": "/home/uros/Documents/programiranje/python/asynclfows/asyncflows-lsp/bin/yaml-language-server --stdio"
       }
     },
     {
@@ -29,10 +26,7 @@
       "restart": true,
       "outFiles": [
         "${workspaceRoot}/server/out/**/*.js"
-      ],
-      "env": {
-        "SERVER_PATH": "/home/uros/Documents/programiranje/python/asynclfows/asyncflows-lsp/bin/yaml-language-server --stdio"
-      }
+      ]
     },
     {
       "name": "Language Server E2E Test",

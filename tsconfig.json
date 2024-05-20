@@ -24,7 +24,8 @@
   },
   "include": [
     "src",
-    "test"
+    "test",
+    "types"
   ],
   "exclude": [
     "node_modules",

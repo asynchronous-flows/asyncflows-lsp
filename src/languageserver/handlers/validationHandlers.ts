@@ -39,7 +39,9 @@ export class ValidationHandler {
     const request = this.yamlSettings.pendingValidationRequests[textDocument.uri];
 
     if (request) {
-      clearTimeout(request);
+      if (typeof request == "number") {
+        clearTimeout(request as number);
+      }
       delete this.yamlSettings.pendingValidationRequests[textDocument.uri];
     }
   }
