@@ -100,7 +100,7 @@ export class YamlCompletion {
     this.parentSkeletonSelectedFirst = languageSettings.parentSkeletonSelectedFirst;
   }
 
-  getFlows(currentDoc: SingleYAMLDocument, document: TextDocument): null | CompletionList{
+  getFlows(currentDoc: SingleYAMLDocument, document: TextDocument): null | CompletionList {
     const flowsItems = [];
     const node = currentDoc.root;
     if (node) {

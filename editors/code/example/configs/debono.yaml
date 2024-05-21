@@ -83,5 +83,4 @@ flow:
           How can these insights be integrated into a coherent strategy? 
           Outline a plan with clear steps or actions, indicating responsibilities, deadlines, and milestones. 
           Consider how you will monitor progress and what criteria you will use to evaluate success.
-
-default_output: red_hat
+default_output: black_hat
