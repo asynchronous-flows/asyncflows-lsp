@@ -2,9 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "downlevelIteration": true,
-    "lib": ["WebWorker"],
+    "lib": [
+      "WebWorker"
+    ],
     "module": "esnext",
-    "outDir": "./lib/esm",
+    "outDir": "lib/esm"
   },
   "exclude": [
     "node_modules",

@@ -76,7 +76,7 @@ flow:
       - heading: Yellow Hat
         link: yellow_hat.result
       - heading: Green Hat
-        link: red_hat.result
+        link: black_hat.result
       - text: |
           Review and synthesize the information and ideas generated from the other hats. 
           Assess which ideas are most feasible and effective based on the facts (White Hat), emotions (Red Hat), risks (Black Hat), benefits (Yellow Hat), and creative solutions (Green Hat). 

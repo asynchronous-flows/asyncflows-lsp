@@ -1,9 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "lib": ["webworker"],
+    "lib": [
+      "webworker"
+    ],
     "module": "umd",
-    "outDir": "./lib/umd",
+    "outDir": "./lib/umd"
   },
   "exclude": [
     "node_modules",
