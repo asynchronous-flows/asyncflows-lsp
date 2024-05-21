@@ -1,6 +1,6 @@
 {
-  "name": "yaml-language-server",
-  "description": "YAML language server",
+  "name": "asyncflows-lsp",
+  "description": "Asyncflows language server",
   "version": "1.15.0",
   "author": "Gorkem Ercan (Red Hat)",
   "license": "MIT",
@@ -18,7 +18,7 @@
     }
   ],
   "bin": {
-    "yaml-language-server": "./bin/yaml-language-server"
+    "asyncflows-lsp": "./bin/asyncflows-lsp"
   },
   "main": "./out/server/src/index.js",
   "keywords": [
@@ -75,7 +75,7 @@
     "vitest": "^1.6.0"
   },
   "scripts": {
-    "clean": "rimraf out/server && rimraf lib",
+    "clean": "rimraf out/server && rimraf lib && rimraf editors/code/server",
     "compile": "tsc -p .",
     "watch": "tsc --watch -p .",
     "test2": "mocha --require ts-node/register --timeout 5000 --ui bdd ./test/*.test.ts",
@@ -86,13 +86,16 @@
     "lint-ci": "eslint --max-warnings 0 -c .eslintrc.js -f @microsoft/eslint-formatter-sarif -o eslint-result.sarif --ext .ts src test",
     "prettier-fix": "yarn prettier --write .",
     "build": "npm run clean && npm run lint && npm run compile && npm run build:libs",
-    "build2": "npm run clean && npm run compile && npm run build:libs",
+    "build2": "npm run clean && npm run compile && npm run build:libs2",
     "build:libs": "yarn compile:esm",
+    "build:libs2": "yarn compile:esm2",
     "compile:umd2": "tsc -p ./tsconfig.umd.json",
     "compile:esm": "tsc -p ./tsconfig.esm.json",
+    "compile:esm2": "tsc -p ./tsconfig.esm.json",
     "check-dependencies": "node ./scripts/check-dependencies.js",
     "pull-remote": "git pull https://github.com/redhat-developer/yaml-language-server.git main",
-    "tests": "vitest"
+    "tests": "vitest",
+    "move-build": "ln -s bin/ editors/code/ -r -f && ln -s lib/ editors/code/ -r -f && ln -s out/ editors/code/ -r -f"
   },
   "nyc": {
     "extension": [
@@ -106,7 +109,8 @@
       "lib",
       "coverage/",
       ".eslintrc.js",
-      "scripts"
+      "scripts",
+      "editors/code/out"
     ],
     "all": true
   }
