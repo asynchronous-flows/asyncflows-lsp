@@ -417,6 +417,10 @@ This repository only contains the server implementation. Here are some known cli
    Close watch task in terminal.
    In newly opened VSCode instance open example directory.
    Open configs/debono.yaml
+7. vsix
+   ```bash
+   npm run package
+   ```
 
 ### Connecting to the language server via stdio
 
