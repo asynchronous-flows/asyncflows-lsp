@@ -1,6 +1,8 @@
 import "path"
 import { readFile, readFileSync, stat, statSync } from "fs"
 import { parse as tomlParse } from "toml";
+import { spawn } from "child_process";
+import { SettingsState } from "./yamlSettings";
 
 export function readPyProject(): string | TomlConfig {
   let errors: string | TomlConfig = "Config not found";
@@ -20,13 +22,12 @@ export function readPyProject(): string | TomlConfig {
       }
       const configs = asyncflows['configs'];
       const actions = asyncflows['actions'];
-      const venv = asyncflows['venv'];
-      if (configs && actions && venv) {
-        if (configs == "" || actions == "" || venv == "") {
+      if (configs && actions) {
+        if (configs == "" || actions == "") {
           errors = "Please input directory";
           return errors;
         }
-        if (typeof configs != "string" && typeof actions != "string" && typeof venv != "string") {
+        if (typeof configs != "string" && typeof actions != "string") {
           errors = "Input directory should be of type `string`"
           return errors;
         }
@@ -46,25 +47,13 @@ export function readPyProject(): string | TomlConfig {
             failed = true;
             return errors;
           }
-          try {
-            const stat = statSync(venv);
-            if (!stat.isFile()) {
-              errors = `Python path not found`;
-              failed = true;
-              return errors;
-            }
-          }
-          catch(e) {
-            errors = `Venv path not found`
-            failed = true;
-            return errors;
-          }
         }
         if (failed) {
+          console.log(`msg: ${failed}`);
           return errors;
         }
         else {
-          errors = { configs, actions, venv };
+          errors = { configs, actions };
           return errors;
         }
       }
@@ -82,5 +71,21 @@ export function readPyProject(): string | TomlConfig {
 export interface TomlConfig {
   configs: string,
   actions: string,
-  venv: string
+}
+
+export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void): string{
+  // python scripts/generate_config_schema.py --flow configs/config.yaml
+  let output = "";
+  const process = spawn("python", ['scripts/generate_config_schema.py', '--flow', yamlConfig.replace("file://", "")]);
+  process.stdout.on('data', (data) => {
+    output = data.toString() as string;
+    // settings.newSchema = output;
+    updateConfig(output);
+  })
+  process.stderr.on('data', (err) => {
+    output = err.toString();
+    console.log(`Output error: ${err.toString()}`);
+  })
+
+  return output;
 }
