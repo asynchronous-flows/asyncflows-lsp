@@ -48,6 +48,7 @@ export class YAMLServerInit {
       const result = readPyProject();      
       if (typeof result == 'string') {
         console.log(`Config error is: ${result}`);
+        this.yamlSettings.asyncflowsConfig = {actions: "", configs: "**/**.yaml"};
       }
       else if(typeof result == 'object') {
         console.log(`Config is validated`);
