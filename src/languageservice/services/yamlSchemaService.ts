@@ -5,7 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { JSONSchema, JSONSchemaMap, JSONSchemaRef } from '../jsonSchema';
-import { SchemaPriority, SchemaRequestService, WorkspaceContextService } from '../yamlLanguageService';
+import { LanguageService, SchemaPriority, SchemaRequestService, WorkspaceContextService } from '../yamlLanguageService';
 import {
   UnresolvedSchema,
   ResolvedSchema,
@@ -111,18 +111,21 @@ export class YAMLSchemaService extends JSONSchemaService {
   private contextService: WorkspaceContextService;
   private requestService: SchemaRequestService;
   public schemaPriorityMapping: Map<string, Set<SchemaPriority>>;
+  public languageService: LanguageService;
 
   private schemaUriToNameAndDescription = new Map<string, SchemaStoreSchema>();
 
   constructor(
     requestService: SchemaRequestService,
     contextService?: WorkspaceContextService,
-    promiseConstructor?: PromiseConstructor
+    promiseConstructor?: PromiseConstructor,
+    languageService?: LanguageService
   ) {
     super(requestService, contextService, promiseConstructor);
     this.customSchemaProvider = undefined;
     this.requestService = requestService;
     this.schemaPriorityMapping = new Map();
+    this.languageService = languageService;
   }
 
   registerCustomSchemaProvider(customSchemaProvider: CustomSchemaProvider): void {
@@ -637,11 +640,12 @@ export class YAMLSchemaService extends JSONSchemaService {
     return super.loadSchema(schemaUri).then((unresolvedJsonSchema: UnresolvedSchema) => {
       // If json-language-server failed to parse the schema, attempt to parse it as YAML instead.
 
-      if (schemaUri == "action_schema.json") {
+      // if (schemaUri == "action_schema.json") {
       // if (unresolvedJsonSchema.errors && unresolvedJsonSchema.schema === undefined) {
         return requestService(schemaUri).then(
           (content) => {
-            content = JSON.stringify(actionSchema);
+            const newContent = this.languageService.updatedSchema.get(schemaUri);
+            content = JSON.stringify(newContent);
             if (!content) {
               const errorMessage = localize(
                 'json.schema.nocontent',
@@ -676,7 +680,7 @@ export class YAMLSchemaService extends JSONSchemaService {
             return new UnresolvedSchema(<JSONSchema>{}, [errorMessage]);
           }
         );
-      }
+      // }
       unresolvedJsonSchema.uri = schemaUri;
       if (this.schemaUriToNameAndDescription.has(schemaUri)) {
         const { name, description, versions } = this.schemaUriToNameAndDescription.get(schemaUri);

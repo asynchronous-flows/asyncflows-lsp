@@ -179,6 +179,11 @@ export interface LanguageService {
   getCodeAction: (document: TextDocument, params: CodeActionParams) => CodeAction[] | undefined;
   getCodeLens: (document: TextDocument) => PromiseLike<CodeLens[] | undefined> | CodeLens[] | undefined;
   resolveCodeLens: (param: CodeLens) => PromiseLike<CodeLens> | CodeLens;
+  addSchema2(uri: string, content: string): void;
+  updatedSchema: Map<string, any>;
+  configure2: (schemas: SchemasSettings[]) => void;
+  defaultSchemas: SchemasSettings[];
+
 }
 
 export function getLanguageService(params: {
@@ -201,8 +206,23 @@ export function getLanguageService(params: {
   const yamlDefinition = new YamlDefinition(params.telemetry);
 
   new JSONSchemaSelection(schemaService, params.yamlSettings, params.connection);
+  // sche
 
-  return {
+  const languageService = {
+    configure2: (schemas) => {
+      schemas.forEach((settings) => {
+        const currPriority = settings.priority ? settings.priority : 0;
+        schemaService.addSchemaPriority(settings.uri, currPriority);
+        schemaService.registerExternalSchema(
+          settings.uri,
+          settings.fileMatch,
+          settings.schema,
+          settings.name,
+          settings.description,
+          settings.versions
+        );
+      })
+    },
     configure: (settings) => {
       schemaService.clearExternalSchemas();
       if (settings.schemas) {
@@ -265,5 +285,12 @@ export function getLanguageService(params: {
       return yamlCodeLens.getCodeLens(document);
     },
     resolveCodeLens: (param) => yamlCodeLens.resolveCodeLens(param),
+    addSchema2(uri, content) {
+
+    },
+    updatedSchema: new Map(),
+    defaultSchemas: [],
   };
+  schemaService.languageService = languageService;
+  return languageService;
 }
