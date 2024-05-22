@@ -365,7 +365,7 @@ export class SettingsHandler {
         break;
       }
     }
-    languageService.updatedSchema.set(uri, JSON.parse(JSON.stringify(content)));
+    languageService.updatedSchema.set(uri, JSON.parse(content));
     if (itemIndex == undefined) {
       const schema2: SchemasSettings = {
         fileMatch: [uri.replace('file://', '')],

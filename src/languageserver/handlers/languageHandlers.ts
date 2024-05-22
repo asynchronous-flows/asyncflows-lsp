@@ -77,7 +77,7 @@ export class LanguageHandlers {
           this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
         }
         else {
-          console.log(`content: ${content}`)
+          console.log(`content error: ${content}`)
         }
       });
     })
