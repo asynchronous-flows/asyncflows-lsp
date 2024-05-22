@@ -93,6 +93,7 @@
     "check-dependencies": "node ./scripts/check-dependencies.js",
     "pull-remote": "git pull https://github.com/redhat-developer/yaml-language-server.git main",
     "tests": "vitest",
+    "move-server": "mkdir editors/code/out && cp -r node_modules editors/code/out && cp -r out editors/code/out && cp -r bin editors/code/out && cp -r lib editors/code/out",
     "move-build": "ln -s bin/ editors/code/ -r -f && ln -s lib/ editors/code/ -r -f && ln -s out/ editors/code/ -r -f"
   },
   "nyc": {
