@@ -12,7 +12,7 @@ import { SchemaSelectionRequests } from '../../requestTypes';
 import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
-import actionSchema from '@src/action_schema.json';
+import actionSchema from '../../action_schema.json';
 
 export class SettingsHandler {
   constructor(
@@ -136,27 +136,27 @@ export class SettingsHandler {
     if (settings.yamlEditor && settings.yamlEditor['editor.tabSize']) {
       this.yamlSettings.indentation = ' '.repeat(tabSize);
     }
-    // const globPattern = this.yamlSettings.yamlConfigurationSettings[uri];
 
     if (this.yamlSettings.asyncflowsConfig && this.yamlSettings.schemaStoreSettings.length == 0) {
-      const globPattern = this.yamlSettings.asyncflowsConfig.configs;
+      // const globPattern = this.yamlSettings.asyncflowsConfig.configs;
+      const globPattern = "/home/uros/Documents/programiranje/python/asyncflows/asyncflows-lsp/editors/code/example/configs/debono.yaml";
+      // const schemaObj = {
+      //   fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
+      //   uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, "action_schema.json", this.telemetry),
+      // };
+      // this.yamlSettings.schemaConfigurationSettings.push(schemaObj);
+    }
+
+    for (const uri in this.yamlSettings.yamlConfigurationSettings) {
+      const globPattern = this.yamlSettings.yamlConfigurationSettings[uri];
+      console.log(JSON.stringify(globPattern))
+
       const schemaObj = {
         fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
-        uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, "action_schema.json", this.telemetry),
+        uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, uri, this.telemetry),
       };
       this.yamlSettings.schemaConfigurationSettings.push(schemaObj);
     }
-
-    // for (const uri in this.yamlSettings.yamlConfigurationSettings) {
-    //   const globPattern = this.yamlSettings.yamlConfigurationSettings[uri];
-    //   console.log(JSON.stringify(globPattern))
-
-    //   const schemaObj = {
-    //     fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
-    //     uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, uri, this.telemetry),
-    //   };
-    //   this.yamlSettings.schemaConfigurationSettings.push(schemaObj);
-    // }
 
     // await this.setSchemaStoreSettingsIfNotSet();
     this.updateConfiguration();
@@ -246,12 +246,13 @@ export class SettingsHandler {
     const languageSettings = {
       schemas: [],
     };
-    if (fileMatch.endsWith("/")) {
-      fileMatch += "*";
-    }
-    else {
-      fileMatch += "/*"
-    }
+    // if (fileMatch.endsWith("/")) {
+    //   fileMatch += "*";
+    // }
+    // else {
+    //   fileMatch += "/*"
+    // }
+    // console.log(`filematch: ${fileMatch}`);
     languageSettings.schemas.push({
       uri: "action_schema.json",
       fileMatch: [fileMatch],
