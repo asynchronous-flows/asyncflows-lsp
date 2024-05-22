@@ -187,10 +187,10 @@ export class YamlCompletion {
 
     // as we modify AST for completion, we need to use copy of original document
     currentDoc = currentDoc.clone();
-    const completion = this.doComplete2(document, position, currentDoc);
-    if (completion) {
-      return completion;
-    }
+    // const completion = this.doComplete2(document, position, currentDoc);
+    // if (completion) {
+    //   return completion;
+    // }
 
     let [node, foundByClosest] = currentDoc.getNodeFromPosition(offset, textBuffer, this.indentation.length);
 
