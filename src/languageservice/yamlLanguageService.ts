@@ -179,7 +179,7 @@ export interface LanguageService {
   getCodeAction: (document: TextDocument, params: CodeActionParams) => CodeAction[] | undefined;
   getCodeLens: (document: TextDocument) => PromiseLike<CodeLens[] | undefined> | CodeLens[] | undefined;
   resolveCodeLens: (param: CodeLens) => PromiseLike<CodeLens> | CodeLens;
-  addSchema2(uri: string, content: string): void;
+  addSchema2(uri: string, content: string, languageService: LanguageService): void;
   updatedSchema: Map<string, any>;
   configure2: (schemas: SchemasSettings[]) => void;
   defaultSchemas: SchemasSettings[];
@@ -206,7 +206,6 @@ export function getLanguageService(params: {
   const yamlDefinition = new YamlDefinition(params.telemetry);
 
   new JSONSchemaSelection(schemaService, params.yamlSettings, params.connection);
-  // sche
 
   const languageService = {
     configure2: (schemas) => {
@@ -285,7 +284,7 @@ export function getLanguageService(params: {
       return yamlCodeLens.getCodeLens(document);
     },
     resolveCodeLens: (param) => yamlCodeLens.resolveCodeLens(param),
-    addSchema2(uri, content) {
+    addSchema2(uri, content, ls) {
 
     },
     updatedSchema: new Map(),

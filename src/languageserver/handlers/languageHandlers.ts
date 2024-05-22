@@ -73,8 +73,11 @@ export class LanguageHandlers {
     this.connection.onDefinition((params) => this.definitionHandler(params));
     this.connection.onDidSaveTextDocument((params) => {
       read2(params.textDocument.uri, this.yamlSettings, (content) => {
-        if(!content.includes('Traceback')) {
-          this.languageService.addSchema2(params.textDocument.uri, content);
+        if (!content.includes('Traceback')) {
+          this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
+        }
+        else {
+          console.log(`content: ${content}`)
         }
       });
     })
