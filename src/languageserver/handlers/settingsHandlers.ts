@@ -13,6 +13,7 @@ import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
 import * as actionSchema from '../../action_schema.json';
+import { write, writeFile } from 'fs';
 
 export class SettingsHandler {
   constructor(
@@ -22,12 +23,12 @@ export class SettingsHandler {
     private readonly validationHandler: ValidationHandler,
     private readonly telemetry: Telemetry
   ) {
-    console.log(`ls: ${languageService.addSchema2}`);
-    
-        }
+  }
 
   async registerHandlers(): Promise<void> {
-    this.languageService.addSchema2 = this.configureFromPython;
+    this.languageService.addSchema2 = (uri, content, ls) => {
+      this.configureFromPython(uri, content, ls);
+    }
     if (this.yamlSettings.hasConfigurationCapability && this.yamlSettings.clientDynamicRegisterSupport) {
       try {
         // Register for all configuration changes.
@@ -143,7 +144,7 @@ export class SettingsHandler {
 
     if (this.yamlSettings.asyncflowsConfig && this.yamlSettings.schemaStoreSettings.length == 0) {
       // const globPattern = this.yamlSettings.asyncflowsConfig.configs;
-      const globPattern = "/home/uros/Documents/programiranje/python/asyncflows/asyncflows-lsp/editors/code/example/configs/debono.yaml";
+      // const globPattern = "/home/uros/Documents/programiranje/python/asyncflows/asyncflows-lsp/editors/code/example/configs/debono.yaml";
       // const schemaObj = {
       //   fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
       //   uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, "action_schema.json", this.telemetry),
@@ -248,7 +249,7 @@ export class SettingsHandler {
   storeDefaultSchema(fileMatch: string) {
     // this.languageService.updatedSchema.
 
-    
+
     this.languageService.updatedSchema.set('action_schema.json', actionSchema);
     const languageSettings = {
       schemas: [],
@@ -260,6 +261,7 @@ export class SettingsHandler {
     //   fileMatch += "/*"
     // }
     // console.log(`filematch: ${fileMatch}`);
+
     languageSettings.schemas.push({
       uri: "action_schema.json",
       fileMatch: [fileMatch],
@@ -311,9 +313,13 @@ export class SettingsHandler {
       }
     }
 
+    let foundActionSchema = false;
     if (this.yamlSettings.schemaConfigurationSettings) {
       this.yamlSettings.schemaConfigurationSettings.forEach((schema) => {
         let uri = schema.uri;
+        if (uri == "action_schema.json") {
+          foundActionSchema = true;
+        }
         if (!uri && schema.schema) {
           uri = schema.schema.id;
         }
@@ -335,7 +341,8 @@ export class SettingsHandler {
         }
       });
     }
-    if (this.yamlSettings.schemaStoreSettings) {
+    if (this.yamlSettings.schemaConfigurationSettings.length == 0) {
+      // on load do this
       const config = this.yamlSettings.asyncflowsConfig;
       if (config) {
         languageSettings.schemas = this.storeDefaultSchema(config.configs).schemas;
@@ -348,44 +355,31 @@ export class SettingsHandler {
     this.yamlSettings.documents.all().forEach((document) => this.validationHandler.validate(document));
   }
 
-  configureFromPython(uri: string, content: string) {
-    // console.log(`URI: ${uri}`);
-
-    if(!this.languageService.updatedSchema) {
-      this.languageService.updatedSchema = new Map();
-    }
-    this.languageService.updatedSchema.set(uri, JSON.parse(content));
-    const schema: SchemasSettings = {
-      fileMatch: [uri.replace('file://', '')],
-      uri: uri,
-      name: uri.split('/').at(-1),
-      priority: SchemaPriority.SchemaAssociation,
-      description: ""
-    };
-    const languageSettings = this.languageService.defaultSchemas;
-    let index: number | undefined = undefined;
-    for (let i = 0; i < languageSettings.length; i++) {
-      const settings = languageSettings[i];
-      if (settings.uri.startsWith("action_schema")) {
-        languageSettings.splice(i);
-      }
-      if (settings.uri == uri) {
-        index = i;
+  configureFromPython(uri: string, content: string, languageService: LanguageService) {
+    // this.updateConfiguration();
+    // return ;
+    let itemIndex = undefined;
+    for (let i = 0; i < this.yamlSettings.schemaConfigurationSettings.length; i++) {
+      if (this.yamlSettings.schemaConfigurationSettings[i].uri == uri) {
+        itemIndex = i;
         break;
       }
     }
-    if (index != undefined) {
-      languageSettings[index] = schema;
+    languageService.updatedSchema.set(uri, JSON.parse(JSON.stringify(content)));
+    if (itemIndex == undefined) {
+      const schema2: SchemasSettings = {
+        fileMatch: [uri.replace('file://', '')],
+        uri: uri,
+        name: uri.split('/').at(-1),
+        priority: SchemaPriority.SchemaAssociation,
+        description: ""
+      };
+      this.yamlSettings.schemaConfigurationSettings.push(
+        schema2
+      )
     }
-    else {
-      languageSettings.push(schema);
-    }
-    this.languageService.configure2(languageSettings);
-    this.yamlSettings.documents.all().forEach((document) => this.validationHandler.validate(document));
-    // this.languageService.addSchema2(uri, content);
-    // this.languageService.
-    // console.log('ok')
-
+    this.updateConfiguration();
+    return;
   }
 
   /**
@@ -410,7 +404,6 @@ export class SettingsHandler {
     } else {
       languageSettings.schemas.push({ uri, fileMatch: fileMatch, schema: schema, priority: priorityLevel });
     }
-
     return languageSettings;
   }
 }
