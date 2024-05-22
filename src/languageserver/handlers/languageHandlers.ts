@@ -36,6 +36,7 @@ import { SettingsState } from '../../yamlSettings';
 import { ValidationHandler } from './validationHandlers';
 import { ResultLimitReachedNotification } from '../../requestTypes';
 import * as path from 'path';
+import { read2 } from '../../helper';
 
 export class LanguageHandlers {
   private languageService: LanguageService;
@@ -70,6 +71,13 @@ export class LanguageHandlers {
     this.connection.onCodeLens((params) => this.codeLensHandler(params));
     this.connection.onCodeLensResolve((params) => this.codeLensResolveHandler(params));
     this.connection.onDefinition((params) => this.definitionHandler(params));
+    this.connection.onDidSaveTextDocument((params) => {
+      read2(params.textDocument.uri, this.yamlSettings, (content) => {
+        if(!content.includes('Traceback')) {
+          this.languageService.addSchema2(params.textDocument.uri, content);
+        }
+      });
+    })
 
     this.yamlSettings.documents.onDidChangeContent((change) => this.cancelLimitExceededWarnings(change.document.uri));
     this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));

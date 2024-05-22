@@ -3,6 +3,7 @@ import { readFile, readFileSync, stat, statSync } from "fs"
 import { parse as tomlParse } from "toml";
 import { spawn } from "child_process";
 import { SettingsState } from "./yamlSettings";
+import { SchemaPriority } from "./languageservice/yamlLanguageService";
 
 export function readPyProject(): string | TomlConfig {
   let errors: string | TomlConfig = "Config not found";
@@ -74,9 +75,8 @@ export interface TomlConfig {
 }
 
 export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void): string{
-  // python scripts/generate_config_schema.py --flow configs/config.yaml
   let output = "";
-  const process = spawn("python", ['scripts/generate_config_schema.py', '--flow', yamlConfig.replace("file://", "")]);
+  const process = spawn("python", ['-m',  'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
   process.stdout.on('data', (data) => {
     output = data.toString() as string;
     // settings.newSchema = output;
@@ -88,4 +88,16 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
   })
 
   return output;
+}
+
+export function createSchema(uri: string) {
+  const name = uri.split('/').at(-1);
+  const fileMatch = uri.replace('file://', '');
+  return {
+      uri: name,
+      fileMatch: [fileMatch],
+      priority: SchemaPriority.SchemaAssociation,
+      name: `asyncflows_${name}`,
+      description: "Description",
+    }
 }

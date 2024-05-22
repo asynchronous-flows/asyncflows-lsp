@@ -144,7 +144,8 @@ export class YamlCompletion {
         const key = children[0];
         const value = children[1];
         if ((key.value == "link" || key.value == "default_output") && value.value == null) {
-          return this.getFlows(currentDoc, document);
+          return undefined;
+          // return this.getFlows(currentDoc, document);
         }
       }
     }

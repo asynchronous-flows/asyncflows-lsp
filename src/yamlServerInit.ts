@@ -45,15 +45,16 @@ export class YAMLServerInit {
       return this.connectionInitialized(params);
     });
     this.connection.onInitialized(() => {
-      const result = readPyProject();      
-      if (typeof result == 'string') {
-        console.log(`Config error is: ${result}`);
-        this.yamlSettings.asyncflowsConfig = {actions: "", configs: "**/**.yaml"};
-      }
-      else if(typeof result == 'object') {
-        console.log(`Config is validated`);
-        this.yamlSettings.asyncflowsConfig = result;
-      }
+      // const result = readPyProject();      
+      this.yamlSettings.asyncflowsConfig = {actions: "", configs: "**/**.yaml"};
+      // if (typeof result == 'string') {
+      //   console.log(`Config error is: ${result}`);
+      //   this.yamlSettings.asyncflowsConfig = {actions: "", configs: "**/**.yaml"};
+      // }
+      // else if(typeof result == 'object') {
+      //   console.log(`Config is validated`);
+      //   this.yamlSettings.asyncflowsConfig = result;
+      // }
       if (this.yamlSettings.hasWsChangeWatchedFileDynamicRegistration) {
         this.connection.workspace.onDidChangeWorkspaceFolders((changedFolders) => {
           this.yamlSettings.workspaceFolders = workspaceFoldersChanged(this.yamlSettings.workspaceFolders, changedFolders);
@@ -149,7 +150,7 @@ export class YAMLServerInit {
       this.languageService,
       this.yamlSettings,
       this.validationHandler,
-      this.telemetry
+      this.telemetry, 
     );
     // this.settingsHandler.registerHandlers();
     this.languageHandler = new LanguageHandlers(this.connection, this.languageService, this.yamlSettings, this.validationHandler);

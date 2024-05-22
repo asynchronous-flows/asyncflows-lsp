@@ -7,23 +7,27 @@ import { Connection, DidChangeConfigurationNotification, DocumentFormattingReque
 import { convertErrorToTelemetryMsg } from '../../languageservice/utils/objects';
 import { isRelativePath, relativeToAbsolutePath } from '../../languageservice/utils/paths';
 import { checkSchemaURI } from '../../languageservice/utils/schemaUrls';
-import { LanguageService, LanguageSettings, SchemaPriority } from '../../languageservice/yamlLanguageService';
+import { LanguageService, LanguageSettings, SchemaPriority, SchemasSettings } from '../../languageservice/yamlLanguageService';
 import { SchemaSelectionRequests } from '../../requestTypes';
 import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
-import actionSchema from '../../action_schema.json';
+import * as actionSchema from '../../action_schema.json';
 
 export class SettingsHandler {
   constructor(
     private readonly connection: Connection,
-    private readonly languageService: LanguageService,
+    private languageService: LanguageService,
     private readonly yamlSettings: SettingsState,
     private readonly validationHandler: ValidationHandler,
     private readonly telemetry: Telemetry
-  ) { }
+  ) {
+    console.log(`ls: ${languageService.addSchema2}`);
+    
+        }
 
   async registerHandlers(): Promise<void> {
+    this.languageService.addSchema2 = this.configureFromPython;
     if (this.yamlSettings.hasConfigurationCapability && this.yamlSettings.clientDynamicRegisterSupport) {
       try {
         // Register for all configuration changes.
@@ -149,7 +153,6 @@ export class SettingsHandler {
 
     for (const uri in this.yamlSettings.yamlConfigurationSettings) {
       const globPattern = this.yamlSettings.yamlConfigurationSettings[uri];
-      console.log(JSON.stringify(globPattern))
 
       const schemaObj = {
         fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
@@ -242,7 +245,11 @@ export class SettingsHandler {
     return languageSettings;
   }
 
-  storeActionSchema(fileMatch: string) {
+  storeDefaultSchema(fileMatch: string) {
+    // this.languageService.updatedSchema.
+
+    
+    this.languageService.updatedSchema.set('action_schema.json', actionSchema);
     const languageSettings = {
       schemas: [],
     };
@@ -331,7 +338,7 @@ export class SettingsHandler {
     if (this.yamlSettings.schemaStoreSettings) {
       const config = this.yamlSettings.asyncflowsConfig;
       if (config) {
-        languageSettings.schemas = this.storeActionSchema(config.configs).schemas;
+        languageSettings.schemas = this.storeDefaultSchema(config.configs).schemas;
       }
     }
 
@@ -339,6 +346,46 @@ export class SettingsHandler {
 
     // Revalidate any open text documents
     this.yamlSettings.documents.all().forEach((document) => this.validationHandler.validate(document));
+  }
+
+  configureFromPython(uri: string, content: string) {
+    // console.log(`URI: ${uri}`);
+
+    if(!this.languageService.updatedSchema) {
+      this.languageService.updatedSchema = new Map();
+    }
+    this.languageService.updatedSchema.set(uri, JSON.parse(content));
+    const schema: SchemasSettings = {
+      fileMatch: [uri.replace('file://', '')],
+      uri: uri,
+      name: uri.split('/').at(-1),
+      priority: SchemaPriority.SchemaAssociation,
+      description: ""
+    };
+    const languageSettings = this.languageService.defaultSchemas;
+    let index: number | undefined = undefined;
+    for (let i = 0; i < languageSettings.length; i++) {
+      const settings = languageSettings[i];
+      if (settings.uri.startsWith("action_schema")) {
+        languageSettings.splice(i);
+      }
+      if (settings.uri == uri) {
+        index = i;
+        break;
+      }
+    }
+    if (index != undefined) {
+      languageSettings[index] = schema;
+    }
+    else {
+      languageSettings.push(schema);
+    }
+    this.languageService.configure2(languageSettings);
+    this.yamlSettings.documents.all().forEach((document) => this.validationHandler.validate(document));
+    // this.languageService.addSchema2(uri, content);
+    // this.languageService.
+    // console.log('ok')
+
   }
 
   /**
