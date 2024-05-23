@@ -122,6 +122,7 @@ export class YAMLServerInit {
         },
         documentRangeFormattingProvider: false,
         definitionProvider: true,
+        declarationProvider: true,
         documentLinkProvider: {},
         foldingRangeProvider: true,
         selectionRangeProvider: true,

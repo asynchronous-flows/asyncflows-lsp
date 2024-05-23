@@ -23,6 +23,7 @@ export class YamlDefinition {
       const currentDoc = matchOffsetToDocument(offset, yamlDocument);
       if (currentDoc) {
         const [node] = currentDoc.getNodeFromPosition(offset, new TextBuffer(document));
+        // console.log(`node: ${node.clone()}, is: ${isAlias(node)}`)
         if (node && isAlias(node)) {
           const defNode = node.resolve(currentDoc.internalDocument);
           if (defNode && defNode.range) {

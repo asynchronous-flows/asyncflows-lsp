@@ -54,6 +54,8 @@ import { SettingsState } from '../yamlSettings';
 import { JSONSchemaSelection } from '../languageserver/handlers/schemaSelectionHandlers';
 import { YamlDefinition } from './services/yamlDefinition';
 import { getSelectionRanges } from './services/yamlSelectionRanges';
+import { FlowState, initQuery } from '../tree_sitter_queries/queries';
+import { Query, Tree } from 'tree-sitter';
 
 export enum SchemaPriority {
   SchemaStore = 1,
@@ -184,6 +186,8 @@ export interface LanguageService {
   configure2: (schemas: SchemasSettings[]) => void;
   defaultSchemas: SchemasSettings[];
   hasAsyncFlows: (doc: TextDocument) => boolean;
+  trees: Map<string, {tree: Tree, state: FlowState}>;
+  stateQuery: Query,
 }
 
 export function getLanguageService(params: {
@@ -291,7 +295,9 @@ export function getLanguageService(params: {
     defaultSchemas: [],
     hasAsyncFlows(document: TextDocument) {
       return yamlValidation.hasAsyncFlows(document);
-    }
+    },
+    trees: new Map(),
+    stateQuery: initQuery() as Query
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

@@ -2,6 +2,7 @@
  *  Copyright (c) Red Hat, Inc. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+import { get_state, initQuery, initYamlParser, query_flows } from '../../tree_sitter_queries/queries';
 import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic } from 'vscode-languageserver-types';
@@ -17,6 +18,13 @@ export class ValidationHandler {
   constructor(private readonly connection: Connection, languageService: LanguageService, yamlSettings: SettingsState) {
     this.languageService = languageService;
     this.yamlSettings = yamlSettings;
+
+    this.yamlSettings.documents.onDidOpen((e) => {
+      const source = e.document.getText();
+      // const oldTree = this.languageService.trees.get(e.document.uri);
+      const state = get_state(source, this.languageService.stateQuery);
+      this.languageService.trees.set(e.document.uri, {tree: state[0], state: state[1]});
+    })
 
     this.yamlSettings.documents.onDidChangeContent((change) => {
       this.validate(change.document);
