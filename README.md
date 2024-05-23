@@ -406,21 +406,22 @@ This repository only contains the server implementation. Here are some known cli
    ```bash
    $ npm run build2
    ```
-5. The new built server is now located in ./out/server/src/server.js.
-6. Update Python path in example/pyproject.toml
-6. VsCode Debugging
+5. Move language server to client
+   ```bash
+   $ npm run move-server
+   ```
+6. The new built server is now located in ./out/server/src/server.js.
+7. VsCode Debugging
    ```bash
    cd editors/code
-   code .
+   npm i
+   npm run compile2
+   npm run package
    ```
    Open 'Run and Debug'. Select 'Client' + Server'.
    Close watch task in terminal.
    In newly opened VSCode instance open example directory.
    Open configs/debono.yaml
-7. vsix
-   ```bash
-   npm run package
-   ```
 
 ### Connecting to the language server via stdio
 
