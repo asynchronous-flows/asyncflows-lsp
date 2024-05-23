@@ -72,6 +72,10 @@ export class LanguageHandlers {
     this.connection.onCodeLensResolve((params) => this.codeLensResolveHandler(params));
     this.connection.onDefinition((params) => this.definitionHandler(params));
     this.connection.onDidSaveTextDocument((params) => {
+      const document = this.yamlSettings.documents.get(params.textDocument.uri);
+      if (!this.languageService.hasAsyncFlows(document)) {
+        return undefined;
+      }
       read2(params.textDocument.uri, this.yamlSettings, (content) => {
         if (!content.includes('Traceback')) {
           this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
@@ -79,10 +83,16 @@ export class LanguageHandlers {
         else {
           console.log(`content error: ${content}`)
         }
-      });
-    })
+      }
+      );
+    }
+    )
 
-    this.yamlSettings.documents.onDidChangeContent((change) => this.cancelLimitExceededWarnings(change.document.uri));
+    this.yamlSettings.documents.onDidChangeContent((change) => {
+      // @ts-ignore
+      this.cancelLimitExceededWarnings(change.document.uri)
+    }
+    );
     this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
   }
 
@@ -105,6 +115,9 @@ export class LanguageHandlers {
     if (!document) {
       return;
     }
+    // if (!this.languageService.asyncFlowsDocs.has(documentSymbolParams.textDocument.uri)) {
+    //   return;
+    // }
 
     const onResultLimitExceeded = this.onResultLimitExceeded(
       document.uri,

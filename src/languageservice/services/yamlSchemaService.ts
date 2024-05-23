@@ -30,7 +30,9 @@ import { SchemaVersions } from '../yamlTypes';
 import Ajv, { DefinedError } from 'ajv';
 import { getSchemaTitle } from '../utils/schemaUtils';
 
-import * as actionSchema from "../../../src/action_schema.json";
+import * as actionSchema from "../../../src/asyncflows_schema.json";
+
+import { hasAsyncFlows } from '../../helper';
 
 const localize = nls.loadMessageBundle();
 
@@ -348,7 +350,8 @@ export class YAMLSchemaService extends JSONSchemaService {
 
   public getSchemaForResource(resource: string, doc: JSONDocument): Promise<ResolvedSchema> {
     const resolveModelineSchema = (): string | undefined => {
-      let schemaFromModeline = getSchemaFromModeline(doc);
+      // let schemaFromModeline = getSchemaFromModeline(doc);
+      let schemaFromModeline = undefined;
       if (schemaFromModeline !== undefined) {
         if (!schemaFromModeline.startsWith('file:') && !schemaFromModeline.startsWith('http')) {
           // If path contains a fragment and it is left intact, "#" will be
@@ -417,6 +420,10 @@ export class YAMLSchemaService extends JSONSchemaService {
       return Promise.resolve(null);
     };
     const modelineSchema = resolveModelineSchema();
+    const toActivate = hasAsyncFlows(doc);
+    if (toActivate == false) {
+      return undefined;
+    }
     if (modelineSchema) {
       return resolveSchemaForResource([modelineSchema]);
     }
@@ -639,46 +646,46 @@ export class YAMLSchemaService extends JSONSchemaService {
     return super.loadSchema(schemaUri).then((unresolvedJsonSchema: UnresolvedSchema) => {
       // If json-language-server failed to parse the schema, attempt to parse it as YAML instead.
 
-      // if (schemaUri == "action_schema.json") {
+      // if (schemaUri == "asyncflows_schema.json") {
       // if (unresolvedJsonSchema.errors && unresolvedJsonSchema.schema === undefined) {
-        return requestService(schemaUri).then(
-          (content) => {
-            const newContent = this.languageService.updatedSchema.get(schemaUri);
-            content = JSON.stringify(newContent);
-            if (!content) {
-              const errorMessage = localize(
-                'json.schema.nocontent',
-                "Unable to load schema from '{0}': No content. {1}",
-                toDisplayString(schemaUri),
-                unresolvedJsonSchema.errors
-              );
-              return new UnresolvedSchema(<JSONSchema>{}, [errorMessage]);
-            }
-
-            try {
-              const schemaContent = parse(content);
-              return new UnresolvedSchema(schemaContent, []);
-            } catch (yamlError) {
-              const errorMessage = localize(
-                'json.schema.invalidFormat',
-                "Unable to parse content from '{0}': {1}.",
-                toDisplayString(schemaUri),
-                yamlError
-              );
-              return new UnresolvedSchema(<JSONSchema>{}, [errorMessage]);
-            }
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (error: any) => {
-            let errorMessage = error.toString();
-            const errorSplit = error.toString().split('Error: ');
-            if (errorSplit.length > 1) {
-              // more concise error message, URL and context are attached by caller anyways
-              errorMessage = errorSplit[1];
-            }
+      return requestService(schemaUri).then(
+        (content) => {
+          const newContent = this.languageService.updatedSchema.get(schemaUri);
+          content = JSON.stringify(newContent);
+          if (!content) {
+            const errorMessage = localize(
+              'json.schema.nocontent',
+              "Unable to load schema from '{0}': No content. {1}",
+              toDisplayString(schemaUri),
+              unresolvedJsonSchema.errors
+            );
             return new UnresolvedSchema(<JSONSchema>{}, [errorMessage]);
           }
-        );
+
+          try {
+            const schemaContent = parse(content);
+            return new UnresolvedSchema(schemaContent, []);
+          } catch (yamlError) {
+            const errorMessage = localize(
+              'json.schema.invalidFormat',
+              "Unable to parse content from '{0}': {1}.",
+              toDisplayString(schemaUri),
+              yamlError
+            );
+            return new UnresolvedSchema(<JSONSchema>{}, [errorMessage]);
+          }
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error: any) => {
+          let errorMessage = error.toString();
+          const errorSplit = error.toString().split('Error: ');
+          if (errorSplit.length > 1) {
+            // more concise error message, URL and context are attached by caller anyways
+            errorMessage = errorSplit[1];
+          }
+          return new UnresolvedSchema(<JSONSchema>{}, [errorMessage]);
+        }
+      );
       // }
       unresolvedJsonSchema.uri = schemaUri;
       if (this.schemaUriToNameAndDescription.has(schemaUri)) {

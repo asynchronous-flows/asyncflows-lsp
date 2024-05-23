@@ -183,7 +183,7 @@ export interface LanguageService {
   updatedSchema: Map<string, any>;
   configure2: (schemas: SchemasSettings[]) => void;
   defaultSchemas: SchemasSettings[];
-
+  hasAsyncFlows: (doc: TextDocument) => boolean;
 }
 
 export function getLanguageService(params: {
@@ -289,7 +289,11 @@ export function getLanguageService(params: {
     },
     updatedSchema: new Map(),
     defaultSchemas: [],
+    hasAsyncFlows(document: TextDocument) {
+      return yamlValidation.hasAsyncFlows(document);
+    }
   };
   schemaService.languageService = languageService;
+  yamlValidation.setLanguageService(languageService);
   return languageService;
 }
