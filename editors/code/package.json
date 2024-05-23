@@ -57,5 +57,8 @@
     "mocha": "^10.3.0",
     "typescript": "^5.3.3"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "extensionDependencies": [
+    "ms-python.python"
+  ]
 }

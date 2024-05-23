@@ -13,15 +13,19 @@ import {
 	TransportKind
 } from 'vscode-languageclient/node';
 import * as child_process from 'child_process';
+import * as vscode from 'vscode';
+
 
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
 	// The server is implemented in node
-	const serverModule = context.asAbsolutePath('../../bin/yaml-language-server');
+	// const serverModule = path.join(context.extensionPath, "bin", "asyncflows-lsp");	
+	// const serverModule = context.asAbsolutePath('../../bin/asyncflows-lsp');
+	const serverModule = path.join(context.extensionPath, 'out', 'bin', 'asyncflows-lsp');
 	let config = {};
 
-  let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };	
+	let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
@@ -37,7 +41,7 @@ export function activate(context: ExtensionContext) {
 	// Options to control the language client
 	const clientOptions: LanguageClientOptions = {
 		// Register the server for plain text documents
-		documentSelector: [{scheme: 'file', language: 'yaml'}, { scheme: 'file', language: 'python' }],
+		documentSelector: [{ scheme: 'file', language: 'yaml' }, { scheme: 'file', language: 'python' }],
 		initializationOptions: config,
 		synchronize: {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
@@ -52,6 +56,24 @@ export function activate(context: ExtensionContext) {
 		serverOptions,
 		clientOptions
 	);
+
+	const result = child_process.spawnSync("python", ["-c", "import sys; print(sys.prefix)"])
+	const result2 = child_process.spawnSync("pip", ["show", "pip"])
+  console.log(result.stdout.toString())
+  console.log(result2.stdout.toString())
+	
+	const pythonExtension = vscode.extensions.getExtension('ms-python.python');
+	if (!pythonExtension) {
+		vscode.window.showErrorMessage('Python extension is not installed.');
+		return;
+	}
+	if (!pythonExtension.isActive) {
+		pythonExtension.activate().then(async(value) => {
+			const pythonApi = pythonExtension.exports;
+			const interpreter = await pythonApi.settings.getExecutionDetails();
+			vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter?.execCommand?.join(' ') || 'Not found'}`);
+		});
+	}
 
 	// Start the client. This will also launch the server
 	client.start();
