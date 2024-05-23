@@ -156,7 +156,6 @@ export class YAMLSchemaService extends JSONSchemaService {
       }
       result.push(schemaHandle);
     }
-
     return result;
   }
 

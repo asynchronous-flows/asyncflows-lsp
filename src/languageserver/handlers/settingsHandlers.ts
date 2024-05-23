@@ -251,25 +251,23 @@ export class SettingsHandler {
 
 
     this.languageService.updatedSchema.set('action_schema.json', actionSchema);
-    const languageSettings = {
-      schemas: [],
-    };
+    // const languageSettings = {
+    //   schemas: [],
+    // };
     // if (fileMatch.endsWith("/")) {
     //   fileMatch += "*";
     // }
     // else {
     //   fileMatch += "/*"
     // }
-    // console.log(`filematch: ${fileMatch}`);
 
-    languageSettings.schemas.push({
+    return {
       uri: "action_schema.json",
       fileMatch: [fileMatch],
       priority: SchemaPriority.SchemaAssociation,
       name: "asyncflows",
       description: "Description",
-    });
-    return languageSettings
+    };
   }
 
   /**
@@ -341,11 +339,12 @@ export class SettingsHandler {
         }
       });
     }
-    if (this.yamlSettings.schemaConfigurationSettings.length == 0) {
+    if (true) {
+      // if (this.yamlSettings.schemaConfigurationSettings.length == 0) {
       // on load do this
       const config = this.yamlSettings.asyncflowsConfig;
       if (config) {
-        languageSettings.schemas = this.storeDefaultSchema(config.configs).schemas;
+        languageSettings.schemas.push(this.storeDefaultSchema(config.configs));
       }
     }
 

@@ -6,6 +6,8 @@ import { JSONSchema } from './languageservice/jsonSchema';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { YamlVersion } from './languageservice/parser/yamlParser07';
 import { TomlConfig } from './helper';
+import { Tree } from 'tree-sitter';
+import { FlowState } from './tree_sitter_queries/queries';
 
 // Client settings interface to grab settings relevant for the language server
 export interface Settings {
@@ -111,7 +113,8 @@ export class SettingsState {
   hasWsChangeWatchedFileDynamicRegistration = false;
   fileExtensions: string[] = ['.yml', '.yaml'];
   fileExtensions2: string[] = ['.yml', '.yaml', 'py'];
-  asyncflowsConfig: TomlConfig
+  asyncflowsConfig: TomlConfig;
+  trees: Map<string, {tree: Tree, state: FlowState}> = new Map();
 }
 
 export class TextDocumentTestManager extends TextDocuments<TextDocument> {
