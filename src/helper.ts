@@ -4,6 +4,8 @@ import { parse as tomlParse } from "toml";
 import { spawn } from "child_process";
 import { SettingsState } from "./yamlSettings";
 import { SchemaPriority } from "./languageservice/yamlLanguageService";
+import { JSONDocument } from "./languageservice/parser/jsonParser07";
+import { SingleYAMLDocument } from "./languageservice/parser/yaml-documents";
 
 export function readPyProject(): string | TomlConfig {
   let errors: string | TomlConfig = "Config not found";
@@ -74,9 +76,9 @@ export interface TomlConfig {
   actions: string,
 }
 
-export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void): string{
+export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void): string {
   let output = "";
-  const process = spawn("python", ['-m',  'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
+  const process = spawn("python", ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
   process.stdout.on('data', (data) => {
     output = data.toString() as string;
     // settings.newSchema = output;
@@ -94,10 +96,23 @@ export function createSchema(uri: string) {
   const name = uri.split('/').at(-1);
   const fileMatch = uri.replace('file://', '');
   return {
-      uri: name,
-      fileMatch: [fileMatch],
-      priority: SchemaPriority.SchemaAssociation,
-      name: `asyncflows_${name}`,
-      description: "Description",
+    uri: name,
+    fileMatch: [fileMatch],
+    priority: SchemaPriority.SchemaAssociation,
+    name: `asyncflows_${name}`,
+    description: "Description",
+  }
+}
+
+export function hasAsyncFlows(doc: SingleYAMLDocument | JSONDocument) {
+  let hasComment = false;
+  if (doc instanceof SingleYAMLDocument) {
+    const comments = doc.lineComments.slice(0, 10);
+    for (let comment of comments) {
+      if (comment.includes("yaml-language-server") && comment.includes("asyncflows_schema.json")) {
+        return true;
+      }
     }
+  }
+  return hasComment;
 }

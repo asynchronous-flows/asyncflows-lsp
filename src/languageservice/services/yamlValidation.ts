@@ -5,7 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Diagnostic, Position } from 'vscode-languageserver-types';
-import { LanguageSettings } from '../yamlLanguageService';
+import { LanguageService, LanguageSettings } from '../yamlLanguageService';
 import { YAMLDocument, YamlVersion, SingleYAMLDocument } from '../parser/yamlParser07';
 import { YAMLSchemaService } from './yamlSchemaService';
 import { YAMLDocDiagnostic } from '../utils/parseUtils';
@@ -20,6 +20,7 @@ import { AdditionalValidator } from './validation/types';
 import { UnusedAnchorsValidator } from './validation/unused-anchors';
 import { YAMLStyleValidator } from './validation/yaml-style';
 import { MapKeyOrderValidator } from './validation/map-key-order';
+import { hasAsyncFlows } from '../../helper';
 
 /**
  * Convert a YAMLDocDiagnostic to a language server Diagnostic
@@ -45,6 +46,7 @@ export class YAMLValidation {
   private disableAdditionalProperties: boolean;
   private yamlVersion: YamlVersion;
   private validators: AdditionalValidator[] = [];
+  public languageService: LanguageService;
 
   private MATCHES_MULTIPLE = 'Matches multiple schemas when only one must validate.';
 
@@ -71,6 +73,20 @@ export class YAMLValidation {
     this.validators.push(new UnusedAnchorsValidator());
   }
 
+  public hasAsyncFlows(textDocument: TextDocument) {
+    const yamlDocument: YAMLDocument = yamlDocumentsCache.getYamlDocument(
+      textDocument,
+      { customTags: this.customTags, yamlVersion: this.yamlVersion },
+      true
+    );
+    for (const currentYAMLDoc of yamlDocument.documents) {
+      if (hasAsyncFlows(currentYAMLDoc)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public async doValidation(textDocument: TextDocument, isKubernetes = false): Promise<Diagnostic[]> {
     if (!this.validationEnabled) {
       return Promise.resolve([]);
@@ -86,6 +102,9 @@ export class YAMLValidation {
 
       let index = 0;
       for (const currentYAMLDoc of yamlDocument.documents) {
+        if (!hasAsyncFlows(currentYAMLDoc)) {
+          return Promise.resolve([]);
+        }
         currentYAMLDoc.isKubernetes = isKubernetes;
         currentYAMLDoc.currentDocIndex = index;
         currentYAMLDoc.disableAdditionalProperties = this.disableAdditionalProperties;
@@ -159,5 +178,9 @@ export class YAMLValidation {
       result.push(...validator.validate(document, yarnDoc));
     }
     return result;
+  }
+
+  public setLanguageService(ls: LanguageService) {
+    this.languageService = ls;
   }
 }

@@ -12,7 +12,7 @@ import { SchemaSelectionRequests } from '../../requestTypes';
 import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
-import * as actionSchema from '../../action_schema.json';
+import * as actionSchema from '../../asyncflows_schema.json';
 import { write, writeFile } from 'fs';
 
 export class SettingsHandler {
@@ -144,10 +144,9 @@ export class SettingsHandler {
 
     if (this.yamlSettings.asyncflowsConfig && this.yamlSettings.schemaStoreSettings.length == 0) {
       // const globPattern = this.yamlSettings.asyncflowsConfig.configs;
-      // const globPattern = "/home/uros/Documents/programiranje/python/asyncflows/asyncflows-lsp/editors/code/example/configs/debono.yaml";
       // const schemaObj = {
       //   fileMatch: Array.isArray(globPattern) ? globPattern : [globPattern],
-      //   uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, "action_schema.json", this.telemetry),
+      //   uri: checkSchemaURI(this.yamlSettings.workspaceFolders, this.yamlSettings.workspaceRoot, "asyncflows_schema.json", this.telemetry),
       // };
       // this.yamlSettings.schemaConfigurationSettings.push(schemaObj);
     }
@@ -250,7 +249,7 @@ export class SettingsHandler {
     // this.languageService.updatedSchema.
 
 
-    this.languageService.updatedSchema.set('action_schema.json', actionSchema);
+    this.languageService.updatedSchema.set('asyncflows_schema.json', actionSchema);
     // const languageSettings = {
     //   schemas: [],
     // };
@@ -262,7 +261,7 @@ export class SettingsHandler {
     // }
 
     return {
-      uri: "action_schema.json",
+      uri: "asyncflows_schema.json",
       fileMatch: [fileMatch],
       priority: SchemaPriority.SchemaAssociation,
       name: "asyncflows",
@@ -315,7 +314,7 @@ export class SettingsHandler {
     if (this.yamlSettings.schemaConfigurationSettings) {
       this.yamlSettings.schemaConfigurationSettings.forEach((schema) => {
         let uri = schema.uri;
-        if (uri == "action_schema.json") {
+        if (uri == "asyncflows_schema.json") {
           foundActionSchema = true;
         }
         if (!uri && schema.schema) {

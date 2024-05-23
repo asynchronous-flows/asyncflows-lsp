@@ -2105,6 +2105,6 @@
     "flow",
     "default_output"
   ],
-  "title": "Default",
+  "title": "HintedActionConfig",
   "type": "object"
 }
