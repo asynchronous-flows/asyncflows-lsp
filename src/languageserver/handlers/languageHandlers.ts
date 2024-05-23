@@ -16,6 +16,8 @@ import {
   TextDocumentPositionParams,
   CodeLensParams,
   DefinitionParams,
+  DeclarationParams,
+  DeclarationLink,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -37,6 +39,8 @@ import { ValidationHandler } from './validationHandlers';
 import { ResultLimitReachedNotification } from '../../requestTypes';
 import * as path from 'path';
 import { read2 } from '../../helper';
+import { SyntaxNode } from 'tree-sitter';
+import { get_state } from '../../tree_sitter_queries/queries';
 
 export class LanguageHandlers {
   private languageService: LanguageService;
@@ -71,6 +75,7 @@ export class LanguageHandlers {
     this.connection.onCodeLens((params) => this.codeLensHandler(params));
     this.connection.onCodeLensResolve((params) => this.codeLensResolveHandler(params));
     this.connection.onDefinition((params) => this.definitionHandler(params));
+    this.connection.onDeclaration((params) => this.declarationHandler(params));
     this.connection.onDidSaveTextDocument((params) => {
       const document = this.yamlSettings.documents.get(params.textDocument.uri);
       if (!this.languageService.hasAsyncFlows(document)) {
@@ -91,6 +96,11 @@ export class LanguageHandlers {
     this.yamlSettings.documents.onDidChangeContent((change) => {
       // @ts-ignore
       this.cancelLimitExceededWarnings(change.document.uri)
+      const source = change.document.getText();
+      // const oldTree = this.languageService.trees.get(e.document.uri);
+      const state = get_state(source, this.languageService.stateQuery);
+      this.languageService.trees.set(change.document.uri, {tree: state[0], state: state[1]});
+      
     }
     );
     this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
@@ -265,10 +275,54 @@ export class LanguageHandlers {
     return this.languageService.resolveCodeLens(param);
   }
 
+  declarationHandler(params: DeclarationParams): DeclarationLink[] {
+    const textDocument = params.textDocument;
+    const point = { row: params.position.line, column: params.position.character };
+    const treeItem = this.languageService.trees.get(textDocument.uri);
+    let declarationLink: DeclarationLink | undefined = undefined;
+    if (treeItem) {
+      const links = treeItem.state.links;
+      let linkValue: SyntaxNode | undefined = undefined;
+      for (const link of links.values()) {
+        const value = link.link_value;
+        if (!value) {
+          continue;
+        }
+        if (point.row == value.startPosition.row &&
+          point.column >= value.startPosition.column && point.column <= value.endPosition.column) {
+          linkValue = value;
+          break;
+        }
+      }
+      if (!linkValue) {
+        return [];
+      }
+      const actionName = linkValue.text.split('.');
+      const action = treeItem.state.actions.get(actionName[0]);
+      if (!action) {
+        return [];
+      }
+      const node = action.action_name;
+      const start = { line: node.startPosition.row, character: node.startPosition.column };
+      const end = { line: node.endPosition.row, character: node.endPosition.column };
+      declarationLink = {
+        targetRange: { end, start },
+        targetSelectionRange: { end, start },
+        targetUri: textDocument.uri
+      };
+      return [declarationLink];
+    }
+    return [];
+  }
+
   definitionHandler(params: DefinitionParams): DefinitionLink[] {
     const textDocument = this.yamlSettings.documents.get(params.textDocument.uri);
     if (!textDocument) {
       return;
+    }
+    const declaration = this.declarationHandler(params);
+    if(declaration) {
+      return declaration;
     }
 
     return this.languageService.doDefinition(textDocument, params);

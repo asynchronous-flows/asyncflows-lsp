@@ -1,6 +1,14 @@
 import Parser, { Tree, SyntaxNode, Query, Point } from "tree-sitter";
-import { language } from "@tree-sitter-grammars/tree-sitter-yaml"
-import yamlTs from '@tree-sitter-grammars/tree-sitter-yaml';
+const yamlTs = require('@tree-sitter-grammars/tree-sitter-yaml')
+
+const TSParser = require('tree-sitter');
+const TSQuery = require('tree-sitter');
+
+export function get_state(source: string, query: Query): [Tree, FlowState] {
+  const parser = initYamlParser();
+  const tree = parser.parse(source);
+  return [tree, query_flows(source, query, tree, { column: 0, row: 0 }, true)];
+}
 
 export function query_flows(source: string, query: Query, node: Tree, point: Point, full = true) {
   const errors = [];
@@ -15,31 +23,31 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
     for (let i = 0; i < captures.length; i++) {
       const captureName = captures[i].name;
       const node = captures[i].node;
-      if(captureName == "action") {
+      if (captureName == "action") {
         actionName = captures[i].node.text;
         if (flowState.actions.get(actionName)) {
           errors.push([ActionError.DuplicateActionName, node])
         }
         else {
-          flowState.actions.set(actionName, {action_name: node});
+          flowState.actions.set(actionName, { action_name: node });
         }
       }
-      else if(captureName == "action_body") {
+      else if (captureName == "action_body") {
         const action = flowState.actions.get(actionName);
-        if(action) {
+        if (action) {
           action.action_body = node;
         }
       }
-      else if(captureName == "link_key") {
-        if(!flowState.links.get(node.id)) {
-          flowState.links.set(node.id, {link_key: node});
+      else if (captureName == "link_key") {
+        if (!flowState.links.get(node.id)) {
+          flowState.links.set(node.id, { link_key: node });
           link = flowState.links.get(node.id);
         }
       }
-      else if(captureName == "link_value") {
+      else if (captureName == "link_value") {
         link!.link_value! = node;
       }
-      else if(captureName == "output_key") {
+      else if (captureName == "output_key") {
         // if(!flowstatk)
       }
     }
@@ -48,11 +56,11 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
 }
 
 export function initQuery() {
-  return new Query(language, FLOW_QUERY)
+  return new TSQuery.Query(yamlTs, FLOW_QUERY)
 }
 
 export function initYamlParser() {
-  const parser = new Parser();
+  const parser = new TSParser();
   parser.setLanguage(yamlTs);
   return parser;
 }
@@ -83,7 +91,7 @@ export type FlowState = {
 }
 
 export function emptyFlowState(): FlowState {
-  return { actions: new Map(), links: new Map(), comments: new Map(), output: {}  }
+  return { actions: new Map(), links: new Map(), comments: new Map(), output: {} }
 }
 
 export type Link = {

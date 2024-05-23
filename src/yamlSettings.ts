@@ -114,7 +114,6 @@ export class SettingsState {
   fileExtensions: string[] = ['.yml', '.yaml'];
   fileExtensions2: string[] = ['.yml', '.yaml', 'py'];
   asyncflowsConfig: TomlConfig;
-  trees: Map<string, {tree: Tree, state: FlowState}> = new Map();
 }
 
 export class TextDocumentTestManager extends TextDocuments<TextDocument> {
