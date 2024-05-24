@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection } from 'vscode-languageserver';
+import { Connection, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
 import {
   CodeActionParams,
   DidChangeWatchedFilesParams,
@@ -46,6 +46,7 @@ export class LanguageHandlers {
   private languageService: LanguageService;
   private yamlSettings: SettingsState;
   private validationHandler: ValidationHandler;
+  private fetchCallback: NodeJS.Timeout
 
   pendingLimitExceededWarnings: { [uri: string]: { features: { [name: string]: string }; timeout?: NodeJS.Timeout } };
 
@@ -77,10 +78,6 @@ export class LanguageHandlers {
     this.connection.onDefinition((params) => this.definitionHandler(params));
     this.connection.onDeclaration((params) => this.declarationHandler(params));
     this.connection.onDidSaveTextDocument((params) => {
-      const document = this.yamlSettings.documents.get(params.textDocument.uri);
-      if (!this.languageService.hasAsyncFlows(document)) {
-        return undefined;
-      }
       read2(params.textDocument.uri, this.yamlSettings, (content) => {
         if (!content.includes('Traceback')) {
           this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
@@ -88,22 +85,51 @@ export class LanguageHandlers {
         else {
           console.log(`content error: ${content}`)
         }
-      }
-      );
-    }
-    )
-
+      }, this.languageService.pythonPath
+      )
+    })
     this.yamlSettings.documents.onDidChangeContent((change) => {
       // @ts-ignore
       this.cancelLimitExceededWarnings(change.document.uri)
-      const source = change.document.getText();
-      // const oldTree = this.languageService.trees.get(e.document.uri);
-      const state = get_state(source, this.languageService.stateQuery);
-      this.languageService.trees.set(change.document.uri, {tree: state[0], state: state[1]});
-      
+      return;
+      clearTimeout(this.fetchCallback)
+      this.fetchCallback = setTimeout(() => {
+        this.fetchNewSchema(change);
+      }, 1000);
     }
     );
     this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
+  }
+
+  fetchNewSchema(change: TextDocumentChangeEvent<TextDocument>) {
+    const oldTree = this.languageService.trees.get(change.document.uri);
+    if (oldTree) {
+      const previousActions = Array.from(oldTree.state.actions.keys());
+      const source = change.document.getText();
+      const newState = get_state(source, this.languageService.stateQuery);
+      const newActions = Array.from(newState[1].actions.keys());
+      const shouldFetch = previousActions.filter(item => !newActions.includes(item));
+      // console.log(`shouldFetch: ${shouldFetch.length}`);
+      // console.log(`prev: ${previousActions}`);
+      // console.log(`new: ${newActions}`);
+      this.languageService.trees.set(change.document.uri, { tree: newState[0], state: newState[1] });
+      if (shouldFetch.length == 0) {
+        return;
+      }
+      const document = this.yamlSettings.documents.get(change.document.uri);
+      if (!this.languageService.hasAsyncFlows(document)) {
+        return undefined;
+      }
+      read2(change.document.uri, this.yamlSettings, (content) => {
+        if (!content.includes('Traceback')) {
+          this.languageService.addSchema2(change.document.uri, content, this.languageService);
+        }
+        else {
+          console.log(`content error: ${content}`)
+        }
+      }, this.languageService.pythonPath
+      );
+    }
   }
 
   documentLinkHandler(params: DocumentLinkParams): Promise<DocumentLink[]> {
@@ -321,7 +347,7 @@ export class LanguageHandlers {
       return;
     }
     const declaration = this.declarationHandler(params);
-    if(declaration) {
+    if (declaration) {
       return declaration;
     }
 
