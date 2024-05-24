@@ -13,7 +13,7 @@ import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
 import * as actionSchema from '../../asyncflows_schema.json';
-import { write, writeFile } from 'fs';
+
 
 export class SettingsHandler {
   constructor(
@@ -363,21 +363,26 @@ export class SettingsHandler {
         break;
       }
     }
-    languageService.updatedSchema.set(uri, JSON.parse(content));
-    if (itemIndex == undefined) {
-      const schema2: SchemasSettings = {
-        fileMatch: [uri.replace('file://', '')],
-        uri: uri,
-        name: uri.split('/').at(-1),
-        priority: SchemaPriority.SchemaAssociation,
-        description: ""
-      };
-      this.yamlSettings.schemaConfigurationSettings.push(
-        schema2
-      )
+    try {
+      const parsed = JSON.parse(content);
+      languageService.updatedSchema.set(uri, parsed);
+      if (itemIndex == undefined) {
+        const schema2: SchemasSettings = {
+          fileMatch: [uri.replace('file://', '')],
+          uri: uri,
+          name: uri.split('/').at(-1),
+          priority: SchemaPriority.SchemaAssociation,
+          description: ""
+        };
+        this.yamlSettings.schemaConfigurationSettings.push(
+          schema2
+        )
+      }
+      this.updateConfiguration();
+      return;
     }
-    this.updateConfiguration();
-    return;
+    catch (e) {
+    }
   }
 
   /**

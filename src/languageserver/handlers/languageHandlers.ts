@@ -91,6 +91,7 @@ export class LanguageHandlers {
     this.yamlSettings.documents.onDidChangeContent((change) => {
       // @ts-ignore
       this.cancelLimitExceededWarnings(change.document.uri)
+      this.fetchNewSchema(change);
       return;
       clearTimeout(this.fetchCallback)
       this.fetchCallback = setTimeout(() => {
@@ -101,7 +102,7 @@ export class LanguageHandlers {
     this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
   }
 
-  fetchNewSchema(change: TextDocumentChangeEvent<TextDocument>) {
+  fetchNewSchema(change: TextDocumentChangeEvent<TextDocument>, ignoreFetch = true) {
     const oldTree = this.languageService.trees.get(change.document.uri);
     if (oldTree) {
       const previousActions = Array.from(oldTree.state.actions.keys());
@@ -113,7 +114,7 @@ export class LanguageHandlers {
       // console.log(`prev: ${previousActions}`);
       // console.log(`new: ${newActions}`);
       this.languageService.trees.set(change.document.uri, { tree: newState[0], state: newState[1] });
-      if (shouldFetch.length == 0) {
+      if (shouldFetch.length == 0 || ignoreFetch) {
         return;
       }
       const document = this.yamlSettings.documents.get(change.document.uri);
