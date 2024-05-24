@@ -20,7 +20,7 @@ import { Telemetry } from './languageservice/telemetry';
 import { registerCommands } from './languageservice/services/yamlCommands';
 import { readPyProject } from './helper';
 import { initQuery, initYamlParser } from './tree_sitter_queries/queries';
-
+import * as child_process from 'child_process';
 
 export class YAMLServerInit {
   languageService: LanguageService;
@@ -46,7 +46,7 @@ export class YAMLServerInit {
     });
     this.connection.onInitialized(() => {
       // const result = readPyProject();      
-      this.yamlSettings.asyncflowsConfig = {actions: "", configs: "**/**.yaml"};
+      this.yamlSettings.asyncflowsConfig = { actions: "", configs: "**/**.yaml" };
       // if (typeof result == 'string') {
       //   console.log(`Config error is: ${result}`);
       //   this.yamlSettings.asyncflowsConfig = {actions: "", configs: "**/**.yaml"};
@@ -131,7 +131,8 @@ export class YAMLServerInit {
           resolveProvider: false,
         },
         executeCommandProvider: {
-          commands: Object.keys(YamlCommands).map((k) => YamlCommands[k]),
+          // commands: Object.keys(YamlCommands).map((k) => YamlCommands[k]),
+          commands: ["asyncflows-lsp.vscodePythonPath"]
         },
         workspace: {
           workspaceFolders: {
@@ -151,14 +152,14 @@ export class YAMLServerInit {
       this.languageService,
       this.yamlSettings,
       this.validationHandler,
-      this.telemetry, 
+      this.telemetry,
     );
     // this.settingsHandler.registerHandlers();
     this.languageHandler = new LanguageHandlers(this.connection, this.languageService, this.yamlSettings, this.validationHandler);
     this.languageHandler.registerHandlers();
     new NotificationHandlers(this.connection, this.languageService, this.yamlSettings, this.settingsHandler).registerHandlers();
     new RequestHandlers(this.connection, this.languageService).registerHandlers();
-    new WorkspaceHandlers(this.connection, commandExecutor).registerHandlers();
+    new WorkspaceHandlers(this.connection, commandExecutor, this.languageService).registerHandlers();
   }
 
   start(): void {

@@ -76,9 +76,9 @@ export interface TomlConfig {
   actions: string,
 }
 
-export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void): string {
+export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void, pythonPath: string): string {
   let output = "";
-  const process = spawn("python", ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
+  const process = spawn(pythonPath, ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
   process.stdout.on('data', (data) => {
     output = data.toString() as string;
     // settings.newSchema = output;
