@@ -1,7 +1,7 @@
 {
   "name": "asyncflows-lsp",
   "description": "Asyncflows language server",
-  "version": "1.15.0",
+  "version": "0.1.1",
   "author": "Gorkem Ercan (Red Hat)",
   "license": "MIT",
   "contributors": [
@@ -35,6 +35,7 @@
   "dependencies": {
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
     "ajv": "^8.11.0",
+    "jschardet": "3.1.2",
     "lodash": "4.17.21",
     "request-light": "^0.5.7",
     "toml": "^3.0.0",
@@ -116,5 +117,8 @@
       "editors/code/out"
     ],
     "all": true
+  },
+  "resolutions": {
+    "jschardet": "3.1.2"
   }
 }

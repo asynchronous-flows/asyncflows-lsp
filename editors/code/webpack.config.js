@@ -33,7 +33,7 @@ const config = {
   },
   devtool: 'source-map',
   // @ts-ignore
-  externals: [nodeExternals(), {
+  externals: [ {
     'vscode': 'commonjs vscode',
   }],
   // externals: {
