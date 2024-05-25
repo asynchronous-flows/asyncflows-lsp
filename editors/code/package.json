@@ -21,7 +21,7 @@
     "python"
   ],
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.74.0"
   },
   "activationEvents": [
     "onLanguage:yaml"
@@ -43,39 +43,35 @@
     "test2": "vscode-test",
     "package": "vsce package --no-dependencies",
     "publish": "vsce publish --no-dependencies",
-    "rebuild": "electron-rebuild",
-    "install": "node-gyp-build"
+    "rebuild": "electron-rebuild"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.6",
+    "@electron/rebuild": "^3.6.0",
     "@types/node": "^18.14.6",
-    "@types/vscode": "^1.75.1",
+    "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "@vscode/test-cli": "^0.0.9",
-    "@vscode/test-electron": "^2.3.9",
     "@vscode/vsce": "2.21.1",
     "bindings": "^1.5.0",
     "electron": "^30.0.8",
-    "electron-rebuild": "^3.2.9",
     "esbuild": "^0.20.2",
     "eslint": "^8.57.0",
-    "mocha": "^10.3.0",
-    "node-gyp": "^10.1.0",
-    "node-loader": "^2.0.0",
-    "typescript": "^5.3.3"
+    "node-loader": "^2.0.0"
   },
   "dependencies": {
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
-    "asyncflows-lsp": "file:../..",
-    "node-gyp-build": "^4.8.1",
+    "asyncflows-lsp": "0.1.1",
+    "jschardet": "^3.1.2",
     "tree-sitter": "^0.21.1",
     "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
     "umd-compat-loader": "^2.1.2",
     "vscode-languageclient": "^9.0.1",
     "webpack": "^5.76.1",
     "webpack-cli": "^5.0.1",
-    "webpack-node-externals": "^3.0.0"
+    "webpack-node-externals": "^3.0.0",
+    "yaml-language-server": "^1.14.0"
   },
   "extensionDependencies": [
     "ms-python.python"

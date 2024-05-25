@@ -15,7 +15,7 @@ import {
 
 import * as vscode from 'vscode';
 
-const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
+// const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
 
 let client: LanguageClient;
 

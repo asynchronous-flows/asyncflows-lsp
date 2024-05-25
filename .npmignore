@@ -1,5 +1,6 @@
 /src
 /test
+/test2
 .editorconfig
 Jenkinsfile
 tsconfig.json
@@ -11,3 +12,4 @@ coverage/
 .prettierrc.json
 .travis.yml
 .mocharc.json
+editors/
