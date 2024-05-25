@@ -30,12 +30,13 @@ import { SchemaVersions } from '../yamlTypes';
 import Ajv, { DefinedError } from 'ajv';
 import { getSchemaTitle } from '../utils/schemaUtils';
 
-import * as actionSchema from "../../../src/asyncflows_schema.json";
+import actionSchema from "../../../src/asyncflows_schema";
 
 import { hasAsyncFlows } from '../../helper';
 
 const localize = nls.loadMessageBundle();
 
+// const ajv = require('ajv').default as Ajv;
 const ajv = new Ajv();
 
 // load JSON Schema 07 def to validate loaded schemas

@@ -12,7 +12,7 @@ import { SchemaSelectionRequests } from '../../requestTypes';
 import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
-import * as actionSchema from '../../asyncflows_schema.json';
+import actionSchema from '../../asyncflows_schema';
 
 
 export class SettingsHandler {

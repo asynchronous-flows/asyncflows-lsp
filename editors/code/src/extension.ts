@@ -15,13 +15,17 @@ import {
 
 import * as vscode from 'vscode';
 
+const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
+
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
 	// The server is implemented in node
 	// const serverModule = path.join(context.extensionPath, "bin", "asyncflows-lsp");	
 	// const serverModule = context.asAbsolutePath('../../bin/asyncflows-lsp');
-	const serverModule = path.join(context.extensionPath, 'out', 'bin', 'asyncflows-lsp');
+	// const serverModule = path.join(context.extensionPath, 'out', 'bin', 'asyncflows-lsp');
+	// const serverModule = context.asAbsolutePath('./dist/languageserver.js');
+	const serverModule = path.join(context.extensionPath, 'dist', 'languageserver.js');
 	let config = {};
 
 	let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
@@ -47,6 +51,7 @@ export function activate(context: ExtensionContext) {
 			fileEvents: workspace.createFileSystemWatcher('**/.{py, yaml}')
 		}
 	};
+	let output = vscode.window.createOutputChannel("dbg-asyncflows-client");
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
@@ -56,7 +61,6 @@ export function activate(context: ExtensionContext) {
 		clientOptions
 	);
 
-	let output = vscode.window.createOutputChannel("dbg-asyncflows-client");
 	const pythonExtension = vscode.extensions.getExtension('ms-python.python');
 	if (!pythonExtension) {
 		vscode.window.showErrorMessage('Python extension is not installed.');
@@ -87,7 +91,7 @@ async function getInterpreter(pythonExtension: vscode.Extension<any>, output: vs
 	output.appendLine(`Current Python Interpreter: ${interpreter?.execCommand?.join(' ') || 'Not found'}`)
 	vscode.commands.executeCommand('asyncflows-lsp.vscodePythonPath', `${interpreter?.execCommand?.join(' ')}`).then(() => { });
 	const interpreterPath = `${interpreter?.execCommand?.join(' ')}`;
-	client.sendRequest('workspace/executeCommand', {command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath]})
+	client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath] })
 }
 
 export function deactivate(): Thenable<void> | undefined {

@@ -14,13 +14,7 @@
     "target": "es2020",
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@src/*": [
-        "./src/*"
-      ]
-    }
+    "esModuleInterop": true
   },
   "include": [
     "src",

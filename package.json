@@ -59,6 +59,8 @@
     "@typescript-eslint/parser": "^5.38.0",
     "chai": "^4.2.0",
     "coveralls": "3.1.1",
+    "electron": "^30.0.8",
+    "electron-rebuild": "^3.2.9",
     "eslint": "^8.24.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
@@ -88,15 +90,15 @@
     "build": "npm run clean && npm run lint && npm run compile && npm run build:libs",
     "build2": "npm run clean && npm run compile && npm run build:libs2",
     "build:libs": "yarn compile:esm",
-    "build:libs2": "yarn compile:esm2",
-    "compile:umd2": "tsc -p ./tsconfig.umd.json",
+    "build:libs2": "yarn compile:esm && yarn compile:umd",
+    "compile:umd": "tsc -p ./tsconfig.umd.json",
     "compile:esm": "tsc -p ./tsconfig.esm.json",
-    "compile:esm2": "tsc -p ./tsconfig.esm.json",
     "check-dependencies": "node ./scripts/check-dependencies.js",
     "pull-remote": "git pull https://github.com/redhat-developer/yaml-language-server.git main",
     "tests": "vitest",
     "move-server": "mkdir -p editors/code/out && cp -r node_modules editors/code/out && cp -r out editors/code/out && cp -r bin editors/code/out && cp -r lib editors/code/out",
-    "move-build": "ln -s bin/ editors/code/ -r -f && ln -s lib/ editors/code/ -r -f && ln -s out/ editors/code/ -r -f"
+    "move-build": "ln -s bin/ editors/code/ -r -f && ln -s lib/ editors/code/ -r -f && ln -s out/ editors/code/ -r -f",
+    "rebuild": "electron-rebuild"
   },
   "nyc": {
     "extension": [
