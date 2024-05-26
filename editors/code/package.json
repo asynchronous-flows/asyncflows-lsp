@@ -52,7 +52,7 @@
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "@vscode/test-cli": "^0.0.9",
-    "@vscode/vsce": "2.21.1",
+    "@vscode/vsce": "^2.26.1",
     "bindings": "^1.5.0",
     "electron": "^30.0.8",
     "esbuild": "^0.20.2",
