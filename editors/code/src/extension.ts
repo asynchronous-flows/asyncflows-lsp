@@ -14,12 +14,14 @@ import {
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 // const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
 
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
+	renameTreeSitterPath(context.extensionPath);
 	// The server is implemented in node
 	// const serverModule = path.join(context.extensionPath, "bin", "asyncflows-lsp");	
 	// const serverModule = context.asAbsolutePath('../../bin/asyncflows-lsp');
@@ -101,3 +103,23 @@ export function deactivate(): Thenable<void> | undefined {
 	return client.stop();
 }
 
+export function renameTreeSitterPath(extensionPath: string) {
+	const tempFile = `${extensionPath}/renamed.txt`;
+	if(existsSync(tempFile)) {
+		return;
+	}
+	
+	const oldYamlTs = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
+	const oldTs = "node_modules/tree-sitter";
+
+	const newyamlTs = `${extensionPath}/${oldYamlTs}`
+	const newTs = `${extensionPath}/${oldTs}`
+
+	const pathLs = `${extensionPath}/dist/languageserver.js`;
+
+	const content = readFileSync(pathLs);
+	let newContent = content.toString().replace(oldYamlTs, newyamlTs);
+	newContent = newContent.replace(oldTs, newTs);
+	writeFileSync(pathLs, newContent);
+	writeFileSync(tempFile, 'true');
+}
