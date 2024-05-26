@@ -104,7 +104,7 @@ export function deactivate(): Thenable<void> | undefined {
 }
 
 export function renameTreeSitterPath(extensionPath: string) {
-	const tempFile = `${extensionPath}/renamed.txt`;
+	const tempFile = path.join(extensionPath, 'renamed.txt');
 	if(existsSync(tempFile)) {
 		return;
 	}
@@ -112,13 +112,13 @@ export function renameTreeSitterPath(extensionPath: string) {
 	const oldYamlTs = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
 	const oldTs = "node_modules/tree-sitter";
 
-	const newyamlTs = `${extensionPath}/${oldYamlTs}`
-	const newTs = `${extensionPath}/${oldTs}`
+	const newYamlTs = path.join(extensionPath, oldYamlTs);
+	const newTs = path.join(extensionPath, oldTs);
 
-	const pathLs = `${extensionPath}/dist/languageserver.js`;
+	const pathLs = path.join(extensionPath, 'dist', 'languageserver.js');
 
 	const content = readFileSync(pathLs);
-	let newContent = content.toString().replace(oldYamlTs, newyamlTs);
+	let newContent = content.toString().replace(oldYamlTs, newYamlTs);
 	newContent = newContent.replace(oldTs, newTs);
 	writeFileSync(pathLs, newContent);
 	writeFileSync(tempFile, 'true');
