@@ -1,4 +1,4 @@
-import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
+import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind, SemanticTokensLegend, SemanticTokenTypes } from 'vscode-languageserver';
 import {
   getLanguageService as getCustomLanguageService,
   LanguageService,
@@ -13,13 +13,11 @@ import { NotificationHandlers } from './languageserver/handlers/notificationHand
 import { RequestHandlers } from './languageserver/handlers/requestHandlers';
 import { ValidationHandler } from './languageserver/handlers/validationHandlers';
 import { SettingsHandler } from './languageserver/handlers/settingsHandlers';
-import { YamlCommands } from './commands';
 import { WorkspaceHandlers } from './languageserver/handlers/workspaceHandlers';
 import { commandExecutor } from './languageserver/commandExecutor';
 import { Telemetry } from './languageservice/telemetry';
 import { registerCommands } from './languageservice/services/yamlCommands';
 import { readPyProject } from './helper';
-import { initQuery, initYamlParser } from './tree_sitter_queries/queries';
 import * as child_process from 'child_process';
 
 export class YAMLServerInit {
@@ -140,6 +138,14 @@ export class YAMLServerInit {
             supported: true,
           },
         },
+        semanticTokensProvider: {
+          full: true,
+          legend: {
+            tokenModifiers: [SemanticTokenTypes.class,
+            SemanticTokenTypes.property,
+            SemanticTokenTypes.variable], tokenTypes: []
+          },
+        }
       },
     };
   }

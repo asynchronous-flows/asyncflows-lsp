@@ -50,7 +50,7 @@
   "devDependencies": {
     "@microsoft/eslint-formatter-sarif": "3.0.0",
     "@types/chai": "^4.2.12",
-    "@types/node": "20.12.12",
+    "@types/node": "^20.12.12",
     "@types/prettier": "2.7.2",
     "@types/sinon": "^9.0.5",
     "@types/sinon-chai": "^3.2.5",
