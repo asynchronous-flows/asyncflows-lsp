@@ -23,4 +23,6 @@ CONTRIBUTING.md
 !node_modules/prettier/index.js
 !node_modules/prettier/third-party.js
 !node_modules/prettier/parser-yaml.js
-examples
+example
+release
+release.sh
