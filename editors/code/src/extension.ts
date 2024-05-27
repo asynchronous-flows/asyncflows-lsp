@@ -16,14 +16,15 @@ import {
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, readFileSync, writeFileSync } from 'fs';
 
 // const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
 
 let client: LanguageClient;
 
-export function activate(context: ExtensionContext) {
-	renameTreeSitterPath(context.extensionPath);
+export async function activate(context: ExtensionContext) {
+	let output = vscode.window.createOutputChannel("dbg-asyncflows-client");
+	const reading = await renameTreeSitterPath(context.extensionPath, output);
 	// The server is implemented in node
 	const serverModule = path.join(context.extensionPath, 'dist', 'languageserver.js');
 	let config = {};
@@ -51,7 +52,6 @@ export function activate(context: ExtensionContext) {
 			fileEvents: workspace.createFileSystemWatcher('**/.{py, yaml}')
 		},
 	};
-	let output = vscode.window.createOutputChannel("dbg-asyncflows-client");
 
 	semanticTokens();
 
@@ -80,10 +80,8 @@ export function activate(context: ExtensionContext) {
 	}
 
 
-
 	// Start the client. This will also launch the server
 	client.start();
-	output.appendLine('client started')
 }
 
 async function getInterpreter(pythonExtension: vscode.Extension<any>, output: vscode.OutputChannel) {
@@ -102,10 +100,12 @@ export function deactivate(): Thenable<void> | undefined {
 	return client.stop();
 }
 
-export function renameTreeSitterPath(extensionPath: string) {
+export async function renameTreeSitterPath(extensionPath: string, output: vscode.OutputChannel): Promise<boolean>{
 	const tempFile = path.join(extensionPath, 'renamed.txt');
+	let resolving; 
+	const promise = new Promise<boolean>((resolve) => resolving = resolve);
 	if (existsSync(tempFile)) {
-		return;
+		return Promise.resolve(true);
 	}
 
 	const oldYamlTs = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
@@ -116,11 +116,31 @@ export function renameTreeSitterPath(extensionPath: string) {
 
 	const pathLs = path.join(extensionPath, 'dist', 'languageserver.js');
 
-	const content = readFileSync(pathLs);
-	let newContent = content.toString().replace(oldYamlTs, newYamlTs);
-	newContent = newContent.replace(oldTs, newTs);
-	writeFileSync(pathLs, newContent);
-	writeFileSync(tempFile, 'true');
+	const stream = createReadStream(pathLs, { encoding: 'utf8' });
+
+	const bufferArray = [];
+
+
+	stream.on('data', (data) => {
+		bufferArray.push(data);
+	});
+
+	stream.on('end', () => {
+		let bufferedArray = "";
+    for(const chunk of bufferArray) {
+        bufferedArray += chunk;
+    }
+		let newContent = bufferedArray.replace(oldYamlTs, newYamlTs);
+		newContent = newContent.replace(oldTs, newTs);
+		writeFileSync(pathLs, newContent);
+		writeFileSync(tempFile, 'true');
+		resolving(true);
+	});
+
+	stream.on('error', (err) => {
+		console.error(err);
+	});
+	return promise;
 }
 
 function semanticTokens() {
