@@ -188,23 +188,67 @@ export default {
       "title": "LinkDeclaration",
       "type": "object"
     },
-    "ModelConfig": {
+    "ModelConfigDeclaration": {
       "additionalProperties": false,
       "properties": {
         "max_output_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            }
+          ],
           "default": 2000,
-          "title": "Max Output Tokens",
-          "type": "integer"
+          "title": "Max Output Tokens"
         },
         "max_prompt_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            }
+          ],
           "default": 8000,
-          "title": "Max Prompt Tokens",
-          "type": "integer"
+          "title": "Max Prompt Tokens"
         },
         "temperature": {
           "anyOf": [
             {
               "type": "number"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
             },
             {
               "type": "null"
@@ -219,6 +263,18 @@ export default {
               "type": "number"
             },
             {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
               "type": "null"
             }
           ],
@@ -231,6 +287,18 @@ export default {
               "type": "number"
             },
             {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
               "type": "null"
             }
           ],
@@ -241,6 +309,18 @@ export default {
           "anyOf": [
             {
               "type": "number"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
             },
             {
               "type": "null"
@@ -294,9 +374,21 @@ export default {
             },
             {
               "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
             }
           ],
-          "default": "gpt-3.5-turbo-1106",
+          "default": "ollama/llama3",
           "title": "Model"
         },
         "api_base": {
@@ -305,14 +397,50 @@ export default {
               "type": "string"
             },
             {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
               "type": "null"
             }
           ],
           "default": null,
           "title": "Api Base"
+        },
+        "auth_token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Auth Token"
         }
       },
-      "title": "ModelConfig",
+      "title": "ModelConfigDeclaration",
       "type": "object"
     },
     "OptionalModelConfigActionFieldTemplate": {
@@ -574,6 +702,33 @@ export default {
           ],
           "default": null,
           "title": "Api Base"
+        },
+        "auth_token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Auth Token"
         }
       },
       "title": "OptionalModelConfigActionFieldTemplate",
@@ -885,7 +1040,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": [
+            "SELECT"
+          ],
           "title": "Allowed Statement Prefixes"
         },
         "max_rows": {
@@ -909,7 +1066,7 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": 5,
           "title": "Max Rows"
         }
       },
@@ -1039,7 +1196,7 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": "bullet points",
           "title": "List Format"
         }
       },
@@ -1135,7 +1292,7 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": 1000,
           "title": "Min Start Chars"
         }
       },
@@ -1657,8 +1814,41 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": "cross-encoder/ms-marco-TinyBERT-L-2-v2",
           "title": "Model"
+        },
+        "device": {
+          "anyOf": [
+            {
+              "enum": [
+                "cpu",
+                "cuda",
+                "mps",
+                "tensorrt"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device"
         },
         "documents": {
           "anyOf": [
@@ -1758,7 +1948,7 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": 10,
           "title": "K"
         }
       },
@@ -1833,8 +2023,41 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": "sentence-transformers/all-mpnet-base-v2",
           "title": "Model"
+        },
+        "device": {
+          "anyOf": [
+            {
+              "enum": [
+                "cpu",
+                "cuda",
+                "mps",
+                "tensorrt"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Device"
         },
         "documents": {
           "anyOf": [
@@ -1934,7 +2157,7 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "default": null,
+          "default": 10,
           "title": "K"
         }
       },
@@ -2044,7 +2267,7 @@ export default {
   "additionalProperties": false,
   "properties": {
     "default_model": {
-      "$ref": "#/$defs/ModelConfig"
+      "$ref": "#/$defs/ModelConfigDeclaration"
     },
     "action_timeout": {
       "default": 360,
