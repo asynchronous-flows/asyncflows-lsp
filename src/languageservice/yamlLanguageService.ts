@@ -289,7 +289,6 @@ export function getLanguageService(params: {
     },
     resolveCodeLens: (param) => yamlCodeLens.resolveCodeLens(param),
     addSchema2(uri, content, ls) {
-      console.log(`Original addSchema2: uri: ${uri}\n content: ${content}`)
     },
     updatedSchema: new Map(),
     hasAsyncFlows(document: TextDocument) {

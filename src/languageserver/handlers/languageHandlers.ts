@@ -85,7 +85,6 @@ export class LanguageHandlers {
           this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
         }
         else {
-          console.log('Command failed');
           console.log(`content error: ${content}`)
         }
       }, this.languageService.pythonPath
