@@ -354,21 +354,21 @@ export class SettingsHandler {
   }
 
   configureFromPython(uri: string, content: string, languageService: LanguageService) {
-    console.log(content.length)
     // this.updateConfiguration();
     // return ;
-    let itemIndex = undefined;
+    let schemaIndex = undefined;
     for (let i = 0; i < this.yamlSettings.schemaConfigurationSettings.length; i++) {
       if (this.yamlSettings.schemaConfigurationSettings[i].uri == uri) {
-        itemIndex = i;
+        schemaIndex = i;
         break;
       }
     }
     try {
       const parsed = JSON.parse(content);
       languageService.updatedSchema.set(uri, parsed);
-      if (itemIndex == undefined) {
-        const schema2: SchemasSettings = {
+      if (schemaIndex == undefined) {
+        // schema is new
+        const schemaSettings: SchemasSettings = {
           fileMatch: [uri.replace('file://', '')],
           uri: uri,
           name: uri.split('/').at(-1),
@@ -376,7 +376,7 @@ export class SettingsHandler {
           description: ""
         };
         this.yamlSettings.schemaConfigurationSettings.push(
-          schema2
+          schemaSettings
         )
       }
       console.log('Updating configuration')

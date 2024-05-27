@@ -184,7 +184,6 @@ export interface LanguageService {
   addSchema2(uri: string, content: string, languageService: LanguageService): void;
   updatedSchema: Map<string, any>;
   configure2: (schemas: SchemasSettings[]) => void;
-  defaultSchemas: SchemasSettings[];
   hasAsyncFlows: (doc: TextDocument) => boolean;
   trees: Map<string, {tree: Tree, state: FlowState}>;
   stateQuery: Query,
@@ -293,7 +292,6 @@ export function getLanguageService(params: {
       console.log(`Original addSchema2: uri: ${uri}\n content: ${content}`)
     },
     updatedSchema: new Map(),
-    defaultSchemas: [],
     hasAsyncFlows(document: TextDocument) {
       return yamlValidation.hasAsyncFlows(document);
     },

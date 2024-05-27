@@ -77,14 +77,20 @@ export interface TomlConfig {
 }
 
 export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void, pythonPath: string) {
-  const process = spawn(pythonPath, ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
-  process.stdout.on('data', (data) => {
+  const cmd = spawn(pythonPath, ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
+  let bufferArray = [];
+  cmd.stdout.on('data', (data) => {
     let output = data.toString() as string;
     // settings.newSchema = output;
-    updateConfig(output);
+    bufferArray.push(data);
   })
-  process.stderr.on('data', (err) => {
+  cmd.stderr.on('data', (err) => {
     console.log(`Python output error: ${err.toString()}`);
+  })
+  cmd.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+    let dataBuffer = Buffer.concat(bufferArray);
+    updateConfig(dataBuffer.toString());
   })
 }
 
