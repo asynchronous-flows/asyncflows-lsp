@@ -354,6 +354,7 @@ export class SettingsHandler {
   }
 
   configureFromPython(uri: string, content: string, languageService: LanguageService) {
+    console.log(content.length)
     // this.updateConfiguration();
     // return ;
     let itemIndex = undefined;
@@ -378,10 +379,12 @@ export class SettingsHandler {
           schema2
         )
       }
+      console.log('Updating configuration')
       this.updateConfiguration();
       return;
     }
     catch (e) {
+      console.log(`error happens here:\n ${e}`);
     }
   }
 

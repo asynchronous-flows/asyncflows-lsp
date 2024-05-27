@@ -81,16 +81,18 @@ export class LanguageHandlers {
     this.connection.onDidSaveTextDocument((params) => {
       read2(params.textDocument.uri, this.yamlSettings, (content) => {
         if (!content.includes('Traceback')) {
+          console.log('Adding new schema');
           this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
         }
         else {
+          console.log('Command failed');
           console.log(`content error: ${content}`)
         }
       }, this.languageService.pythonPath
       )
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
-      console.log(`${params.textDocument.uri}`)
+      // console.log(`${params.textDocument.uri}`)
       return {data: []}
     });
     this.yamlSettings.documents.onDidChangeContent((change) => {
