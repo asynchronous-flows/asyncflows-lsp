@@ -385,6 +385,7 @@ export class SettingsHandler {
     }
     catch (e) {
       console.log(`error happens here:\n ${e}`);
+      console.log(content);
     }
   }
 
