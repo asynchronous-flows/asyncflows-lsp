@@ -9,7 +9,9 @@ import { workspace, ExtensionContext } from 'vscode';
 import {
 	LanguageClient,
 	LanguageClientOptions,
+	SemanticTokenTypes,
 	ServerOptions,
+	StaticFeature,
 	TransportKind
 } from 'vscode-languageclient/node';
 
@@ -23,10 +25,6 @@ let client: LanguageClient;
 export function activate(context: ExtensionContext) {
 	renameTreeSitterPath(context.extensionPath);
 	// The server is implemented in node
-	// const serverModule = path.join(context.extensionPath, "bin", "asyncflows-lsp");	
-	// const serverModule = context.asAbsolutePath('../../bin/asyncflows-lsp');
-	// const serverModule = path.join(context.extensionPath, 'out', 'bin', 'asyncflows-lsp');
-	// const serverModule = context.asAbsolutePath('./dist/languageserver.js');
 	const serverModule = path.join(context.extensionPath, 'dist', 'languageserver.js');
 	let config = {};
 
@@ -51,9 +49,11 @@ export function activate(context: ExtensionContext) {
 		synchronize: {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/.{py, yaml}')
-		}
+		},
 	};
 	let output = vscode.window.createOutputChannel("dbg-asyncflows-client");
+
+	semanticTokens();
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
@@ -91,7 +91,6 @@ async function getInterpreter(pythonExtension: vscode.Extension<any>, output: vs
 	const interpreter = await pythonApi.settings.getExecutionDetails();
 	vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter?.execCommand?.join(' ') || 'Not found'}`);
 	output.appendLine(`Current Python Interpreter: ${interpreter?.execCommand?.join(' ') || 'Not found'}`)
-	vscode.commands.executeCommand('asyncflows-lsp.vscodePythonPath', `${interpreter?.execCommand?.join(' ')}`).then(() => { });
 	const interpreterPath = `${interpreter?.execCommand?.join(' ')}`;
 	client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath] })
 }
@@ -105,10 +104,10 @@ export function deactivate(): Thenable<void> | undefined {
 
 export function renameTreeSitterPath(extensionPath: string) {
 	const tempFile = path.join(extensionPath, 'renamed.txt');
-	if(existsSync(tempFile)) {
+	if (existsSync(tempFile)) {
 		return;
 	}
-	
+
 	const oldYamlTs = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
 	const oldTs = "node_modules/tree-sitter";
 
@@ -123,3 +122,46 @@ export function renameTreeSitterPath(extensionPath: string) {
 	writeFileSync(pathLs, newContent);
 	writeFileSync(tempFile, 'true');
 }
+
+function semanticTokens() {
+
+	const tokenTypes = new Map<string, number>();
+	const tokenModifiers = new Map<string, number>();
+
+	const tokenTypesLegend = [
+		SemanticTokenTypes.class,
+		SemanticTokenTypes.property,
+		SemanticTokenTypes.variable
+	];
+	tokenTypesLegend.forEach((tokenType, index) => tokenTypes.set(tokenType, index));
+
+	const tokenModifiersLegend = [
+	];
+	tokenModifiersLegend.forEach((tokenModifier, index) => tokenModifiers.set(tokenModifier, index));
+
+	const legend = new vscode.SemanticTokensLegend(tokenTypesLegend, tokenModifiersLegend);
+
+
+	const provider: vscode.DocumentSemanticTokensProvider = {
+		provideDocumentSemanticTokens(
+			document: vscode.TextDocument
+		): vscode.ProviderResult<vscode.SemanticTokens> {
+			// analyze the document and return semantic tokens
+
+			const tokensBuilder = new vscode.SemanticTokensBuilder(legend);
+			// on line 4, characters 1-5 are a class declaration
+			tokensBuilder.push(
+				new vscode.Range(new vscode.Position(4, 1), new vscode.Position(4, 5)),
+				'class',
+				['declaration']
+			);
+			return tokensBuilder.build();
+		}
+	};
+
+	const selector = { language: 'yaml', scheme: 'file' };
+	vscode.languages.registerDocumentSemanticTokensProvider(selector, provider, legend);
+}
+
+
+

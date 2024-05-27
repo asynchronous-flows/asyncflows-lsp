@@ -27,7 +27,24 @@
     "onLanguage:yaml"
   ],
   "main": "dist/extension",
-  "contributes": {},
+  "contributes": {
+    "languages": [
+      {
+        "id": "yaml",
+        "aliases": [
+          "YAML",
+          "yaml"
+        ],
+        "extensions": [
+          ".yml",
+          ".eyaml",
+          ".eyml",
+          ".yaml"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
   "scripts": {
     "vscode:prebulish": "webpack --mode production",
     "esbuild-base": "esbuild ./client/src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",

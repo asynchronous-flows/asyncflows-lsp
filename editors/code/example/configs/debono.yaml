@@ -1,5 +1,7 @@
 # debono.yaml
 
+# yaml-language-server: $schema=https://raw.githubusercontent.com/asynchronous-flows/asyncflows/main/schemas/asyncflows_schema.json
+
 # Set the default model for the flow (can be overridden in individual actions)
 default_model:
   model: claude-3-haiku-20240307
