@@ -141,9 +141,11 @@ export class YAMLServerInit {
         semanticTokensProvider: {
           full: true,
           legend: {
-            tokenModifiers: [SemanticTokenTypes.class,
-            SemanticTokenTypes.property,
-            SemanticTokenTypes.variable], tokenTypes: []
+            tokenTypes: [
+              SemanticTokenTypes.class,
+              SemanticTokenTypes.property,
+              SemanticTokenTypes.variable],
+            tokenModifiers: [],
           },
         }
       },

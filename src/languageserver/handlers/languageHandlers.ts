@@ -18,6 +18,7 @@ import {
   DefinitionParams,
   DeclarationParams,
   DeclarationLink,
+  SemanticTokensRequest,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -87,7 +88,11 @@ export class LanguageHandlers {
         }
       }, this.languageService.pythonPath
       )
-    })
+    });
+    this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
+      console.log(`${params.textDocument.uri}`)
+      return {data: []}
+    });
     this.yamlSettings.documents.onDidChangeContent((change) => {
       // @ts-ignore
       this.cancelLimitExceededWarnings(change.document.uri)
