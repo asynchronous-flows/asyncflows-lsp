@@ -38,7 +38,7 @@ export class JSONSchemaSelection {
   }
 
   private async getSchemasForFile(docUri: string): Promise<Map<string, JSONSchema>> {
-    const document = this.yamlSettings?.documents.get(docUri);
+    const document = this.yamlSettings?.documents2.get(docUri);
     const schemas = new Map<string, JSONSchema>();
     if (!document) {
       return schemas;

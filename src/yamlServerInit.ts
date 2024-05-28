@@ -33,7 +33,6 @@ export class YAMLServerInit {
     private schemaRequestService: SchemaRequestService,
     private telemetry: Telemetry
   ) {
-    this.yamlSettings.documents.listen(this.connection);
 
     /**
      * Run when the client connects to the server after it is activated.

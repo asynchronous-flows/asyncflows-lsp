@@ -1,22 +1,25 @@
-import { DidChangeTextDocumentParams, Range, TextDocumentChangeEvent } from "vscode-languageserver";
+import { Edit, Tree } from "tree-sitter";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { DidChangeEvent } from "../languageserver/handlers/languageHandlers";
 
-export interface TextDocumentContentChangeEvent {
-	/**
-	 * The range of the document that changed.
-	 */
-	range?: Range;
+export function toInputEdit(event: DidChangeEvent, doc: TextDocument): Edit {
+	const start = event.range.start;
+	const end = event.range.end;
 
-	/**
-	 * The length of the range that got replaced.
-	 */
-	rangeLength?: number;
+	const startIndex = doc.offsetAt(start)
 
-	/**
-	 * The new text of the document.
-	 */
-	text: string;
-}
+	const newEndIndex = startIndex + event.text.length;
+	const newEndPosition = doc.positionAt(newEndIndex);
 
-export function toInputEdit(params: TextDocumentChangeEvent<TextDocumentContentChangeEvent>) {
-  console.log(`test: ${params.document.range}`)
+	const oldEndIndex = doc.offsetAt(end);
+	const oldEndPosition = end;
+
+	return {
+		startIndex,
+		newEndIndex,
+		oldEndIndex,
+		newEndPosition: { column: newEndPosition.character, row: newEndPosition.line },
+		oldEndPosition: { column: oldEndPosition.character, row: oldEndPosition.line },
+		startPosition: { column: start.character, row: start.line }
+	}
 }

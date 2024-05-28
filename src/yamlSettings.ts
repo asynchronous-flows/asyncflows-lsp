@@ -97,7 +97,7 @@ export class SettingsState {
 
   // Create a simple text document manager. The text document manager
   // supports full document sync only
-  documents: TextDocuments<TextDocument> | TextDocumentTestManager = new TextDocuments(TextDocument);
+  documents2: Map<string, TextDocument> = new Map();
 
   // Language client configuration
   capabilities: ClientCapabilities;
