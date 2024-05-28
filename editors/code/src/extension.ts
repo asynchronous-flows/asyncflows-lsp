@@ -53,7 +53,7 @@ export async function activate(context: ExtensionContext) {
 		},
 	};
 
-	semanticTokens();
+	// semanticTokens();
 
 	// Create the language client and start the client.
 	client = new LanguageClient(
