@@ -1,12 +1,24 @@
-import Parser, { Tree, SyntaxNode, Query, Point } from "tree-sitter";
+import Parser, { Tree, SyntaxNode, Query, Point, Edit } from "tree-sitter";
 const yamlTs = require('@tree-sitter-grammars/tree-sitter-yaml')
 
 const TSParser = require('tree-sitter');
 const TSQuery = require('tree-sitter');
 
-export function get_state(source: string, query: Query): [Tree, FlowState] {
+export function parseNewTree(source: string, oldTree: Tree | undefined, edit: Edit) {
+  const parser = initYamlParser() as Parser;
+  if(oldTree) {
+    oldTree.edit(edit);
+  }
+  const newTree = parser.parse(source, oldTree);
+  return newTree;
+}
+
+export function get_state(source: string, query: Query, oldTree = undefined): [Tree, FlowState] {
   const parser = initYamlParser();
-  const tree = parser.parse(source);
+  let tree: Tree = oldTree;
+  if (oldTree == undefined) {
+    tree = parser.parse(source);
+  }
   return [tree, query_flows(source, query, tree, { column: 0, row: 0 }, true)];
 }
 
@@ -14,6 +26,9 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
   const errors = [];
   const root = node.rootNode;
   const flowState: FlowState = emptyFlowState();
+  if (root == undefined) {
+    return flowState;
+  }
   const results = query.matches(root)
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
