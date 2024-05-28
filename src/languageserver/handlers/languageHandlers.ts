@@ -21,6 +21,7 @@ import {
   SemanticTokensRequest,
   Range,
   uinteger,
+  TextDocumentEdit,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -43,7 +44,8 @@ import { ResultLimitReachedNotification } from '../../requestTypes';
 import * as path from 'path';
 import { read2 } from '../../helper';
 import { SyntaxNode } from 'tree-sitter';
-import { get_state } from '../../tree_sitter_queries/queries';
+import { emptyFlowState, get_state, parseNewTree } from '../../tree_sitter_queries/queries';
+import { toInputEdit } from '../../tree_sitter_queries/toInputEdit';
 
 export class LanguageHandlers {
   private languageService: LanguageService;
@@ -93,7 +95,6 @@ export class LanguageHandlers {
       )
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
-      // console.log(`${params.textDocument.uri}`)
       return { data: [] }
     });
     this.connection.onDidOpenTextDocument((e) => {
@@ -109,19 +110,29 @@ export class LanguageHandlers {
       this.languageService.doValidation(textDocument, false);
     });
     this.connection.onDidChangeTextDocument((event) => {
-      
       // @ts-ignore
       const changes: DidChangeEvent[] = event.contentChanges;
-      const textDocument = this.yamlSettings.documents2.get(event.textDocument.uri);
-      const newContent = TextDocument.applyEdits(textDocument, this.convertToTextEdit(changes));
-      const newTextDocument = TextDocument.create(textDocument.uri,
-        textDocument.languageId,
-        event.textDocument.version,
-        newContent);
-      this.yamlSettings.documents2.set(newTextDocument.uri, newTextDocument);
+
+      for (const change of changes) {
+        const textDocument = this.yamlSettings.documents2.get(event.textDocument.uri);
+        // const newContent = TextDocument.applyEdits(textDocument, this.convertToTextEdit(changes));
+        const newContent = TextDocument.applyEdits(textDocument, [{ newText: change.text, range: change.range }]);
+        const newTextDocument = TextDocument.create(textDocument.uri,
+          textDocument.languageId,
+          event.textDocument.version,
+          newContent);
+        this.yamlSettings.documents2.set(newTextDocument.uri, newTextDocument);
+        const tree = this.languageService.trees.get(newTextDocument.uri);
+        if(tree) {
+          const inputEdit = toInputEdit(change, newTextDocument);
+          const newTree = parseNewTree(newContent, tree.tree, inputEdit);
+          this.languageService.trees.set(newTextDocument.uri, {tree: newTree, state: emptyFlowState()});
+        }
+      }
+      const newTextDocument = this.yamlSettings.documents2.get(event.textDocument.uri);
       this.cancelLimitExceededWarnings(event.textDocument.uri);
       this.languageService.doValidation2(newTextDocument);
-      this.fetchNewSchema(textDocument.uri);
+      this.fetchNewSchema(newTextDocument.uri);
       return;
       clearTimeout(this.fetchCallback)
       this.fetchCallback = setTimeout(() => {
@@ -149,12 +160,9 @@ export class LanguageHandlers {
         return;
       }
       const source = oldDocument.getText();
-      const newState = get_state(source, this.languageService.stateQuery);
+      const newState = get_state(source, this.languageService.stateQuery, oldTree.tree);
       const newActions = Array.from(newState[1].actions.keys());
       const shouldFetch = previousActions.filter(item => !newActions.includes(item));
-      // console.log(`shouldFetch: ${shouldFetch.length}`);
-      // console.log(`prev: ${previousActions}`);
-      // console.log(`new: ${newActions}`);
       this.languageService.trees.set(uri, { tree: newState[0], state: newState[1] });
       if (shouldFetch.length == 0 || ignoreFetch) {
         return;
