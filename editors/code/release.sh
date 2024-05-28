@@ -1,0 +1,9 @@
+vsce package -o "release/asyncflows-lsp-0.1.1-win32-x64.vsix" --target win32-x64
+vsce package -o "release/asyncflows-lsp-0.1.1-win32-arm64.vsix" --target win32-arm64
+vsce package -o "release/asyncflows-lsp-0.1.1-linux-x64.vsix" --target linux-x64
+vsce package -o "release/asyncflows-lsp-0.1.1-linux-arm64.vsix" --target linux-arm64
+vsce package -o "release/asyncflows-lsp-0.1.1-linux-armhf.vsix" --target linux-armhf
+vsce package -o "release/asyncflows-lsp-0.1.1-alpine-x64.vsix" --target alpine-x64
+vsce package -o "release/asyncflows-lsp-0.1.1-alpine-arm64.vsix" --target alpine-arm64
+vsce package -o "release/asyncflows-lsp-0.1.1-darwin-x64.vsix" --target darwin-x64
+vsce package -o "release/asyncflows-lsp-0.1.1-darwin-arm64.vsix" --target darwin-arm64

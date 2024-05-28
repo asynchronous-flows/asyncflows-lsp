@@ -1,0 +1,124 @@
+{
+  "name": "asyncflows-lsp",
+  "description": "Asyncflows language server",
+  "version": "0.1.2",
+  "author": "Gorkem Ercan (Red Hat)",
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Joshua Pinkney",
+      "email": "joshpinkney@gmail.com"
+    },
+    {
+      "name": "Yevhen Vydolob",
+      "email": "yvydolob@redhat.com"
+    },
+    {
+      "name": "Google LLC"
+    }
+  ],
+  "bin": {
+    "asyncflows-lsp": "./bin/asyncflows-lsp"
+  },
+  "main": "./out/server/src/index.js",
+  "keywords": [
+    "yaml",
+    "LSP"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/redhat-developer/yaml-language-server.git"
+  },
+  "optionalDependencies": {
+    "prettier": "2.8.7"
+  },
+  "dependencies": {
+    "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
+    "ajv": "^8.11.0",
+    "jschardet": "3.1.2",
+    "lodash": "4.17.21",
+    "request-light": "^0.5.7",
+    "toml": "^3.0.0",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-compat": "^0.1.0",
+    "vscode-json-languageservice": "4.1.8",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.1",
+    "vscode-languageserver-types": "^3.16.0",
+    "vscode-nls": "^5.0.0",
+    "vscode-uri": "^3.0.2",
+    "yaml": "2.2.2"
+  },
+  "devDependencies": {
+    "@microsoft/eslint-formatter-sarif": "3.0.0",
+    "@types/chai": "^4.2.12",
+    "@types/node": "^20.12.12",
+    "@types/prettier": "2.7.2",
+    "@types/sinon": "^9.0.5",
+    "@types/sinon-chai": "^3.2.5",
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
+    "chai": "^4.2.0",
+    "coveralls": "3.1.1",
+    "electron": "^30.0.8",
+    "electron-rebuild": "^3.2.9",
+    "eslint": "^8.24.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "http-proxy-agent": "^5.0.0",
+    "https-proxy-agent": "^5.0.0",
+    "nyc": "^15.1.0",
+    "rimraf": "^3.0.2",
+    "sinon": "^9.0.3",
+    "sinon-chai": "^3.5.0",
+    "source-map-support": "^0.5.19",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.8.3",
+    "vitest": "^1.6.0"
+  },
+  "scripts": {
+    "clean": "rimraf out/server && rimraf lib && rimraf editors/code/server",
+    "compile": "tsc -p .",
+    "watch": "tsc --watch -p .",
+    "test2": "mocha --require ts-node/register --timeout 5000 --ui bdd ./test/*.test.ts",
+    "test-ts": "mocha --require ts-node/register ./test/*.test.ts",
+    "coverage": "nyc mocha --require ts-node/register --timeout 5000 --require source-map-support/register --recursive --ui bdd ./test/*.test.ts",
+    "coveralls": "nyc --reporter=lcov --reporter=text mocha --timeout 5000 --require ts-node/register --require source-map-support/register --recursive --ui bdd ./test/*.test.ts",
+    "lint": "eslint --max-warnings 0 -c .eslintrc.js --ext .ts src test",
+    "lint-ci": "eslint --max-warnings 0 -c .eslintrc.js -f @microsoft/eslint-formatter-sarif -o eslint-result.sarif --ext .ts src test",
+    "prettier-fix": "yarn prettier --write .",
+    "build": "npm run clean && npm run lint && npm run compile && npm run build:libs",
+    "build2": "npm run clean && npm run compile && npm run build:libs2",
+    "build:libs": "yarn compile:esm",
+    "build:libs2": "yarn compile:esm && yarn compile:umd",
+    "compile:umd": "tsc -p ./tsconfig.umd.json",
+    "compile:esm": "tsc -p ./tsconfig.esm.json",
+    "check-dependencies": "node ./scripts/check-dependencies.js",
+    "pull-remote": "git pull https://github.com/redhat-developer/yaml-language-server.git main",
+    "tests": "vitest",
+    "move-server": "mkdir -p editors/code/out && cp -r node_modules editors/code/out && cp -r out editors/code/out && cp -r bin editors/code/out && cp -r lib editors/code/out",
+    "move-build": "ln -s bin/ editors/code/ -r -f && ln -s lib/ editors/code/ -r -f && ln -s out/ editors/code/ -r -f",
+    "rebuild": "electron-rebuild"
+  },
+  "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "**/*.d.ts",
+      "test/",
+      "out",
+      "lib",
+      "coverage/",
+      ".eslintrc.js",
+      "scripts",
+      "editors/code/out"
+    ],
+    "all": true
+  },
+  "resolutions": {
+    "jschardet": "3.1.2"
+  }
+}

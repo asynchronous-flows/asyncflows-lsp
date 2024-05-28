@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": [
+      "es2020",
+      "WebWorker"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./out/server",
+    "sourceMap": true,
+    "target": "es2020",
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "include": [
+    "src",
+    "test",
+    "types"
+  ],
+  "exclude": [
+    "node_modules",
+    "out"
+  ]
+}
