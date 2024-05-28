@@ -28,20 +28,11 @@
   ],
   "main": "dist/extension",
   "contributes": {
-    "languages": [
+    "grammars": [
       {
-        "id": "yaml",
-        "aliases": [
-          "YAML",
-          "yaml"
-        ],
-        "extensions": [
-          ".yml",
-          ".eyaml",
-          ".eyml",
-          ".yaml"
-        ],
-        "configuration": "./language-configuration.json"
+        "injectTo": ["source.yaml"],
+        "scopeName": "textblock.asyncflows-lsp",
+        "path": "./syntaxes/asyncflows-lsp.json"
       }
     ]
   },
