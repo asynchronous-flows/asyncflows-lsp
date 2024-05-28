@@ -10,6 +10,7 @@ import { isKubernetesAssociatedDocument } from '../../languageservice/parser/isK
 import { removeDuplicatesObj } from '../../languageservice/utils/arrUtils';
 import { LanguageService } from '../../languageservice/yamlLanguageService';
 import { SettingsState } from '../../yamlSettings';
+import { writeFileSync } from 'fs';
 
 export class ValidationHandler {
   private languageService: LanguageService;
@@ -19,19 +20,14 @@ export class ValidationHandler {
     this.languageService = languageService;
     this.yamlSettings = yamlSettings;
 
-    this.yamlSettings.documents.onDidOpen((e) => {
-      const source = e.document.getText();
-      // const oldTree = this.languageService.trees.get(e.document.uri);
-      const state = get_state(source, this.languageService.stateQuery);
-      this.languageService.trees.set(e.document.uri, {tree: state[0], state: state[1]});
-    })
+    this.languageService.doValidation2 = (textDocument: TextDocument) => {
+     this.validate(textDocument); 
+    }
 
-    this.yamlSettings.documents.onDidChangeContent((change) => {
-      this.validate(change.document);
-    });
-    this.yamlSettings.documents.onDidClose((event) => {
-      this.cleanPendingValidation(event.document);
-      this.connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
+    this.connection.onDidCloseTextDocument((event) => {
+      const document = this.yamlSettings.documents2.get(event.textDocument.uri);
+      this.cleanPendingValidation(document);
+      this.connection.sendDiagnostics({ uri: event.textDocument.uri, diagnostics: [] });
     });
   }
 
