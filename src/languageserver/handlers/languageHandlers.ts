@@ -19,6 +19,8 @@ import {
   DeclarationParams,
   DeclarationLink,
   SemanticTokensRequest,
+  Range,
+  uinteger,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -92,44 +94,78 @@ export class LanguageHandlers {
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
       // console.log(`${params.textDocument.uri}`)
-      return {data: []}
+      return { data: [] }
     });
-    this.yamlSettings.documents.onDidChangeContent((change) => {
+    this.connection.onDidOpenTextDocument((e) => {
+      const source = e.textDocument.text;
+      // const oldTree = this.languageService.trees.get(e.document.uri);
+      const state = get_state(source, this.languageService.stateQuery);
+      this.languageService.trees.set(e.textDocument.uri, { tree: state[0], state: state[1] });
+      const textDocument = TextDocument.create(e.textDocument.uri,
+        e.textDocument.languageId,
+        e.textDocument.version,
+        source);
+      this.yamlSettings.documents2.set(e.textDocument.uri, textDocument);
+      this.languageService.doValidation(textDocument, false);
+    });
+    this.connection.onDidChangeTextDocument((event) => {
+      
       // @ts-ignore
-      this.cancelLimitExceededWarnings(change.document.uri)
-      this.fetchNewSchema(change);
+      const changes: DidChangeEvent[] = event.contentChanges;
+      const textDocument = this.yamlSettings.documents2.get(event.textDocument.uri);
+      const newContent = TextDocument.applyEdits(textDocument, this.convertToTextEdit(changes));
+      const newTextDocument = TextDocument.create(textDocument.uri,
+        textDocument.languageId,
+        event.textDocument.version,
+        newContent);
+      this.yamlSettings.documents2.set(newTextDocument.uri, newTextDocument);
+      this.cancelLimitExceededWarnings(event.textDocument.uri);
+      this.languageService.doValidation2(newTextDocument);
+      this.fetchNewSchema(textDocument.uri);
       return;
       clearTimeout(this.fetchCallback)
       this.fetchCallback = setTimeout(() => {
-        this.fetchNewSchema(change);
+        // this.fetchNewSchema(change);
       }, 1000);
-    }
-    );
-    this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
+
+    });
+    // this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
   }
 
-  fetchNewSchema(change: TextDocumentChangeEvent<TextDocument>, ignoreFetch = true) {
-    const oldTree = this.languageService.trees.get(change.document.uri);
+  convertToTextEdit(changes: DidChangeEvent[]): TextEdit[] {
+    const edits: TextEdit[] = [];
+    for (const change of changes) {
+      edits.push({ newText: change.text, range: change.range })
+    }
+    return edits;
+  }
+
+  fetchNewSchema(uri: string, ignoreFetch = true) {
+    const oldTree = this.languageService.trees.get(uri);
     if (oldTree) {
       const previousActions = Array.from(oldTree.state.actions.keys());
-      const source = change.document.getText();
+      const oldDocument = this.yamlSettings.documents2.get(uri);
+      if (!oldDocument) {
+        return;
+      }
+      const source = oldDocument.getText();
       const newState = get_state(source, this.languageService.stateQuery);
       const newActions = Array.from(newState[1].actions.keys());
       const shouldFetch = previousActions.filter(item => !newActions.includes(item));
       // console.log(`shouldFetch: ${shouldFetch.length}`);
       // console.log(`prev: ${previousActions}`);
       // console.log(`new: ${newActions}`);
-      this.languageService.trees.set(change.document.uri, { tree: newState[0], state: newState[1] });
+      this.languageService.trees.set(uri, { tree: newState[0], state: newState[1] });
       if (shouldFetch.length == 0 || ignoreFetch) {
         return;
       }
-      const document = this.yamlSettings.documents.get(change.document.uri);
+      const document = this.yamlSettings.documents2.get(uri);
       if (!this.languageService.hasAsyncFlows(document)) {
         return undefined;
       }
-      read2(change.document.uri, this.yamlSettings, (content) => {
+      read2(uri, this.yamlSettings, (content) => {
         if (!content.includes('Traceback')) {
-          this.languageService.addSchema2(change.document.uri, content, this.languageService);
+          this.languageService.addSchema2(uri, content, this.languageService);
         }
         else {
           console.log(`content error: ${content}`)
@@ -140,7 +176,7 @@ export class LanguageHandlers {
   }
 
   documentLinkHandler(params: DocumentLinkParams): Promise<DocumentLink[]> {
-    const document = this.yamlSettings.documents.get(params.textDocument.uri);
+    const document = this.yamlSettings.documents2.get(params.textDocument.uri);
     if (!document) {
       return Promise.resolve([]);
     }
@@ -153,7 +189,7 @@ export class LanguageHandlers {
    * Returns a list of symbols that is then shown in the code outline
    */
   documentSymbolHandler(documentSymbolParams: DocumentSymbolParams): DocumentSymbol[] | SymbolInformation[] {
-    const document = this.yamlSettings.documents.get(documentSymbolParams.textDocument.uri);
+    const document = this.yamlSettings.documents2.get(documentSymbolParams.textDocument.uri);
 
     if (!document) {
       return;
@@ -182,7 +218,7 @@ export class LanguageHandlers {
    * Returns the formatted document content using prettier
    */
   formatterHandler(formatParams: DocumentFormattingParams): TextEdit[] {
-    const document = this.yamlSettings.documents.get(formatParams.textDocument.uri);
+    const document = this.yamlSettings.documents2.get(formatParams.textDocument.uri);
 
     if (!document) {
       return;
@@ -197,7 +233,7 @@ export class LanguageHandlers {
   }
 
   formatOnTypeHandler(params: DocumentOnTypeFormattingParams): Promise<TextEdit[] | undefined> | TextEdit[] | undefined {
-    const document = this.yamlSettings.documents.get(params.textDocument.uri);
+    const document = this.yamlSettings.documents2.get(params.textDocument.uri);
 
     if (!document) {
       return;
@@ -210,7 +246,7 @@ export class LanguageHandlers {
    * Returns an informational tooltip
    */
   hoverHandler(textDocumentPositionParams: TextDocumentPositionParams): Promise<Hover> {
-    const document = this.yamlSettings.documents.get(textDocumentPositionParams.textDocument.uri);
+    const document = this.yamlSettings.documents2.get(textDocumentPositionParams.textDocument.uri);
 
     if (!document) {
       return Promise.resolve(undefined);
@@ -224,7 +260,7 @@ export class LanguageHandlers {
    * Returns a list of valid completion items
    */
   completionHandler(textDocumentPosition: TextDocumentPositionParams): Promise<CompletionList> {
-    const textDocument = this.yamlSettings.documents.get(textDocumentPosition.textDocument.uri);
+    const textDocument = this.yamlSettings.documents2.get(textDocumentPosition.textDocument.uri);
 
     const result: CompletionList = {
       items: [],
@@ -255,12 +291,14 @@ export class LanguageHandlers {
     });
 
     if (hasChanges) {
-      this.yamlSettings.documents.all().forEach((document) => this.validationHandler.validate(document));
+      this.yamlSettings.documents2.forEach((document) => {
+        this.validationHandler.validate(document)
+      });
     }
   }
 
   foldingRangeHandler(params: FoldingRangeParams): Promise<FoldingRange[] | undefined> | FoldingRange[] | undefined {
-    const textDocument = this.yamlSettings.documents.get(params.textDocument.uri);
+    const textDocument = this.yamlSettings.documents2.get(params.textDocument.uri);
     if (!textDocument) {
       return;
     }
@@ -279,7 +317,7 @@ export class LanguageHandlers {
   }
 
   selectionRangeHandler(params: SelectionRangeParams): SelectionRange[] | undefined {
-    const textDocument = this.yamlSettings.documents.get(params.textDocument.uri);
+    const textDocument = this.yamlSettings.documents2.get(params.textDocument.uri);
     if (!textDocument) {
       return;
     }
@@ -288,7 +326,7 @@ export class LanguageHandlers {
   }
 
   codeActionHandler(params: CodeActionParams): CodeAction[] | undefined {
-    const textDocument = this.yamlSettings.documents.get(params.textDocument.uri);
+    const textDocument = this.yamlSettings.documents2.get(params.textDocument.uri);
     if (!textDocument) {
       return;
     }
@@ -297,7 +335,7 @@ export class LanguageHandlers {
   }
 
   codeLensHandler(params: CodeLensParams): PromiseLike<CodeLens[] | undefined> | CodeLens[] | undefined {
-    const textDocument = this.yamlSettings.documents.get(params.textDocument.uri);
+    const textDocument = this.yamlSettings.documents2.get(params.textDocument.uri);
     if (!textDocument) {
       return;
     }
@@ -349,7 +387,7 @@ export class LanguageHandlers {
   }
 
   definitionHandler(params: DefinitionParams): DefinitionLink[] {
-    const textDocument = this.yamlSettings.documents.get(params.textDocument.uri);
+    const textDocument = this.yamlSettings.documents2.get(params.textDocument.uri);
     if (!textDocument) {
       return;
     }
@@ -396,4 +434,21 @@ export class LanguageHandlers {
       }
     };
   }
+}
+
+export declare type DidChangeEvent = {
+  /**
+   * The range of the document that changed.
+   */
+  range: Range;
+  /**
+   * The optional length of the range that got replaced.
+   *
+   * @deprecated use range instead.
+   */
+  rangeLength?: uinteger;
+  /**
+   * The new text for the provided range.
+   */
+  text: string;
 }

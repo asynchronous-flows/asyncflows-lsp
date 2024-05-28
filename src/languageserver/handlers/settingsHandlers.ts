@@ -350,7 +350,10 @@ export class SettingsHandler {
     this.languageService.configure(languageSettings);
 
     // Revalidate any open text documents
-    this.yamlSettings.documents.all().forEach((document) => this.validationHandler.validate(document));
+      this.yamlSettings.documents2.forEach((document) => {
+        this.validationHandler.validate(document)
+      });
+   
   }
 
   configureFromPython(uri: string, content: string, languageService: LanguageService) {

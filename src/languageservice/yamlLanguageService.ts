@@ -186,8 +186,9 @@ export interface LanguageService {
   configure2: (schemas: SchemasSettings[]) => void;
   hasAsyncFlows: (doc: TextDocument) => boolean;
   trees: Map<string, {tree: Tree, state: FlowState}>;
-  stateQuery: Query,
-  pythonPath: string
+  stateQuery: Query;
+  pythonPath: string;
+  doValidation2(doc: TextDocument): void;
 }
 
 export function getLanguageService(params: {
@@ -296,7 +297,9 @@ export function getLanguageService(params: {
     },
     trees: new Map(),
     stateQuery: initQuery() as Query,
-    pythonPath: "python"
+    pythonPath: "python",
+    doValidation2(doc: TextDocument) {
+    }
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);
