@@ -1,4 +1,4 @@
-<img src="https://github.com/asynchronous-flows/asyncflows-lsp/blob/semantic-highlighting/banner.png" alt="banner" />
+<img src="https://github.com/asynchronous-flows/asyncflows-lsp/blob/main/banner.png" alt="banner" />
 
 <div align="center">
 Language Server for asyncflows
