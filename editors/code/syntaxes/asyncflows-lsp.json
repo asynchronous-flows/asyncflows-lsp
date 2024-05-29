@@ -1,23 +1,28 @@
 {
-    "filetypes": [],
-    "injectionSelector": "L:string.unquoted.block.yaml",
-    "patterns": [
-        {"include": "#textTag"},
-        {"include": "#textBlock"}
-    ],
-    "repository": {
-        "textBlock": {
-            "name": "string.unquoted.block.yaml",
-            "contentName": "meta.embeded.block.jinja",
-            "patterns": [
-                {"include": "source.jinja"}
-            ]
-        },
-        "textTag": {
-            "name": "entity.name.tag.yaml",
-            "begin": "text:\\s\\|"
-        }
-        
+  "filetypes": [],
+  "injectionSelector": "L:string.unquoted.block.yaml",
+  "patterns": [
+    {
+      "include": "#textTag"
     },
-    "scopeName": "textblock.asyncflows-lsp"
+    {
+      "include": "#textBlock"
+    }
+  ],
+  "repository": {
+    "textBlock": {
+      "name": "string.unquoted.block.yaml",
+      "contentName": "meta.embeded.block.jinja",
+      "patterns": [
+        {
+          "include": "source.jinja"
+        }
+      ]
+    },
+    "textTag": {
+      "name": "entity.name.tag.yaml",
+      "begin": "text:\\s\\|"
+    }
+  },
+  "scopeName": "textblock.asyncflows-lsp"
 }

@@ -22,6 +22,8 @@ import {
   Range,
   uinteger,
   TextDocumentEdit,
+  SemanticTokenTypes,
+  SemanticTokenModifiers,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -35,6 +37,7 @@ import {
   SelectionRange,
   SymbolInformation,
   TextEdit,
+  SemanticTokens,
 } from 'vscode-languageserver-types';
 import { isKubernetesAssociatedDocument } from '../../languageservice/parser/isKubernetes';
 import { LanguageService } from '../../languageservice/yamlLanguageService';
@@ -52,8 +55,9 @@ export class LanguageHandlers {
   private yamlSettings: SettingsState;
   private validationHandler: ValidationHandler;
   private fetchCallback: NodeJS.Timeout
-
   pendingLimitExceededWarnings: { [uri: string]: { features: { [name: string]: string }; timeout?: NodeJS.Timeout } };
+  public tokenTypes = new Map<string, number>();
+  public tokenModifiers = new Map<string, number>();
 
   constructor(
     private readonly connection: Connection,
@@ -65,6 +69,9 @@ export class LanguageHandlers {
     this.yamlSettings = yamlSettings;
     this.validationHandler = validationHandler;
     this.pendingLimitExceededWarnings = {};
+    const [tokenTypes, tokenModifiers] = setSemanticToken();
+    this.tokenTypes = tokenTypes;
+    this.tokenModifiers = tokenModifiers;
   }
 
   public registerHandlers(): void {
@@ -95,7 +102,9 @@ export class LanguageHandlers {
       )
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
-      return { data: [] }
+      console.log(params.textDocument.uri);
+      const data = this.intoSemanticTokens(params.textDocument.uri);
+      return { data }
     });
     this.connection.onDidOpenTextDocument((e) => {
       const source = e.textDocument.text;
@@ -123,10 +132,10 @@ export class LanguageHandlers {
           newContent);
         this.yamlSettings.documents2.set(newTextDocument.uri, newTextDocument);
         const tree = this.languageService.trees.get(newTextDocument.uri);
-        if(tree) {
+        if (tree) {
           const inputEdit = toInputEdit(change, newTextDocument);
           const newTree = parseNewTree(newContent, tree.tree, inputEdit);
-          this.languageService.trees.set(newTextDocument.uri, {tree: newTree, state: emptyFlowState()});
+          this.languageService.trees.set(newTextDocument.uri, { tree: newTree, state: emptyFlowState() });
         }
       }
       const newTextDocument = this.yamlSettings.documents2.get(event.textDocument.uri);
@@ -149,6 +158,58 @@ export class LanguageHandlers {
       edits.push({ newText: change.text, range: change.range })
     }
     return edits;
+  }
+
+  intoSemanticTokens(uri: string): number[] {
+    const tree = this.languageService.trees.get(uri);
+    const doc = this.yamlSettings.documents2.get(uri);
+    if (!tree || !doc) {
+      return [];
+    }
+    const links = tree.state.links;
+    const actions = tree.state.actions;
+    const positions: AbsolutePosition[] = [];
+    links.forEach((value, key) => {
+      const linkValue = value.link_value;
+      if (!linkValue) {
+        return;
+      }
+      const text = linkValue.text.split(".")[0];
+      if(!actions.get(text)) {
+        return;
+      }
+      const position: AbsolutePosition = {
+        line: linkValue.startPosition.row,
+        startChar: linkValue.startPosition.column,
+        length: linkValue.endPosition.column - linkValue.startPosition.column,
+        tokenModifiers: [SemanticTokenModifiers.declaration],
+        tokenType: SemanticTokenTypes.enum
+      };
+      positions.push(position);
+    })
+    positions.forEach((item) => {
+      const t = item.tokenType;
+      const m = item.tokenModifiers[0];
+      item.tokenType = this.tokenTypes.get(t as string);
+      item.tokenModifiers = this.tokenModifiers.get(m as string);
+    })
+    const lspSpans: number[] = [];
+    let previousLine = 0;
+    let previousTokenStart = 0;
+    for (let i = 0; i < positions.length; i++) {
+      const item = positions[i];
+      const line = item.line;
+      const character = item.startChar;
+      const deltaLine = line - previousLine;
+      const deltaStart = previousLine === line ? character - previousTokenStart : character;
+      lspSpans.push(deltaLine, deltaStart,
+        item.length, item.tokenType as number,
+        item.tokenModifiers as number);
+
+      previousTokenStart = character;
+      previousLine = line;
+    }
+    return lspSpans;
   }
 
   fetchNewSchema(uri: string, ignoreFetch = true) {
@@ -459,4 +520,32 @@ export declare type DidChangeEvent = {
    * The new text for the provided range.
    */
   text: string;
+}
+
+function setSemanticToken() {
+  const tokenTypes = new Map<string, number>();
+  const tokenModifiers = new Map<string, number>();
+
+  const tokenTypesLegend = [
+    SemanticTokenTypes.class,
+    SemanticTokenTypes.property,
+    SemanticTokenTypes.variable
+  ];
+  tokenTypesLegend.forEach((tokenType, index) => tokenTypes.set(tokenType, index));
+
+  const tokenModifiersLegend = [
+    SemanticTokenModifiers.declaration
+  ];
+  tokenModifiersLegend.forEach((tokenModifier, index) => tokenModifiers.set(tokenModifier, index));
+
+  return [tokenTypes, tokenModifiers]
+
+}
+
+type AbsolutePosition = {
+  line: number,
+  startChar: number,
+  length: number,
+  tokenType: string | number,
+  tokenModifiers: string[] | number
 }
