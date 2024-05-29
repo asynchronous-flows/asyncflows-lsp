@@ -19,6 +19,7 @@ import { Telemetry } from './languageservice/telemetry';
 import { registerCommands } from './languageservice/services/yamlCommands';
 import { readPyProject } from './helper';
 import * as child_process from 'child_process';
+import { tokenModifiersLegend, tokenTypesLegend } from './semanticTokens';
 
 export class YAMLServerInit {
   languageService: LanguageService;
@@ -140,13 +141,8 @@ export class YAMLServerInit {
         semanticTokensProvider: {
           full: true,
           legend: {
-            tokenTypes: [
-              SemanticTokenTypes.class,
-              SemanticTokenTypes.property,
-              SemanticTokenTypes.variable,
-              SemanticTokenTypes.enum
-            ],
-            tokenModifiers: [SemanticTokenModifiers.declaration],
+            tokenTypes: tokenTypesLegend,
+            tokenModifiers: tokenModifiersLegend,
           },
         }
       },
