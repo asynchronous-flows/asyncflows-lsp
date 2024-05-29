@@ -1,4 +1,4 @@
-import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind, SemanticTokensLegend, SemanticTokenTypes } from 'vscode-languageserver';
+import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind, SemanticTokensLegend, SemanticTokenTypes, SemanticTokenModifiers } from 'vscode-languageserver';
 import {
   getLanguageService as getCustomLanguageService,
   LanguageService,
@@ -143,8 +143,10 @@ export class YAMLServerInit {
             tokenTypes: [
               SemanticTokenTypes.class,
               SemanticTokenTypes.property,
-              SemanticTokenTypes.variable],
-            tokenModifiers: [],
+              SemanticTokenTypes.variable,
+              SemanticTokenTypes.enum
+            ],
+            tokenModifiers: [SemanticTokenModifiers.declaration],
           },
         }
       },

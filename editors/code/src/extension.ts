@@ -9,6 +9,7 @@ import { workspace, ExtensionContext } from 'vscode';
 import {
 	LanguageClient,
 	LanguageClientOptions,
+	SemanticTokenModifiers,
 	SemanticTokenTypes,
 	ServerOptions,
 	StaticFeature,
@@ -28,8 +29,8 @@ export async function activate(context: ExtensionContext) {
 	// The server is implemented in node
 	const serverModule = path.join(context.extensionPath, 'dist', 'languageserver.js');
 	let config = {};
-
 	let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+
 
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
@@ -156,6 +157,7 @@ function semanticTokens() {
 	tokenTypesLegend.forEach((tokenType, index) => tokenTypes.set(tokenType, index));
 
 	const tokenModifiersLegend = [
+		SemanticTokenModifiers.declaration
 	];
 	tokenModifiersLegend.forEach((tokenModifier, index) => tokenModifiers.set(tokenModifier, index));
 
