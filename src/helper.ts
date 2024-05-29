@@ -114,6 +114,9 @@ export function hasAsyncFlows(doc: SingleYAMLDocument | JSONDocument) {
       if (comment.includes("yaml-language-server") && comment.includes("asyncflows_schema.json")) {
         return true;
       }
+      else if(comment.includes('asyncflows-lsp')) {
+        return true
+      }
     }
   }
   return hasComment;
