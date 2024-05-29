@@ -30,7 +30,9 @@
   "contributes": {
     "grammars": [
       {
-        "injectTo": ["source.yaml"],
+        "injectTo": [
+          "source.yaml"
+        ],
         "scopeName": "textblock.asyncflows-lsp",
         "path": "./syntaxes/asyncflows-lsp.json"
       }
@@ -68,7 +70,7 @@
   },
   "dependencies": {
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
-    "asyncflows-lsp": "0.1.2",
+    "asyncflows-lsp": "^0.1.2-alpha.1",
     "jschardet": "^3.1.2",
     "tree-sitter": "^0.21.1",
     "ts-loader": "^9.5.1",
