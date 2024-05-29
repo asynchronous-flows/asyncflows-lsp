@@ -49,6 +49,7 @@ import { read2 } from '../../helper';
 import { SyntaxNode } from 'tree-sitter';
 import { emptyFlowState, get_state, parseNewTree } from '../../tree_sitter_queries/queries';
 import { toInputEdit } from '../../tree_sitter_queries/toInputEdit';
+import { tokenModifiersLegend, tokenTypesLegend } from '../../semanticTokens';
 
 export class LanguageHandlers {
   private languageService: LanguageService;
@@ -102,7 +103,6 @@ export class LanguageHandlers {
       )
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
-      console.log(params.textDocument.uri);
       const data = this.intoSemanticTokens(params.textDocument.uri);
       return { data }
     });
@@ -169,13 +169,23 @@ export class LanguageHandlers {
     const links = tree.state.links;
     const actions = tree.state.actions;
     const positions: AbsolutePosition[] = [];
+    actions.forEach((value, key) => {
+      const position: AbsolutePosition = {
+        line: value.action_name.startPosition.row,
+        startChar: value.action_name.startPosition.column,
+        length: value.action_name.endPosition.column - value.action_name.startPosition.column,
+        tokenModifiers: [SemanticTokenModifiers.abstract],
+        tokenType: SemanticTokenTypes.function
+      };
+      positions.push(position);
+    });
     links.forEach((value, key) => {
       const linkValue = value.link_value;
       if (!linkValue) {
         return;
       }
       const text = linkValue.text.split(".")[0];
-      if(!actions.get(text)) {
+      if (!actions.get(text)) {
         return;
       }
       const position: AbsolutePosition = {
@@ -192,7 +202,13 @@ export class LanguageHandlers {
       const m = item.tokenModifiers[0];
       item.tokenType = this.tokenTypes.get(t as string);
       item.tokenModifiers = this.tokenModifiers.get(m as string);
-    })
+    });
+    positions.sort(this.sortSpans);
+    let spans = this.addToLspSpans(positions);
+    return spans;
+  }
+
+  addToLspSpans(positions: AbsolutePosition[]) {
     const lspSpans: number[] = [];
     let previousLine = 0;
     let previousTokenStart = 0;
@@ -210,6 +226,16 @@ export class LanguageHandlers {
       previousLine = line;
     }
     return lspSpans;
+  }
+
+  sortSpans(a: AbsolutePosition, b: AbsolutePosition) {
+    if (a.line < b.line) {
+      return -1;
+    }
+    if (a.line > b.line) {
+      return 1;
+    }
+    return 0;
   }
 
   fetchNewSchema(uri: string, ignoreFetch = true) {
@@ -526,16 +552,8 @@ function setSemanticToken() {
   const tokenTypes = new Map<string, number>();
   const tokenModifiers = new Map<string, number>();
 
-  const tokenTypesLegend = [
-    SemanticTokenTypes.class,
-    SemanticTokenTypes.property,
-    SemanticTokenTypes.variable
-  ];
   tokenTypesLegend.forEach((tokenType, index) => tokenTypes.set(tokenType, index));
 
-  const tokenModifiersLegend = [
-    SemanticTokenModifiers.declaration
-  ];
   tokenModifiersLegend.forEach((tokenModifier, index) => tokenModifiers.set(tokenModifier, index));
 
   return [tokenTypes, tokenModifiers]
