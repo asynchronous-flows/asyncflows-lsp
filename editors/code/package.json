@@ -70,7 +70,7 @@
   },
   "dependencies": {
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
-    "asyncflows-lsp": "^0.1.2-alpha.1",
+    "asyncflows-lsp": "^0.1.2-alpha.2",
     "jschardet": "^3.1.2",
     "tree-sitter": "^0.21.1",
     "ts-loader": "^9.5.1",
@@ -83,6 +83,7 @@
     "yaml-language-server": "^1.14.0"
   },
   "extensionDependencies": [
-    "ms-python.python"
+    "ms-python.python",
+    "samuelcolvin.jinjahtml"
   ]
 }

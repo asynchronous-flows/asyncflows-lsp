@@ -27,6 +27,7 @@ export async function activate(context: ExtensionContext) {
 	let output = vscode.window.createOutputChannel("dbg-asyncflows-client");
 	const reading = await renameTreeSitterPath(context.extensionPath, output);
 	// The server is implemented in node
+	// const serverModule = context.asAbsolutePath('../../bin/asyncflows-lsp');	
 	const serverModule = path.join(context.extensionPath, 'dist', 'languageserver.js');
 	let config = {};
 	let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
@@ -65,6 +66,7 @@ export async function activate(context: ExtensionContext) {
 	);
 
 	const pythonExtension = vscode.extensions.getExtension('ms-python.python');
+	const jinjaExtension = vscode.extensions.getExtension('samuelcolvin.jinjahtml');
 	if (!pythonExtension) {
 		vscode.window.showErrorMessage('Python extension is not installed.');
 		output.appendLine('Python extension is not installed.')
@@ -78,6 +80,11 @@ export async function activate(context: ExtensionContext) {
 	else {
 		getInterpreter(pythonExtension, output).then(() => {
 		})
+	}
+
+	if (!jinjaExtension) {
+		vscode.window.showErrorMessage('Jinja extension is not installed.');
+		output.appendLine('Jinja extension is not installed.')
 	}
 
 
@@ -101,9 +108,9 @@ export function deactivate(): Thenable<void> | undefined {
 	return client.stop();
 }
 
-export async function renameTreeSitterPath(extensionPath: string, output: vscode.OutputChannel): Promise<boolean>{
+export async function renameTreeSitterPath(extensionPath: string, output: vscode.OutputChannel): Promise<boolean> {
 	const tempFile = path.join(extensionPath, 'renamed.txt');
-	let resolving; 
+	let resolving;
 	const promise = new Promise<boolean>((resolve) => resolving = resolve);
 	if (existsSync(tempFile)) {
 		return Promise.resolve(true);
@@ -128,9 +135,9 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 
 	stream.on('end', () => {
 		let bufferedArray = "";
-    for(const chunk of bufferArray) {
-        bufferedArray += chunk;
-    }
+		for (const chunk of bufferArray) {
+			bufferedArray += chunk;
+		}
 		let newContent = bufferedArray.replace(oldYamlTs, newYamlTs);
 		newContent = newContent.replace(oldTs, newTs);
 		writeFileSync(pathLs, newContent);
