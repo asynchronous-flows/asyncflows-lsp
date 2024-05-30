@@ -4,32 +4,28 @@
 Language Server for asyncflows
 </div>
 
-## Installation
+# Installation
 
-Download `vsix` file from [here](https://github.com/asynchronous-flows/asyncflows-lsp/releases).
-
-To activate language server place this snippet at the top of your yaml:
+To associate an asyncflows YAML file with the language server, place this snippet at the top of the file:
 
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/asynchronous-flows/asyncflows/main/schemas/asyncflows_schema.json
 ```
 
-## VSCode Development
+Then, follow the instructions for your editor.
+If your editor is not specified here, but you would like to use the language server, please open an issue.
 
-```sh
-git clone https://github.com/asynchronous-flows/asyncflows-lsp --depth 1
-cd asyncflows-lsp
-make build
-code editors/code
-```
+### VSCode
 
-## Other editors
-
-```sh
-npm install -g asyncflows-lsp
-```
+1. Download `vsix` file from [here](https://github.com/asynchronous-flows/asyncflows-lsp/releases).
+2. Navigate to the `Extensions` view
+3. Click on the `...` menu
+4. Select `Install from VSIX...`
+5. Select the downloaded `vsix` file
+6. Reload the window
 
 ### NeoVim
+
 ```lua
 local nvim_lsp = require('lspconfig')
 local configs = require('lspconfig.configs')
@@ -54,8 +50,8 @@ nvim_lsp.asyncflows_lsp.setup {
 }
 ```
 
-
 ### Helix
+
 ```toml
 [language-server.asyncflows-lsp]
 command = "asyncflows-lsp"
@@ -67,3 +63,21 @@ name = "yaml"
 
 language-servers = ["asyncflows-lsp", "yaml-lsp"]
 ```
+
+# Development
+
+## VSCode
+
+```sh
+git clone https://github.com/asynchronous-flows/asyncflows-lsp --depth 1
+cd asyncflows-lsp
+make build
+code editors/code
+```
+
+## Other editors
+
+```sh
+npm install -g asyncflows-lsp
+```
+
