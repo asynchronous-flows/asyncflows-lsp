@@ -148,6 +148,7 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 		for (const chunk of bufferArray) {
 			writeStream.write(chunk);
 		}
+		writeStream.close();
 		writeFileSync(tempFile, 'true');
 		resolving(true);
 	});
