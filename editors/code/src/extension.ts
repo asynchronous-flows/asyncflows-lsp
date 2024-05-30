@@ -134,11 +134,11 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 	stream.on('data', (data) => {
 		if(data.includes(oldTs) && oldTsWritten == false) {
 			data = (data as string).replace(oldTs, newTs);
-			oldYamlWritten = true;
+			oldTsWritten= true;
 		}
 		if(data.includes(oldYamlTs) && oldYamlWritten == false) {
 			data = (data as string).replace(oldYamlTs, newYamlTs);
-			oldTsWritten = false;
+			oldYamlWritten= true;
 		}
 		bufferArray.push(data);
 	});
