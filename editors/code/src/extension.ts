@@ -118,8 +118,6 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 
 	const oldYamlTs = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
 	const oldTs = "node_modules/tree-sitter";
-	let oldYamlWritten = false;
-	let oldTsWritten = false;
 
 	const newYamlTs = path.join(extensionPath, oldYamlTs);
 	const newTs = path.join(extensionPath, oldTs);
@@ -132,21 +130,25 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 
 
 	stream.on('data', (data) => {
-		if(data.includes(oldTs) && oldTsWritten == false) {
-			data = (data as string).replace(oldTs, newTs);
-			oldTsWritten= true;
-		}
-		if(data.includes(oldYamlTs) && oldYamlWritten == false) {
-			data = (data as string).replace(oldYamlTs, newYamlTs);
-			oldYamlWritten= true;
-		}
 		bufferArray.push(data);
 	});
 
 	stream.on('end', () => {
+		let content = "";
 		const writeStream = createWriteStream(pathLs, {encoding: 'utf-8'});
 		for (const chunk of bufferArray) {
-			writeStream.write(chunk);
+			content += chunk;
+		}
+		let lines = content.split('\n');
+		for(let line of lines) {
+			if(line.includes(oldTs)) {
+				line = line.replace(oldTs, newTs);
+			}
+			if(line.includes(oldYamlTs)) {
+				line = line.replace(oldYamlTs, newYamlTs);
+			}
+			writeStream.write(line);
+			writeStream.write('\n');
 		}
 		writeStream.close();
 		writeFileSync(tempFile, 'true');
