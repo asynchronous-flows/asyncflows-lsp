@@ -17,7 +17,7 @@ import {
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
-import { createReadStream, existsSync, readFileSync, writeFileSync } from 'fs';
+import { createReadStream, createWriteStream, existsSync, readFileSync, writeFileSync } from 'fs';
 
 // const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
 
@@ -118,6 +118,8 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 
 	const oldYamlTs = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
 	const oldTs = "node_modules/tree-sitter";
+	let oldYamlWritten = false;
+	let oldTsWritten = false;
 
 	const newYamlTs = path.join(extensionPath, oldYamlTs);
 	const newTs = path.join(extensionPath, oldTs);
@@ -130,17 +132,22 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 
 
 	stream.on('data', (data) => {
+		if(data.includes(oldTs) && oldTsWritten == false) {
+			data = (data as string).replace(oldTs, newTs);
+			oldYamlWritten = true;
+		}
+		if(data.includes(oldYamlTs) && oldYamlWritten == false) {
+			data = (data as string).replace(oldYamlTs, newYamlTs);
+			oldTsWritten = false;
+		}
 		bufferArray.push(data);
 	});
 
 	stream.on('end', () => {
-		let bufferedArray = "";
+		const writeStream = createWriteStream(pathLs, {encoding: 'utf-8'});
 		for (const chunk of bufferArray) {
-			bufferedArray += chunk;
+			writeStream.write(chunk);
 		}
-		let newContent = bufferedArray.replace(oldYamlTs, newYamlTs);
-		newContent = newContent.replace(oldTs, newTs);
-		writeFileSync(pathLs, newContent);
 		writeFileSync(tempFile, 'true');
 		resolving(true);
 	});
