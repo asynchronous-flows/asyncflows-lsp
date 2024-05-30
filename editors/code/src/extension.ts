@@ -133,27 +133,34 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 		bufferArray.push(data);
 	});
 
-	stream.on('end', () => {
-		let content = "";
-		const writeStream = createWriteStream(pathLs, {encoding: 'utf-8'});
-		for (const chunk of bufferArray) {
-			content += chunk;
-		}
-		let lines = content.split('\n');
-		for(let line of lines) {
-			if(line.includes(oldTs)) {
-				line = line.replace(oldTs, newTs);
+	try {
+		stream.on('end', () => {
+			let content = "";
+			const writeStream = createWriteStream(pathLs, { encoding: 'utf-8' });
+			for (const chunk of bufferArray) {
+				content += chunk;
 			}
-			if(line.includes(oldYamlTs)) {
-				line = line.replace(oldYamlTs, newYamlTs);
+			let lines = content.split('\n');
+			for (let line of lines) {
+				if (line.includes(oldTs)) {
+					line = line.replace(oldTs, newTs);
+				}
+				if (line.includes(oldYamlTs)) {
+					line = line.replace(oldYamlTs, newYamlTs);
+				}
+				writeStream.write(line);
+				writeStream.write('\n');
 			}
-			writeStream.write(line);
-			writeStream.write('\n');
-		}
-		writeStream.close();
-		writeFileSync(tempFile, 'true');
-		resolving(true);
-	});
+			writeStream.close();
+			writeFileSync(tempFile, 'true');
+			resolving(true);
+		});
+	}
+
+	catch (e) {
+		output.appendLine('Error while updating language-server.js')
+	}
+
 
 	stream.on('error', (err) => {
 		console.error(err);
