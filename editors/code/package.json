@@ -45,7 +45,7 @@
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "test-compile": "tsc -p ./",
     "compile": "tsc -b",
-    "compile3": "webpack --mode none",
+    "compile3": "webpack --mode none && sh update-paths.sh",
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src --ext .ts,.tsx",
     "test": "sh ./scripts/e2e.sh",
