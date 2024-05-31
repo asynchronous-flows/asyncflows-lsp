@@ -5,19 +5,18 @@
 
 import * as path from 'path';
 import { workspace, ExtensionContext } from 'vscode';
+import { platform } from 'os';
 
 import {
 	LanguageClient,
 	LanguageClientOptions,
-	SemanticTokenModifiers,
-	SemanticTokenTypes,
 	ServerOptions,
-	StaticFeature,
 	TransportKind
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
-import { createReadStream, createWriteStream, existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync,  writeFileSync } from 'fs';
+import {  spawnSync } from 'child_process';
 
 // const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
 
@@ -116,98 +115,41 @@ export async function renameTreeSitterPath(extensionPath: string, output: vscode
 		return Promise.resolve(true);
 	}
 
-	const oldYamlTs = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
-	const oldTs = "node_modules/tree-sitter";
+	const yamlGrammar = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";
+	const treeSitter = "node_modules/tree-sitter";
 
-	const newYamlTs = path.join(extensionPath, oldYamlTs);
-	const newTs = path.join(extensionPath, oldTs);
+	const newYamlPath = path.join(extensionPath, yamlGrammar);
+	const newTreeSitterPath = path.join(extensionPath, treeSitter);
 
 	const pathLs = path.join(extensionPath, 'dist', 'languageserver.js');
 
-	const stream = createReadStream(pathLs, { encoding: 'utf8' });
-
-	const bufferArray = [];
-
-
-	stream.on('data', (data) => {
-		bufferArray.push(data);
-	});
+	function rename() {
+		const platformName = platform();
+		if (platformName == 'linux' || platformName == 'darwin') {
+			spawnSync('sed', ["-i''", '-e', `'s|${yamlGrammar}|${newYamlPath}|'`, pathLs]);
+			spawnSync('sed', ["-i''", '-e', `'s|${treeSitter}|${newTreeSitterPath}|'`, pathLs]);
+			writeFileSync(tempFile, 'true');
+		}
+		else if (platformName == 'win32') {
+			const windowsCommand = `
+    $content = Get-Content -Path "${pathLs}"; 
+    $updatedContent = $content -replace "${yamlGrammar}", "${newYamlPath}"; 
+    $updatedContent = $updatedContent -replace "${treeSitter}", "${newTreeSitterPath}"; 
+    Set-Content -Path "${pathLs}" -Value $updatedContent
+`;
+			spawnSync('powershell.exe', ['-Command', windowsCommand]);
+			writeFileSync(tempFile, 'true');
+		}
+	}
 
 	try {
-		stream.on('end', () => {
-			let content = "";
-			const writeStream = createWriteStream(pathLs, { encoding: 'utf-8' });
-			for (const chunk of bufferArray) {
-				content += chunk;
-			}
-			let lines = content.split('\n');
-			for (let line of lines) {
-				if (line.includes(oldTs)) {
-					line = line.replace(oldTs, newTs);
-				}
-				if (line.includes(oldYamlTs)) {
-					line = line.replace(oldYamlTs, newYamlTs);
-				}
-				writeStream.write(line);
-				writeStream.write('\n');
-			}
-			writeStream.close();
-			writeFileSync(tempFile, 'true');
-			resolving(true);
-		});
+		rename();
+		resolving(true);
 	}
 
 	catch (e) {
 		output.appendLine('Error while updating language-server.js')
 	}
 
-
-	stream.on('error', (err) => {
-		console.error(err);
-	});
 	return promise;
 }
-
-function semanticTokens() {
-
-	const tokenTypes = new Map<string, number>();
-	const tokenModifiers = new Map<string, number>();
-
-	const tokenTypesLegend = [
-		SemanticTokenTypes.class,
-		SemanticTokenTypes.property,
-		SemanticTokenTypes.variable
-	];
-	tokenTypesLegend.forEach((tokenType, index) => tokenTypes.set(tokenType, index));
-
-	const tokenModifiersLegend = [
-		SemanticTokenModifiers.declaration
-	];
-	tokenModifiersLegend.forEach((tokenModifier, index) => tokenModifiers.set(tokenModifier, index));
-
-	const legend = new vscode.SemanticTokensLegend(tokenTypesLegend, tokenModifiersLegend);
-
-
-	const provider: vscode.DocumentSemanticTokensProvider = {
-		provideDocumentSemanticTokens(
-			document: vscode.TextDocument
-		): vscode.ProviderResult<vscode.SemanticTokens> {
-			// analyze the document and return semantic tokens
-
-			const tokensBuilder = new vscode.SemanticTokensBuilder(legend);
-			// on line 4, characters 1-5 are a class declaration
-			tokensBuilder.push(
-				new vscode.Range(new vscode.Position(4, 1), new vscode.Position(4, 5)),
-				'class',
-				['declaration']
-			);
-			return tokensBuilder.build();
-		}
-	};
-
-	const selector = { language: 'yaml', scheme: 'file' };
-	vscode.languages.registerDocumentSemanticTokensProvider(selector, provider, legend);
-}
-
-
-
