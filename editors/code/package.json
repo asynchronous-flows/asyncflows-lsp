@@ -1,6 +1,7 @@
 {
   "name": "asyncflows-lsp",
-  "description": "asyncflows-lsp",
+  "displayName": "asyncflows Language Server",
+  "description": "Autocomplete and highlighting for asyncflows YAML config.",
   "license": "See LICENSE file",
   "version": "0.1.1",
   "repository": {
