@@ -6,7 +6,8 @@
   "repository": {
     "url": "https://github.com/asynchronous-flows/asyncflows-lsp/"
   },
-  "publisher": "Asynchronous Flows",
+  "icon": "media/icon.png",
+  "publisher": "AsynchronousFlows",
   "categories": [
     "Linters",
     "Programming Languages",
@@ -15,8 +16,6 @@
   "keywords": [
     "multi-root ready",
     "jinja",
-    "minijinja",
-    "rust",
     "asyncflows-lsp",
     "python"
   ],
@@ -45,7 +44,7 @@
     "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "test-compile": "tsc -p ./",
     "compile": "tsc -b",
-    "compile3": "webpack --mode none && sh update-paths.sh",
+    "compile3": "webpack --mode none",
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src --ext .ts,.tsx",
     "test": "sh ./scripts/e2e.sh",
