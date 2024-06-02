@@ -3,7 +3,7 @@
   "displayName": "asyncflows Language Server",
   "description": "Autocomplete and highlighting for asyncflows YAML config.",
   "license": "See LICENSE file",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "url": "https://github.com/asynchronous-flows/asyncflows-lsp/"
   },

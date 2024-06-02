@@ -1,4 +1,4 @@
-<img src="https://github.com/asynchronous-flows/asyncflows-lsp/blob/main/banner.png" alt="banner" />
+<img src="https://raw.githubusercontent.com/asynchronous-flows/asyncflows-lsp/main/banner.png" alt="banner" />
 
 <div align="center">
 Language Server for asyncflows
@@ -17,7 +17,7 @@ If your editor is not specified here, but you would like to use the language ser
 
 ### VSCode
 
-1. Download `vsix` file from [here](https://github.com/asynchronous-flows/asyncflows-lsp/releases).
+1. Download `vsix` file from [here](https://marketplace.visualstudio.com/items?itemName=AsynchronousFlows.asyncflows-lsp).
 2. Navigate to the `Extensions` view
 3. Click on the `...` menu
 4. Select `Install from VSIX...`
@@ -60,7 +60,6 @@ args = ["--stdio"]
 
 [[language]]
 name = "yaml"
-
 language-servers = ["asyncflows-lsp", "yaml-lsp"]
 ```
 
