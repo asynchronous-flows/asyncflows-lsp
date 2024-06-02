@@ -6,7 +6,10 @@ $existingContent = Get-Content -Path dist\languageserver.js -Raw
 $newContent = "$prependContent`n$existingContent"
 Set-Content -Path dist\languageserver.js -Value $newContent
 
-$content = Get-Content -Path 'dist\languageserver.js'; 
-$updatedContent = $content -replace 'var __dirname = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node";', "var __dirname = YAML_PATH;"; 
-$updatedContent = $updatedContent -replace 'var __dirname = "node_modules/tree-sitter";', "var __dirname = TREESITTER_PATH;"; 
+$yamlGrammar = 'var __dirname = "node_modules\\\\@tree-sitter-grammars\\\\tree-sitter-yaml\\\\bindings\\\\node";';
+$treeSitter = 'var __dirname = "node_modules\\\\tree-sitter";';
+
+$content = Get-Content -Path dist\languageserver.js; 
+$updatedContent = $content -replace $yamlGrammar, "var __dirname = YAML_PATH;"; 
+$updatedContent = $updatedContent -replace $treeSitter, "var __dirname = TREESITTER_PATH;"; 
 Set-Content -Path "dist\languageserver.js" -Value $updatedContent
