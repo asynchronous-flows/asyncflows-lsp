@@ -129,7 +129,6 @@ export class YAMLServerInit {
           resolveProvider: false,
         },
         executeCommandProvider: {
-          // commands: Object.keys(YamlCommands).map((k) => YamlCommands[k]),
           commands: ["asyncflows-lsp.vscodePythonPath"]
         },
         workspace: {

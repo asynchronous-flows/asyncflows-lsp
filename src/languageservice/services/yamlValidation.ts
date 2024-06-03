@@ -20,7 +20,7 @@ import { AdditionalValidator } from './validation/types';
 import { UnusedAnchorsValidator } from './validation/unused-anchors';
 import { YAMLStyleValidator } from './validation/yaml-style';
 import { MapKeyOrderValidator } from './validation/map-key-order';
-import { hasAsyncFlows } from '../../helper';
+import { hasAsyncFlows, LspComment } from '../../helper';
 
 /**
  * Convert a YAMLDocDiagnostic to a language server Diagnostic
@@ -73,18 +73,19 @@ export class YAMLValidation {
     this.validators.push(new UnusedAnchorsValidator());
   }
 
-  public hasAsyncFlows(textDocument: TextDocument) {
+  public hasAsyncFlows(textDocument: TextDocument): LspComment {
     const yamlDocument: YAMLDocument = yamlDocumentsCache.getYamlDocument(
       textDocument,
       { customTags: this.customTags, yamlVersion: this.yamlVersion },
       true
     );
     for (const currentYAMLDoc of yamlDocument.documents) {
-      if (hasAsyncFlows(currentYAMLDoc)) {
-        return true;
+      const lspComment = hasAsyncFlows(currentYAMLDoc);
+      if (lspComment.hasComment) {
+        return lspComment;
       }
     }
-    return false;
+    return {hasComment: false};
   }
 
   public async doValidation(textDocument: TextDocument, isKubernetes = false): Promise<Diagnostic[]> {
@@ -102,7 +103,7 @@ export class YAMLValidation {
 
       let index = 0;
       for (const currentYAMLDoc of yamlDocument.documents) {
-        if (!hasAsyncFlows(currentYAMLDoc)) {
+        if (!hasAsyncFlows(currentYAMLDoc).hasComment) {
           return Promise.resolve([]);
         }
         currentYAMLDoc.isKubernetes = isKubernetes;
