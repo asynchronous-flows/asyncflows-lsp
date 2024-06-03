@@ -14,6 +14,7 @@ import {
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
+import { spawnSync } from 'child_process';
 
 // const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
 
@@ -22,7 +23,7 @@ let client: LanguageClient;
 export async function activate(context: ExtensionContext) {
 	let output = vscode.window.createOutputChannel("dbg-asyncflows-client");
 	// The server is implemented in node
-	// const serverModule = context.asAbsolutePath('../../bin/asyncflows-lsp');	
+	// const serverModule = context.asAbsolutePath('../../bin/asyncflows-lsp');
 	const serverModule = path.join(context.extensionPath, 'dist', 'languageserver.js');
 	let config = {};
 	let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
@@ -69,12 +70,11 @@ export async function activate(context: ExtensionContext) {
 	}
 	if (!pythonExtension.isActive) {
 		pythonExtension.activate().then(async (_value) => {
-			getInterpreter(pythonExtension, output);
+			await getInterpreter(pythonExtension);
 		});
 	}
 	else {
-		getInterpreter(pythonExtension, output).then(() => {
-		})
+		await getInterpreter(pythonExtension);
 	}
 
 	if (!jinjaExtension) {
@@ -87,13 +87,36 @@ export async function activate(context: ExtensionContext) {
 	client.start();
 }
 
-async function getInterpreter(pythonExtension: vscode.Extension<any>, output: vscode.OutputChannel) {
+async function getInterpreter(pythonExtension: vscode.Extension<any>) {
 	const pythonApi = pythonExtension.exports;
 	const interpreter = await pythonApi.settings.getExecutionDetails();
-	vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter?.execCommand?.join(' ') || 'Not found'}`);
-	output.appendLine(`Current Python Interpreter: ${interpreter?.execCommand?.join(' ') || 'Not found'}`)
-	const interpreterPath = `${interpreter?.execCommand?.join(' ')}`;
-	client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath] })
+	if (interpreter == undefined) {
+		vscode.window.showErrorMessage(`Python interpreter is not configured.`)
+	}
+	if (interpreter) {
+		if (!interpreter.execCommand) {
+			vscode.window.showErrorMessage(`Python interpreter is not configured.`)
+		}
+		else {
+			vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter.execCommand.join(' ')}`);
+			const interpreterPath = `${interpreter.execCommand.join(' ')}`;
+			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath] })
+			await getAsyncFlows(interpreterPath)
+		}
+	}
+	else {
+		await getAsyncFlows();
+	}
+}
+
+async function getAsyncFlows(python = 'python') {
+	const cmd = spawnSync(python, ['-c', 'import asyncflows'])
+	if (cmd.status > 0 || cmd.status == null) {
+		vscode.window.showErrorMessage('Asyncflows is not installed. Please install it.');
+	}
+	else {
+		vscode.window.showInformationMessage('Asyncflows is installed');
+	}
 }
 
 export function deactivate(): Thenable<void> | undefined {
