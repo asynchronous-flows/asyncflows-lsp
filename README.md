@@ -17,6 +17,10 @@ If your editor is not specified here, but you would like to use the language ser
 
 ### VSCode
 
+You can find the extension [on the VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=AsynchronousFlows.asyncflows-lsp).
+
+Alternatively, install it manually:
+
 1. Download `vsix` file from [here](https://marketplace.visualstudio.com/items?itemName=AsynchronousFlows.asyncflows-lsp).
 2. Navigate to the `Extensions` view
 3. Click on the `...` menu
