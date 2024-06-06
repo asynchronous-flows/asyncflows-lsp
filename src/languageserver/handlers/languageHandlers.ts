@@ -334,7 +334,7 @@ export class LanguageHandlers {
     if (!document) {
       return [];
     }
-    if(!this.languageService.hasAsyncFlows(document).hasComment) {
+    if (!this.languageService.hasAsyncFlows(document).hasComment) {
       return [];
     }
     // if (!this.languageService.asyncFlowsDocs.has(documentSymbolParams.textDocument.uri)) {

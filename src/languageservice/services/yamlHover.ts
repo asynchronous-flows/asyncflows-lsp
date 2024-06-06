@@ -6,7 +6,7 @@
 
 import { Hover, MarkupContent, MarkupKind, Position, Range } from 'vscode-languageserver-types';
 import { matchOffsetToDocument } from '../utils/arrUtils';
-import { LanguageSettings } from '../yamlLanguageService';
+import { LanguageService, LanguageSettings } from '../yamlLanguageService';
 import { YAMLSchemaService } from './yamlSchemaService';
 import { setKubernetesParserOption } from '../parser/isKubernetes';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -20,11 +20,13 @@ import { Telemetry } from '../telemetry';
 import { convertErrorToTelemetryMsg } from '../utils/objects';
 import { ASTNode } from 'vscode-json-languageservice';
 import { stringify as stringifyYAML } from 'yaml';
+import { TextDocumentPositionParams } from 'vscode-languageserver-protocol';
 
 export class YAMLHover {
   private shouldHover: boolean;
   private indentation: string;
   private schemaService: YAMLSchemaService;
+  public languageService: LanguageService;
 
   constructor(schemaService: YAMLSchemaService, private readonly telemetry?: Telemetry) {
     this.shouldHover = true;
@@ -49,8 +51,6 @@ export class YAMLHover {
       if (currentDoc === null) {
         return Promise.resolve(undefined);
       }
-
-
       setKubernetesParserOption(doc.documents, isKubernetes);
       const currentDocIndex = doc.documents.indexOf(currentDoc);
       currentDoc.currentDocIndex = currentDocIndex;
@@ -62,6 +62,9 @@ export class YAMLHover {
 
   // method copied from https://github.com/microsoft/vscode-json-languageservice/blob/2ea5ad3d2ffbbe40dea11cfe764a502becf113ce/src/services/jsonHover.ts#L23
   private getHover(document: TextDocument, position: Position, doc: SingleYAMLDocument): Promise<Hover | null> {
+    if (!this.languageService.hasAsyncFlows(document).hasComment) {
+      return Promise.resolve(null);
+    }
     const offset = document.offsetAt(position);
     let node = doc.getNodeFromOffset(offset);
     if (
@@ -69,6 +72,10 @@ export class YAMLHover {
       ((node.type === 'object' || node.type === 'array') && offset > node.offset + 1 && offset < node.offset + node.length - 1)
     ) {
       return Promise.resolve(null);
+    }
+    const textHover = this.languageService.inJinjaTemplate(document.uri, position);
+    if(textHover) {
+      console.log('in jinja');
     }
     const hoverRangeNode = node;
 

@@ -36,6 +36,7 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
     const captures = result.captures;
     let actionName = undefined;
     let link: Link | undefined = undefined;
+    let text: Text | undefined = undefined;
     for (let i = 0; i < captures.length; i++) {
       const captureName = captures[i].name;
       const node = captures[i].node;
@@ -62,6 +63,15 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
       }
       else if (captureName == "link_value") {
         link!.link_value! = node;
+      }
+      else if(captureName == "text_key") {
+        if(!flowState.texts.get(node.id)) {
+          flowState.texts.set(node.id, {text: node});
+          text = flowState.texts.get(node.id);
+        }
+      }
+      else if(captureName == "text_value") {
+        text.text_body = node;
       }
       else if (captureName == "output_key") {
         // if(!flowstatk)

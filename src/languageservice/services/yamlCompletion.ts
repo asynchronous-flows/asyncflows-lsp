@@ -25,7 +25,7 @@ import { YamlVersion } from '../parser/yamlParser07';
 import { filterInvalidCustomTags, matchOffsetToDocument } from '../utils/arrUtils';
 import { guessIndentation } from '../utils/indentationGuesser';
 import { TextBuffer } from '../utils/textBuffer';
-import { LanguageSettings } from '../yamlLanguageService';
+import { LanguageService, LanguageSettings } from '../yamlLanguageService';
 import { YAMLSchemaService } from './yamlSchemaService';
 import { ResolvedSchema } from 'vscode-json-languageservice/lib/umd/services/jsonSchemaService';
 import { JSONSchema, JSONSchemaRef } from '../jsonSchema';
@@ -81,6 +81,7 @@ export class YamlCompletion {
   private supportsMarkdown: boolean | undefined;
   private disableDefaultProperties: boolean;
   private parentSkeletonSelectedFirst: boolean;
+  public languageService: LanguageService;
 
   constructor(
     private schemaService: YAMLSchemaService,
@@ -100,58 +101,16 @@ export class YamlCompletion {
     this.parentSkeletonSelectedFirst = languageSettings.parentSkeletonSelectedFirst;
   }
 
-  getFlows(currentDoc: SingleYAMLDocument, document: TextDocument): null | CompletionList {
-    const flowsItems = [];
-    const node = currentDoc.root;
-    if (node) {
-      for (let i = 0; i < node.children.length; i++) {
-        const children = node.children[i];
-        const offset = children.offset;
-        let flowNode = currentDoc.getNodeFromOffset(offset);
-        if (!flowNode) {
-          return null;
-        }
-        if (flowNode.value == "flow") {
-          const flows = flowNode.internalNode.clone();
-          if (flows) {
-            const flowItems = children.internalNode.toJSON();
-            const entries = Object.entries(flowItems['flow']);
-            entries.forEach(item => {
-              flowsItems.push(`${item[0]}.result`);
-            })
-          }
-        }
-      }
-    }
-    if (flowsItems.length == 0) {
-      return null;
-    }
-    const completionItems: CompletionItem[] = [];
-    flowsItems.forEach(item => {
-      const completionItem = CompletionItem2.create(item);
-      completionItems.push(completionItem);
-    })
-    const items = CompletionList.create(completionItems, false);
-    return items;
-  }
-
-  doComplete2(document: TextDocument, position: Position, currentDoc: SingleYAMLDocument): CompletionList | undefined {
-    const offset = document.offsetAt(position);
-    let node = currentDoc.getNodeFromOffset(offset);
-    if (node.parent) {
-      const children = node.parent.children;
-      if (children.length == 2) {
-        const key = children[0];
-        const value = children[1];
-        if ((key.value == "link" || key.value == "default_output") && value.value == null) {
-          return undefined;
-          // return this.getFlows(currentDoc, document);
-        }
-      }
-    }
-  }
 
   async doComplete(document: TextDocument, position: Position, isKubernetes = false, doComplete = true): Promise<CompletionList> {
+    if (!this.languageService.hasAsyncFlows(document).hasComment) {
+      return Promise.resolve({isIncomplete: false, items: []});
+    }
+    
+    const textCompletion = this.languageService.inJinjaTemplate(document.uri, position);
+    if(textCompletion) {
+      console.log('in jinja');
+    }
     const result = CompletionList.create([], false);
     if (!this.completionEnabled) {
       return result;

@@ -54,7 +54,7 @@ import { SettingsState } from '../yamlSettings';
 import { JSONSchemaSelection } from '../languageserver/handlers/schemaSelectionHandlers';
 import { YamlDefinition } from './services/yamlDefinition';
 import { getSelectionRanges } from './services/yamlSelectionRanges';
-import { FlowState, initQuery } from '../tree_sitter_queries/queries';
+import { FlowState, initQuery, Text } from '../tree_sitter_queries/queries';
 import { Query, Tree } from 'tree-sitter';
 import { LspComment } from '../helper';
 
@@ -186,7 +186,8 @@ export interface LanguageService {
   updatedSchema: Map<string, any>;
   configure2: (schemas: SchemasSettings[]) => void;
   hasAsyncFlows: (doc: TextDocument) => LspComment;
-  trees: Map<string, {tree: Tree, state: FlowState}>;
+  trees: Map<string, { tree: Tree, state: FlowState }>;
+  inJinjaTemplate: (uri: string, position: Position) => Text;
   stateQuery: Query;
   pythonPath: string;
   doValidation2(doc: TextDocument): void;
@@ -300,9 +301,38 @@ export function getLanguageService(params: {
     stateQuery: initQuery() as Query,
     pythonPath: "python",
     doValidation2(doc: TextDocument) {
+    },
+    inJinjaTemplate(uri: string, position: Position): Text {
+      // @ts-ignore
+      const state = (languageService as LanguageService).trees.get(uri);
+      if (!state) {
+        return undefined;
+      }
+      const texts = state.state.texts.entries();
+      const point = {
+        row: position.line,
+        column: position.character
+      }
+      for (const textBlock of texts) {
+        const item = textBlock[1];
+        const body = item.text_body;
+        if (!body) {
+          continue;
+        }
+        if (!(point.row >= body.startPosition.row && point.column >= body.startPosition.column)) {
+          continue;
+        }
+        if (!(point.row <= body.endPosition.row && point.column <= body.endPosition.column)) {
+          continue;
+        }
+        return item;
+      }
+      return undefined;
     }
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);
+  completer.languageService = languageService;
+  hover.languageService = languageService;
   return languageService;
 }

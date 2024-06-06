@@ -14,4 +14,5 @@ test('tree_sitter', () => {
   const flowState = query_flows(source, query, tree, {row: 0, column: 0});
   expect(flowState.actions.size).toBe(6);
   expect(flowState.links.size).toBe(5);
+  expect(flowState.texts.size).toBe(6);
   })
