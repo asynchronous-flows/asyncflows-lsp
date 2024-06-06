@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { LanguageService } from '../../languageservice/yamlLanguageService';
-import { ExecuteCommandParams, Connection } from 'vscode-languageserver';
+import { ExecuteCommandParams, Connection, MessageActionItem, ProtocolRequestType0, ShowMessageRequest, ShowMessageRequestParams, MessageType } from 'vscode-languageserver';
 import { CommandExecutor } from '../commandExecutor';
+import { spawn, spawnSync } from 'child_process';
 
 export class WorkspaceHandlers {
   languageService: LanguageService
@@ -19,14 +20,39 @@ export class WorkspaceHandlers {
 
   private executeCommand(params: ExecuteCommandParams): void {
     const id = params.command;
-    if(id == "asyncflows-lsp.vscodePythonPath") {
+    if (id == "asyncflows-lsp.vscodePythonPath") {
       if (!params.arguments) {
-        return ;
+        return;
       }
-      if(params.arguments.length == 1) {
+      if (params.arguments.length == 1) {
         this.languageService.pythonPath = params.arguments[0]
+        this.getAsyncFlows(params.arguments[0]).then(() => { });
       }
     }
-    // return this.commandExecutor.executeCommand(params);
+  }
+
+  async getAsyncFlows(python = 'python') {
+    const cmd = spawn(python, ['-c', 'import asyncflows'])
+    cmd.stderr.on('data', (chunk) => {
+      const messageParams: ShowMessageRequestParams = {
+        type: MessageType.Error,
+        message: "asyncflows is not installed in selected python interpreter. Without it, only basic autocompletion is available.\nWould you like to install asyncflows?",
+        actions: [
+          { title: "Yes" },
+          { title: "No" }
+        ]
+      };
+
+      this.connection.sendRequest(ShowMessageRequest.type, messageParams).then((selectedAction: MessageActionItem | null) => {
+        if (selectedAction) {
+          if (selectedAction.title == "Yes") {
+            const installation = spawn('pip', ['install', 'asyncflows']);
+            installation.stdout.on('data', (event) => {
+              this.connection.window.showInformationMessage('Asyncflows successfully installed.')
+            });
+          }
+        }
+      });
+    });
   }
 }

@@ -45,7 +45,7 @@ import { SettingsState } from '../../yamlSettings';
 import { ValidationHandler } from './validationHandlers';
 import { ResultLimitReachedNotification } from '../../requestTypes';
 import * as path from 'path';
-import { read2 } from '../../helper';
+import { hasAsyncFlows, LspComment, read2 } from '../../helper';
 import { SyntaxNode } from 'tree-sitter';
 import { emptyFlowState, get_state, parseNewTree } from '../../tree_sitter_queries/queries';
 import { toInputEdit } from '../../tree_sitter_queries/toInputEdit';
@@ -91,6 +91,11 @@ export class LanguageHandlers {
     this.connection.onDefinition((params) => this.definitionHandler(params));
     this.connection.onDeclaration((params) => this.declarationHandler(params));
     this.connection.onDidSaveTextDocument((params) => {
+      const document = this.yamlSettings.documents2.get(params.textDocument.uri);
+      const comment = this.languageService.hasAsyncFlows(document);
+      if (comment.hasComment && comment.length) {
+        this.editTopComment(document, comment);
+      }
       read2(params.textDocument.uri, this.yamlSettings, (content) => {
         if (!content.includes('Traceback')) {
           console.log('Adding new schema');
@@ -117,6 +122,10 @@ export class LanguageHandlers {
         source);
       this.yamlSettings.documents2.set(e.textDocument.uri, textDocument);
       this.languageService.doValidation(textDocument, false);
+      const comment = this.languageService.hasAsyncFlows(textDocument);
+      if (comment.hasComment && comment.length) {
+        this.editTopComment(textDocument, comment);
+      }
     });
     this.connection.onDidChangeTextDocument((event) => {
       // @ts-ignore
@@ -152,6 +161,42 @@ export class LanguageHandlers {
     // this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
   }
 
+  editTopComment(textDocument: TextDocument, lsp_comment: LspComment) {
+    let newText = "# asyncflows-language-server";
+    this.connection.workspace.applyEdit({
+      label: 'UpdatedTopComment',
+      edit: {
+        documentChanges: [
+          {
+            textDocument: { uri: textDocument.uri, version: textDocument.version },
+            edits: [{
+              newText: "",
+              range: {
+                start: { character: 0, line: lsp_comment.line },
+                end: { character: lsp_comment.length + 1, line: lsp_comment.line }
+              }
+            },
+            {
+              newText: newText,
+              range: {
+                start: {
+                  character: 0, line: lsp_comment.line
+                },
+                end: {
+                  character: 0,
+                  line: lsp_comment.line
+                }
+              }
+            }
+
+            ]
+          }
+        ]
+      }
+    });
+    this.connection.window.showInformationMessage('Resolved conflicts with YAML language server.')
+  }
+
   convertToTextEdit(changes: DidChangeEvent[]): TextEdit[] {
     const edits: TextEdit[] = [];
     for (const change of changes) {
@@ -163,7 +208,7 @@ export class LanguageHandlers {
   intoSemanticTokens(uri: string): number[] {
     const tree = this.languageService.trees.get(uri);
     const doc = this.yamlSettings.documents2.get(uri);
-    if (!tree || !doc) {
+    if (!tree || !doc || !this.languageService.hasAsyncFlows(doc).hasComment) {
       return [];
     }
     const links = tree.state.links;
@@ -255,7 +300,7 @@ export class LanguageHandlers {
         return;
       }
       const document = this.yamlSettings.documents2.get(uri);
-      if (!this.languageService.hasAsyncFlows(document)) {
+      if (!this.languageService.hasAsyncFlows(document).hasComment) {
         return undefined;
       }
       read2(uri, this.yamlSettings, (content) => {
@@ -287,7 +332,10 @@ export class LanguageHandlers {
     const document = this.yamlSettings.documents2.get(documentSymbolParams.textDocument.uri);
 
     if (!document) {
-      return;
+      return [];
+    }
+    if(!this.languageService.hasAsyncFlows(document).hasComment) {
+      return [];
     }
     // if (!this.languageService.asyncFlowsDocs.has(documentSymbolParams.textDocument.uri)) {
     //   return;

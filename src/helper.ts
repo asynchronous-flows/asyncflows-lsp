@@ -106,18 +106,21 @@ export function createSchema(uri: string) {
   }
 }
 
-export function hasAsyncFlows(doc: SingleYAMLDocument | JSONDocument) {
-  let hasComment = false;
+export function hasAsyncFlows(doc: SingleYAMLDocument | JSONDocument): LspComment {
   if (doc instanceof SingleYAMLDocument) {
-    const comments = doc.lineComments.slice(0, 10);
+    const comments = doc.lineComments.slice(0, 5);
+    let counter = 0;
     for (let comment of comments) {
       if (comment.includes("yaml-language-server") && comment.includes("asyncflows_schema.json")) {
-        return true;
+        return { hasComment: true, line: counter, length: comment.length};
       }
-      else if(comment.includes('asyncflows-lsp')) {
-        return true
+      else if (comment.includes('asyncflows-lsp') || comment.includes('asyncflows-language-server')) {
+        return { hasComment: true, line: counter }
       }
+      counter += 1;
     }
   }
-  return hasComment;
+  return { hasComment: false }
 }
+
+export type LspComment = { hasComment: boolean, line?: number, length?: number };

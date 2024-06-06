@@ -15,8 +15,20 @@
       ],
       "preLaunchTask": {
         "type": "npm",
-        "script": "vscode:prepublish"
+        "script": "compile3"
       }
+    },
+    {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Client without compiling",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}"
+      ],
+      "outFiles": [
+        "${workspaceRoot}/client/out/**/*.js"
+      ]
     },
     {
       "type": "node",

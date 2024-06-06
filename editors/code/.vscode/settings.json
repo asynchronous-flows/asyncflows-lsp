@@ -11,19 +11,16 @@
     "files.associations": {
         "*.yaml": "yaml"
     },
-    "editor.semanticTokenColorCustomizations": {
-        "enabled": true,
-        "rules": {
-            "class.readonly": {
-                "foreground": "#9CDCFE",
-                "fontStyle": "italic"
-            },
-            "property": {
-                "foreground": "#4EC9B0"
-            },
-            "variable": {
-                "foreground": "#DCDCAA"
+    "editor.suggest.showCustomcolors": true,
+    "editor.semanticTokenColorCustomizations": {"enabled": true},
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "constant.other.key.yaml",
+                "settings": {
+                    "foreground": "#ae0000" // Change this to your desired color
+                }
             }
-        }
+        ]
     }
 }

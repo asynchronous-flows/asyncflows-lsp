@@ -56,6 +56,7 @@ import { YamlDefinition } from './services/yamlDefinition';
 import { getSelectionRanges } from './services/yamlSelectionRanges';
 import { FlowState, initQuery } from '../tree_sitter_queries/queries';
 import { Query, Tree } from 'tree-sitter';
+import { LspComment } from '../helper';
 
 export enum SchemaPriority {
   SchemaStore = 1,
@@ -184,7 +185,7 @@ export interface LanguageService {
   addSchema2(uri: string, content: string, languageService: LanguageService): void;
   updatedSchema: Map<string, any>;
   configure2: (schemas: SchemasSettings[]) => void;
-  hasAsyncFlows: (doc: TextDocument) => boolean;
+  hasAsyncFlows: (doc: TextDocument) => LspComment;
   trees: Map<string, {tree: Tree, state: FlowState}>;
   stateQuery: Query;
   pythonPath: string;

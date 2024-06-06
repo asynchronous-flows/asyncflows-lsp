@@ -25,6 +25,7 @@ CONTRIBUTING.md
 !node_modules/prettier/parser-yaml.js
 !node_modules/tree-sitter
 !node_modules/@tree-sitter-grammars/tree-sitter-yaml
+!node_modules/@jinja-lsp
 example
 release
 release.sh

@@ -14,7 +14,6 @@ import {
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
-import { spawnSync } from 'child_process';
 
 // const binding = require('node-gyp-build')('node_modules/asyncflows-lsp/node_modules/@tree-sitter-grammars/tree-sitter-yaml');
 
@@ -32,7 +31,7 @@ export async function activate(context: ExtensionContext) {
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
 	const serverOptions: ServerOptions = {
-		run: { module: serverModule, transport: TransportKind.ipc, options: { env: { 'YAML_PATH': tsPath[0], 'TREESITTER_PATH': tsPath[1] } } },
+		run: { module: serverModule, transport: TransportKind.ipc, options: { env: { 'YAML_PATH': tsPath[0], 'TREESITTER_PATH': tsPath[1], 'EXT_PATH': context.extensionPath } } },
 		debug: {
 			module: serverModule,
 			transport: TransportKind.ipc,
@@ -101,21 +100,7 @@ async function getInterpreter(pythonExtension: vscode.Extension<any>) {
 			vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter.execCommand.join(' ')}`);
 			const interpreterPath = `${interpreter.execCommand.join(' ')}`;
 			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath] })
-			await getAsyncFlows(interpreterPath)
 		}
-	}
-	else {
-		await getAsyncFlows();
-	}
-}
-
-async function getAsyncFlows(python = 'python') {
-	const cmd = spawnSync(python, ['-c', 'import asyncflows'])
-	if (cmd.status > 0 || cmd.status == null) {
-		vscode.window.showErrorMessage('Asyncflows is not installed. Please install it.');
-	}
-	else {
-		vscode.window.showInformationMessage('Asyncflows is installed');
 	}
 }
 

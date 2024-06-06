@@ -422,7 +422,7 @@ export class YAMLSchemaService extends JSONSchemaService {
     };
     const modelineSchema = resolveModelineSchema();
     const toActivate = hasAsyncFlows(doc);
-    if (toActivate == false) {
+    if (toActivate.hasComment == false) {
       return undefined;
     }
     if (modelineSchema) {
