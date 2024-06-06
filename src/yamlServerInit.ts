@@ -20,6 +20,7 @@ import { registerCommands } from './languageservice/services/yamlCommands';
 import { readPyProject } from './helper';
 import * as child_process from 'child_process';
 import { tokenModifiersLegend, tokenTypesLegend } from './semanticTokens';
+import { sum } from '@jinja-lsp/functions'; 
 
 export class YAMLServerInit {
   languageService: LanguageService;
@@ -43,6 +44,7 @@ export class YAMLServerInit {
       return this.connectionInitialized(params);
     });
     this.connection.onInitialized(() => {
+      sum(1,2);
       // const result = readPyProject();      
       this.yamlSettings.asyncflowsConfig = { actions: "", configs: "**/**.yaml" };
       // if (typeof result == 'string') {

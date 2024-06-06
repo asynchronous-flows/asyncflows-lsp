@@ -1,7 +1,7 @@
 {
   "name": "asyncflows-lsp",
   "description": "Asyncflows language server",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "author": "Gorkem Ercan (Red Hat)",
   "license": "See LICENSE file",
   "contributors": [
@@ -28,9 +28,11 @@
     "url": "https://github.com/asynchronous-flows/asyncflows-lsp.git"
   },
   "optionalDependencies": {
-    "prettier": "2.8.7"
+    "prettier": "2.8.7",
+    "@jinja-lsp/functions-linux-x64-gnu": "0.0.2"
   },
   "dependencies": {
+    "@jinja-lsp/functions": "0.0.2",
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
     "ajv": "^8.11.0",
     "jschardet": "3.1.2",
