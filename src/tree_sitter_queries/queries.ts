@@ -1,3 +1,4 @@
+
 import Parser, { Tree, SyntaxNode, Query, Point, Edit } from "tree-sitter";
 const yamlTs = require('@tree-sitter-grammars/tree-sitter-yaml')
 
@@ -103,10 +104,11 @@ export type FlowState = {
   links: Map<number, Link>,
   comments: Map<number, Comment>,
   output: Output,
+  texts: Map<number, Text>
 }
 
 export function emptyFlowState(): FlowState {
-  return { actions: new Map(), links: new Map(), comments: new Map(), output: {} }
+  return { actions: new Map(), links: new Map(), comments: new Map(), output: {}, texts: new Map() }
 }
 
 export type Link = {
@@ -122,6 +124,11 @@ export type Action = {
 export type Output = {
   output_key?: SyntaxNode,
   output_body?: SyntaxNode
+}
+
+export type Text =  {
+ text: SyntaxNode,
+ text_body?: SyntaxNode 
 }
 
 export type Comment = SyntaxNode
@@ -161,5 +168,11 @@ export const FLOW_QUERY = `
     (#eq? @action_key "action")
 )
 
-(comment)? @comment  
+(block_mapping_pair
+	key: (flow_node) @text_key
+    value: (block_node)? @text_value
+    (#eq? @text_key "text")  
+)
+
+(comment)? @comment    
 `;
