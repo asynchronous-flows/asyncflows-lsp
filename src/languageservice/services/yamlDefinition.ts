@@ -12,12 +12,15 @@ import { yamlDocumentsCache } from '../parser/yaml-documents';
 import { matchOffsetToDocument } from '../utils/arrUtils';
 import { convertErrorToTelemetryMsg } from '../utils/objects';
 import { TextBuffer } from '../utils/textBuffer';
+import { LanguageService } from '../yamlLanguageService';
 
 export class YamlDefinition {
-  constructor(private readonly telemetry?: Telemetry) {}
+  public languageService: LanguageService
+  constructor(private readonly telemetry?: Telemetry) { }
 
   getDefinition(document: TextDocument, params: DefinitionParams): DefinitionLink[] | undefined {
     try {
+      const textDefinition = this.languageService.inJinjaTemplate(document.uri, params.position);
       const yamlDocument = yamlDocumentsCache.getYamlDocument(document);
       const offset = document.offsetAt(params.position);
       const currentDoc = matchOffsetToDocument(offset, yamlDocument);

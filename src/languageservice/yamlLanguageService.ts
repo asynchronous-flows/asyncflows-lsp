@@ -344,6 +344,7 @@ export function getLanguageService(params: {
   yamlValidation.setLanguageService(languageService);
   completer.languageService = languageService;
   hover.languageService = languageService;
+  yamlDefinition.languageService = languageService;
   return languageService;
 }
 

@@ -76,9 +76,9 @@ export class YAMLHover {
     }
     const textHover = this.languageService.inJinjaTemplate(document.uri, position);
     if (textHover) {
-      const hover = this.languageService.jinjaTemplates.hover(textHover[0].text.id,
+      const hover = this.languageService.jinjaTemplates.hover(
+        textHover[0].text.id,
         document.uri,
-        document.getText(),
         textHover[2], position);
       if (hover) {
         const markupContent: MarkupContent = {

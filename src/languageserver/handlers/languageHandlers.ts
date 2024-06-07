@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, Diagnostic, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
+import { Connection, Diagnostic, LocationLink, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
 import {
   CodeActionParams,
   DidChangeWatchedFilesParams,
@@ -158,7 +158,7 @@ export class LanguageHandlers {
   }
 
   resetJinjaVariables(uri: string, diagnostics = []) {
-    this.languageService.jinjaTemplates.deleteAll();
+    this.languageService.jinjaTemplates.deleteAll(uri);
     for (const item of this.yamlSettings.documents2.entries()) {
       this.readJinjaBlocks(item[0], diagnostics)
     }
@@ -318,7 +318,7 @@ export class LanguageHandlers {
     }
   }
 
-  readJinjaBlocks(uri: string, diagnostics = [] ) {
+  readJinjaBlocks(uri: string, diagnostics = []) {
     const oldTree = this.languageService.trees.get(uri);
     if (oldTree) {
       const oldDocument = this.yamlSettings.documents2.get(uri);
@@ -344,7 +344,7 @@ export class LanguageHandlers {
             range: { start: diag.start, end: diag.end },
           });
         }
-        diagnostics = diagnostics.concat(lsp_diags); 
+        diagnostics = diagnostics.concat(lsp_diags);
       }
       this.publishJinjaDiagnostics(uri, diagnostics).then(() => { });
     }
@@ -536,6 +536,34 @@ export class LanguageHandlers {
     const point = { row: params.position.line, column: params.position.character };
     const treeItem = this.languageService.trees.get(textDocument.uri);
     let declarationLink: DeclarationLink | undefined = undefined;
+    const doc = this.yamlSettings.documents2.get(params.textDocument.uri);
+    if (!doc) {
+      return [];
+    }
+    if (!this.languageService.hasAsyncFlows(doc).hasComment) {
+      return [];
+    }
+    const textDefinition = this.languageService.inJinjaTemplate(doc.uri, params.position);
+    if (textDefinition) {
+      let locations = this.languageService.jinjaTemplates.gotoDefinition(
+        textDefinition[0].text.id,
+        doc.uri, textDefinition[2], params.position
+      );
+      if (!locations) {
+        return [];
+      }
+      const definitions = [];
+      const len = locations.length;
+      if (len == 0) {
+        return [];
+      }
+      for (const location of locations) {
+        let range = location.range;
+        definitions.push(LocationLink.create(location.uri, range, range));
+      }
+      return definitions;
+    }
+
     if (treeItem) {
       const links = treeItem.state.links;
       let linkValue: SyntaxNode | undefined = undefined;
