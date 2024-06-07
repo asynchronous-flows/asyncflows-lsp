@@ -57,6 +57,7 @@ import { getSelectionRanges } from './services/yamlSelectionRanges';
 import { FlowState, initQuery, Text } from '../tree_sitter_queries/queries';
 import { Point, Query, Tree } from 'tree-sitter';
 import { LspComment } from '../helper';
+import { NodejsLspFiles } from '@jinja-lsp/functions';
 
 export enum SchemaPriority {
   SchemaStore = 1,
@@ -191,6 +192,7 @@ export interface LanguageService {
   stateQuery: Query;
   pythonPath: string;
   doValidation2(doc: TextDocument): void;
+  jinjaTemplates: NodejsLspFiles;
 }
 
 export function getLanguageService(params: {
@@ -330,7 +332,8 @@ export function getLanguageService(params: {
         return [item, point];
       }
       return undefined;
-    }
+    },
+    jinjaTemplates: new NodejsLspFiles()
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

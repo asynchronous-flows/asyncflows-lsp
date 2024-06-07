@@ -76,8 +76,7 @@ export class YAMLHover {
     }
     const textHover = this.languageService.inJinjaTemplate(document.uri, position);
     if(textHover) {
-      const a = basic(textHover[0].text_body!.text);
-      console.log(`in jinja: ${a}`);
+      // console.log(`in jinja: ${a}`);
     }
     const hoverRangeNode = node;
 

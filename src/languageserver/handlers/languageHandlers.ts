@@ -151,11 +151,13 @@ export class LanguageHandlers {
       this.cancelLimitExceededWarnings(event.textDocument.uri);
       this.languageService.doValidation2(newTextDocument);
       this.fetchNewSchema(newTextDocument.uri);
-      return;
       clearTimeout(this.fetchCallback)
       this.fetchCallback = setTimeout(() => {
-        // this.fetchNewSchema(change);
-      }, 1000);
+        this.languageService.jinjaTemplates.deleteAll();
+        for (const item of this.yamlSettings.documents2.entries()) {
+          this.readJinjaBlocks(item[0])
+        }
+      }, 500);
 
     });
     // this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
@@ -312,6 +314,26 @@ export class LanguageHandlers {
         }
       }, this.languageService.pythonPath
       );
+    }
+  }
+
+  readJinjaBlocks(uri: string) {
+    const oldTree = this.languageService.trees.get(uri);
+    if (oldTree) {
+      const oldDocument = this.yamlSettings.documents2.get(uri);
+      if (!oldDocument) {
+        return;
+      }
+      const source = oldDocument.getText();
+      const state = oldTree.state;
+      const texts = state.texts.entries();
+      for (const text of texts) {
+        const body = text[1].text_body;
+        if (!body) {
+          continue;
+        }
+        const diags = this.languageService.jinjaTemplates.addOne(text[0], body.text, body.startPosition.row);
+      }
     }
   }
 
