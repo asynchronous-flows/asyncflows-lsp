@@ -21,6 +21,7 @@ import { convertErrorToTelemetryMsg } from '../utils/objects';
 import { ASTNode } from 'vscode-json-languageservice';
 import { stringify as stringifyYAML } from 'yaml';
 import { TextDocumentPositionParams } from 'vscode-languageserver-protocol';
+import { basic } from '@jinja-lsp/functions';
 
 export class YAMLHover {
   private shouldHover: boolean;
@@ -75,7 +76,8 @@ export class YAMLHover {
     }
     const textHover = this.languageService.inJinjaTemplate(document.uri, position);
     if(textHover) {
-      console.log('in jinja');
+      const a = basic(textHover[0].text_body!.text);
+      console.log(`in jinja: ${a}`);
     }
     const hoverRangeNode = node;
 

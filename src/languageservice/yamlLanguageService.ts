@@ -55,7 +55,7 @@ import { JSONSchemaSelection } from '../languageserver/handlers/schemaSelectionH
 import { YamlDefinition } from './services/yamlDefinition';
 import { getSelectionRanges } from './services/yamlSelectionRanges';
 import { FlowState, initQuery, Text } from '../tree_sitter_queries/queries';
-import { Query, Tree } from 'tree-sitter';
+import { Point, Query, Tree } from 'tree-sitter';
 import { LspComment } from '../helper';
 
 export enum SchemaPriority {
@@ -187,7 +187,7 @@ export interface LanguageService {
   configure2: (schemas: SchemasSettings[]) => void;
   hasAsyncFlows: (doc: TextDocument) => LspComment;
   trees: Map<string, { tree: Tree, state: FlowState }>;
-  inJinjaTemplate: (uri: string, position: Position) => Text;
+  inJinjaTemplate: (uri: string, position: Position) => [Text, Point] | undefined;
   stateQuery: Query;
   pythonPath: string;
   doValidation2(doc: TextDocument): void;
@@ -302,7 +302,7 @@ export function getLanguageService(params: {
     pythonPath: "python",
     doValidation2(doc: TextDocument) {
     },
-    inJinjaTemplate(uri: string, position: Position): Text {
+    inJinjaTemplate(uri: string, position: Position): [Text, Point] | undefined {
       // @ts-ignore
       const state = (languageService as LanguageService).trees.get(uri);
       if (!state) {
@@ -319,13 +319,15 @@ export function getLanguageService(params: {
         if (!body) {
           continue;
         }
-        if (!(point.row >= body.startPosition.row && point.column >= body.startPosition.column)) {
+        const column = adjustChar(point.column, body.startPosition.column);
+        if (!(point.row >= body.startPosition.row + 1 && column >= body.startPosition.column)) {
           continue;
         }
-        if (!(point.row <= body.endPosition.row && point.column <= body.endPosition.column)) {
+        if (!(point.row <= body.endPosition.row && column <= body.endPosition.column)) {
           continue;
         }
-        return item;
+        point.column = column;
+        return [item, point];
       }
       return undefined;
     }
@@ -335,4 +337,16 @@ export function getLanguageService(params: {
   completer.languageService = languageService;
   hover.languageService = languageService;
   return languageService;
+}
+
+function adjustChar(current: number, body_char: number) {
+  if(current > body_char) {
+    return (current - body_char) + current
+  }
+  else if(current <= body_char) {
+    return (body_char - current) + current
+  }
+  else {
+    return 0
+  }
 }
