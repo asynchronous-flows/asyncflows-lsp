@@ -75,8 +75,22 @@ export class YAMLHover {
       return Promise.resolve(null);
     }
     const textHover = this.languageService.inJinjaTemplate(document.uri, position);
-    if(textHover) {
-      // console.log(`in jinja: ${a}`);
+    if (textHover) {
+      const hover = this.languageService.jinjaTemplates.hover(textHover[0].text.id,
+        document.uri,
+        document.getText(),
+        textHover[2], position);
+      if (hover) {
+        const markupContent: MarkupContent = {
+          kind: MarkupKind.Markdown,
+          value: hover.value,
+        };
+        const result: Hover = {
+          contents: markupContent,
+          range: null,
+        };
+        return Promise.resolve(result);
+      }
     }
     const hoverRangeNode = node;
 

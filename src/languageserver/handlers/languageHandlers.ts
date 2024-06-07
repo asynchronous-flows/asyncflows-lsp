@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
+import { Connection, Diagnostic, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
 import {
   CodeActionParams,
   DidChangeWatchedFilesParams,
@@ -55,7 +55,6 @@ export class LanguageHandlers {
   private languageService: LanguageService;
   private yamlSettings: SettingsState;
   private validationHandler: ValidationHandler;
-  private fetchCallback: NodeJS.Timeout
   pendingLimitExceededWarnings: { [uri: string]: { features: { [name: string]: string }; timeout?: NodeJS.Timeout } };
   public tokenTypes = new Map<string, number>();
   public tokenModifiers = new Map<string, number>();
@@ -73,6 +72,9 @@ export class LanguageHandlers {
     const [tokenTypes, tokenModifiers] = setSemanticToken();
     this.tokenTypes = tokenTypes;
     this.tokenModifiers = tokenModifiers;
+    this.languageService.resetJinjaVariables = (uri, diagnostics = []) => {
+      this.resetJinjaVariables(uri, diagnostics);
+    }
   }
 
   public registerHandlers(): void {
@@ -149,18 +151,17 @@ export class LanguageHandlers {
       }
       const newTextDocument = this.yamlSettings.documents2.get(event.textDocument.uri);
       this.cancelLimitExceededWarnings(event.textDocument.uri);
-      this.languageService.doValidation2(newTextDocument);
+      this.languageService.doValidation2(newTextDocument, false);
       this.fetchNewSchema(newTextDocument.uri);
-      clearTimeout(this.fetchCallback)
-      this.fetchCallback = setTimeout(() => {
-        this.languageService.jinjaTemplates.deleteAll();
-        for (const item of this.yamlSettings.documents2.entries()) {
-          this.readJinjaBlocks(item[0])
-        }
-      }, 500);
-
     });
     // this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
+  }
+
+  resetJinjaVariables(uri: string, diagnostics = []) {
+    this.languageService.jinjaTemplates.deleteAll();
+    for (const item of this.yamlSettings.documents2.entries()) {
+      this.readJinjaBlocks(item[0], diagnostics)
+    }
   }
 
   editTopComment(textDocument: TextDocument, lsp_comment: LspComment) {
@@ -306,7 +307,7 @@ export class LanguageHandlers {
         return undefined;
       }
       read2(uri, this.yamlSettings, (content) => {
-        if (!content.includes('Traceback')) {
+        if (!content.includes('Traceback (most recent')) {
           this.languageService.addSchema2(uri, content, this.languageService);
         }
         else {
@@ -317,7 +318,7 @@ export class LanguageHandlers {
     }
   }
 
-  readJinjaBlocks(uri: string) {
+  readJinjaBlocks(uri: string, diagnostics = [] ) {
     const oldTree = this.languageService.trees.get(uri);
     if (oldTree) {
       const oldDocument = this.yamlSettings.documents2.get(uri);
@@ -332,9 +333,28 @@ export class LanguageHandlers {
         if (!body) {
           continue;
         }
-        const diags = this.languageService.jinjaTemplates.addOne(text[0], body.text, body.startPosition.row);
+        const diags = this.languageService.jinjaTemplates.addOne(text[0], uri, body.text, body.startPosition.row);
+        const lsp_diags: Diagnostic[] = [];
+        for (const diag of diags) {
+          if (!diag.error) {
+            continue;
+          }
+          lsp_diags.push({
+            message: diag.error,
+            range: { start: diag.start, end: diag.end },
+          });
+        }
+        diagnostics = diagnostics.concat(lsp_diags); 
       }
+      this.publishJinjaDiagnostics(uri, diagnostics).then(() => { });
     }
+  }
+
+  async publishJinjaDiagnostics(uri: string, diagnostics: Diagnostic[]) {
+    this.connection.sendDiagnostics({
+      uri: uri,
+      diagnostics: diagnostics,
+    });
   }
 
   documentLinkHandler(params: DocumentLinkParams): Promise<DocumentLink[]> {

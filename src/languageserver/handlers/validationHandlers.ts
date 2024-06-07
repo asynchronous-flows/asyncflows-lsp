@@ -15,13 +15,14 @@ import { writeFileSync } from 'fs';
 export class ValidationHandler {
   private languageService: LanguageService;
   private yamlSettings: SettingsState;
+  public jinjaCallback: NodeJS.Timeout
 
   constructor(private readonly connection: Connection, languageService: LanguageService, yamlSettings: SettingsState) {
     this.languageService = languageService;
     this.yamlSettings = yamlSettings;
 
-    this.languageService.doValidation2 = (textDocument: TextDocument) => {
-     this.validate(textDocument); 
+    this.languageService.doValidation2 = (textDocument: TextDocument, with_jinja = false) => {
+      this.validate(textDocument);
     }
 
     this.connection.onDidCloseTextDocument((event) => {
@@ -68,10 +69,14 @@ export class ValidationHandler {
         }
 
         const removeDuplicatesDiagnostics = removeDuplicatesObj(diagnostics);
-        this.connection.sendDiagnostics({
-          uri: textDocument.uri,
-          diagnostics: removeDuplicatesDiagnostics,
-        });
+        // this.connection.sendDiagnostics({
+        //   uri: textDocument.uri,
+        //   diagnostics: removeDuplicatesDiagnostics,
+        // });
+        clearTimeout(this.jinjaCallback);
+        this.jinjaCallback = setTimeout(() => {
+          this.languageService.resetJinjaVariables(textDocument.uri, removeDuplicatesDiagnostics);
+        }, 300);
         return removeDuplicatesDiagnostics;
       });
   }

@@ -188,11 +188,13 @@ export interface LanguageService {
   configure2: (schemas: SchemasSettings[]) => void;
   hasAsyncFlows: (doc: TextDocument) => LspComment;
   trees: Map<string, { tree: Tree, state: FlowState }>;
-  inJinjaTemplate: (uri: string, position: Position) => [Text, Point] | undefined;
+  inJinjaTemplate: (uri: string, position: Position) => [Text, Point, number] | undefined;
   stateQuery: Query;
   pythonPath: string;
-  doValidation2(doc: TextDocument): void;
+  doValidation2(doc: TextDocument, with_jinja: boolean): void;
   jinjaTemplates: NodejsLspFiles;
+  jinjaVariables: any,
+  resetJinjaVariables(uri: string, diagnostics: Diagnostic[]): void;
 }
 
 export function getLanguageService(params: {
@@ -302,9 +304,9 @@ export function getLanguageService(params: {
     trees: new Map(),
     stateQuery: initQuery() as Query,
     pythonPath: "python",
-    doValidation2(doc: TextDocument) {
+    doValidation2(doc: TextDocument, with_jinja = false) {
     },
-    inJinjaTemplate(uri: string, position: Position): [Text, Point] | undefined {
+    inJinjaTemplate(uri: string, position: Position): [Text, Point, number] | undefined {
       // @ts-ignore
       const state = (languageService as LanguageService).trees.get(uri);
       if (!state) {
@@ -329,11 +331,14 @@ export function getLanguageService(params: {
           continue;
         }
         point.column = column;
-        return [item, point];
+        return [item, point, body.startPosition.row];
       }
       return undefined;
     },
-    jinjaTemplates: new NodejsLspFiles()
+    jinjaTemplates: new NodejsLspFiles(),
+    jinjaVariables: {},
+    resetJinjaVariables(uri: string, diagnostic = []) {
+    }
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);
@@ -343,10 +348,10 @@ export function getLanguageService(params: {
 }
 
 function adjustChar(current: number, body_char: number) {
-  if(current > body_char) {
+  if (current > body_char) {
     return (current - body_char) + current
   }
-  else if(current <= body_char) {
+  else if (current <= body_char) {
     return (body_char - current) + current
   }
   else {
