@@ -559,6 +559,28 @@ export class LanguageHandlers {
       }
       for (const location of locations) {
         let range = location.range;
+        if (location.isBackend) {
+          const actionName = location.uri.split("-").at(-1).split(".").at(0);
+          const tree = this.languageService.trees.get(doc.uri);
+          if (!tree) {
+            return [];
+          }
+          const action = tree.state.actions.get(actionName);
+          if (!action) {
+            return [];
+          }
+          range = {
+            start: {
+              character: action.action_name.startPosition.column,
+              line: action.action_name.startPosition.row
+            },
+            end: {
+              character: action.action_name.endPosition.column,
+              line: action.action_name.endPosition.row
+            },
+          };
+          location.uri = doc.uri;
+        }
         definitions.push(LocationLink.create(location.uri, range, range));
       }
       return definitions;

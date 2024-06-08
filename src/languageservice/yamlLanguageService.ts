@@ -195,6 +195,7 @@ export interface LanguageService {
   jinjaTemplates: NodejsLspFiles;
   jinjaVariables: any,
   resetJinjaVariables(uri: string, diagnostics: Diagnostic[]): void;
+  globalJinjaActions: string[];
 }
 
 export function getLanguageService(params: {
@@ -338,7 +339,8 @@ export function getLanguageService(params: {
     jinjaTemplates: new NodejsLspFiles(),
     jinjaVariables: {},
     resetJinjaVariables(uri: string, diagnostic = []) {
-    }
+    },
+    globalJinjaActions: [] as string[]
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

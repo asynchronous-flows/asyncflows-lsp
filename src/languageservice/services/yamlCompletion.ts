@@ -116,10 +116,8 @@ export class YamlCompletion {
         document.uri,
         textCompletion[2], position);
       if (!completion) {
-        console.log('nothing');
         return Promise.resolve({ isIncomplete: false, items: [] });
       }
-      console.log(completion.length);
       for (const i of completion) {
         const item: CompletionItem2 = {
           label: i.label,

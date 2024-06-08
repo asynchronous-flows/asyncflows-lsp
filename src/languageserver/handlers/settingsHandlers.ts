@@ -350,10 +350,10 @@ export class SettingsHandler {
     this.languageService.configure(languageSettings);
 
     // Revalidate any open text documents
-      this.yamlSettings.documents2.forEach((document) => {
-        this.validationHandler.validate(document)
-      });
-   
+    this.yamlSettings.documents2.forEach((document) => {
+      this.validationHandler.validate(document)
+    });
+
   }
 
   configureFromPython(uri: string, content: string, languageService: LanguageService) {
@@ -384,11 +384,34 @@ export class SettingsHandler {
       }
       console.log('Updating configuration')
       this.updateConfiguration();
+      this.getAllActionEnums(parsed, uri);
       return;
     }
     catch (e) {
       console.log(`error happens here:\n ${e}`);
       console.log(content);
+    }
+  }
+
+  getAllActionEnums(schema: any, uri: string) {
+    const links = [];
+    for (const [key, value] of Object.entries(schema.$defs)) {
+      if (key.startsWith("asyncflows__models__config__value_declarations")) {
+        // @ts-ignore
+        const link = value.properties.link.anyOf;
+        for (const l of link) {
+          const enumValues = l.enum;
+          for (const e of enumValues) {
+            links.push(e);
+          }
+        }
+        this.languageService.globalJinjaActions = links;
+        this.languageService.jinjaTemplates.addGlobalContext(
+          uri,
+          this.languageService.globalJinjaActions
+        );
+        break
+      }
     }
   }
 
