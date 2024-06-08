@@ -76,7 +76,7 @@ export class ValidationHandler {
         clearTimeout(this.jinjaCallback);
         this.jinjaCallback = setTimeout(() => {
           this.languageService.resetJinjaVariables(textDocument.uri, removeDuplicatesDiagnostics);
-        }, 300);
+        }, 150);
         return removeDuplicatesDiagnostics;
       });
   }

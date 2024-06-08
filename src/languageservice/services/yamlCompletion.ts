@@ -39,6 +39,7 @@ import { isModeline } from './modelineUtil';
 import { getSchemaTypeName, isAnyOfAllOfOneOfType, isPrimitiveType } from '../utils/schemaUtils';
 import { YamlNode } from '../jsonASTTypes';
 import { NODE_TYPE } from 'yaml/dist/nodes/Node';
+import { JsCompletionType, Kind2 } from '@jinja-lsp/functions';
 
 const localize = nls.loadMessageBundle();
 
@@ -104,12 +105,41 @@ export class YamlCompletion {
 
   async doComplete(document: TextDocument, position: Position, isKubernetes = false, doComplete = true): Promise<CompletionList> {
     if (!this.languageService.hasAsyncFlows(document).hasComment) {
-      return Promise.resolve({isIncomplete: false, items: []});
+      return Promise.resolve({ isIncomplete: false, items: [] });
     }
-    
+
     const textCompletion = this.languageService.inJinjaTemplate(document.uri, position);
-    if(textCompletion) {
-      console.log('in jinja');
+    if (textCompletion) {
+      const items = [];
+      const completion = this.languageService.jinjaTemplates.complete(
+        textCompletion[0].text.id,
+        document.uri,
+        textCompletion[2], position);
+      if (!completion) {
+        console.log('nothing');
+        return Promise.resolve({ isIncomplete: false, items: [] });
+      }
+      console.log(completion.length);
+      for (const i of completion) {
+        const item: CompletionItem2 = {
+          label: i.label,
+          kind: getCompletionItemKind(i.kind),
+        };
+        if (i.completionType == JsCompletionType.Filter) {
+          item.documentation = {
+            kind: MarkupKind.Markdown,
+            value: i.description
+          }
+        }
+        else if(i.completionType == JsCompletionType.Identifier) {
+          item.detail = i.description;
+        }
+        else {
+          continue
+        }
+        items.push(item);
+      }
+      return { isIncomplete: false, items: items };
     }
     const result = CompletionList.create([], false);
     if (!this.completionEnabled) {
@@ -1742,4 +1772,31 @@ function evaluateTab1Symbol(value: string): string {
 
 function isParentCompletionItem(item: CompletionItemBase): item is CompletionItem {
   return 'parent' in item;
+}
+
+function getCompletionItemKind(now: Kind2): CompletionItemKind {
+  if (now == Kind2.VARIABLE) {
+    return CompletionItemKind.Variable
+  }
+  else if (now == Kind2.FIELD) {
+    return CompletionItemKind.Field
+  }
+  else if (now == Kind2.FUNCTION) {
+    return CompletionItemKind.Function
+  }
+  else if (now == Kind2.MODULE) {
+    return CompletionItemKind.Module
+  }
+  else if (now == Kind2.CONSTANT) {
+    return CompletionItemKind.Constant
+  }
+  else if (now == Kind2.FILE) {
+    return CompletionItemKind.File
+  }
+  else if (now == Kind2.TEXT) {
+    return CompletionItemKind.Text
+  }
+  else {
+    return CompletionItemKind.Variable
+  }
 }
