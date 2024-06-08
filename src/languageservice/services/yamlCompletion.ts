@@ -133,6 +133,9 @@ export class YamlCompletion {
         }
         else if(i.completionType == JsCompletionType.Identifier) {
           item.detail = i.description;
+          if (i.insert) {
+            item.textEdit = {insert: i.insert, newText: i.newText, replace: i.replace};
+          }
         }
         else {
           continue
