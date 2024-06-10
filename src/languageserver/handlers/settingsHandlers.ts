@@ -396,13 +396,16 @@ export class SettingsHandler {
   getAllActionEnums(schema: any, uri: string) {
     const links = [];
     for (const [key, value] of Object.entries(schema.$defs)) {
-      if (key.startsWith("asyncflows__models__config__value_declarations")) {
+      if (key == "__LinkHintLiteral") {
         // @ts-ignore
-        const link = value.properties.link.anyOf;
-        for (const l of link) {
+        const values = value.anyOf;
+        for (const l of values) {
+          if(!l.description) {
+            l.description = ""
+          }
           const enumValues = l.enum;
           for (const e of enumValues) {
-            links.push(e);
+            links.push({name: e, description: l.description});
           }
         }
         this.languageService.globalJinjaActions.set(uri, links)

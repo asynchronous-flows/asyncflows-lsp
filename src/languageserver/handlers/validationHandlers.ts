@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { get_state, initQuery, initYamlParser, query_flows } from '../../tree_sitter_queries/queries';
-import { Connection, Position, Range } from 'vscode-languageserver';
+import { Connection, Position, Range, SemanticTokensRefreshRequest } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic } from 'vscode-languageserver-types';
 import { isKubernetesAssociatedDocument } from '../../languageservice/parser/isKubernetes';
@@ -79,7 +79,12 @@ export class ValidationHandler {
         clearTimeout(this.jinjaCallback);
         this.jinjaCallback = setTimeout(() => {
           this.languageService.resetJinjaVariables(textDocument.uri, removeDuplicatesDiagnostics);
-        }, 150);
+          if(this.languageService.resetSemanticTokens.get(textDocument.uri) == true) {
+            this.connection.sendRequest(SemanticTokensRefreshRequest.method).then((v)=>{
+              this.languageService.resetSemanticTokens.set(textDocument.uri, false);
+            })
+          }
+        }, 50);
         return removeDuplicatesDiagnostics;
       });
   }

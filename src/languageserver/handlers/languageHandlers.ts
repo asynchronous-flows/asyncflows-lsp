@@ -52,6 +52,7 @@ import { SyntaxNode } from 'tree-sitter';
 import { emptyFlowState, get_state, parseNewTree } from '../../tree_sitter_queries/queries';
 import { toInputEdit } from '../../tree_sitter_queries/toInputEdit';
 import { tokenModifiersLegend, tokenTypesLegend } from '../../semanticTokens';
+import { JsIdentifierType } from '@jinja-lsp/functions';
 
 export class LanguageHandlers {
   private languageService: LanguageService;
@@ -103,8 +104,8 @@ export class LanguageHandlers {
       read2(params.textDocument.uri, this.yamlSettings, (content) => {
         if (!content.includes('Traceback')) {
           console.log('Adding new schema');
+          this.languageService.resetSemanticTokens.set(params.textDocument.uri, true);
           this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
-          this.connection.sendRequest(SemanticTokensRefreshRequest.method).then((v)=>{})
         }
         else {
           console.log(`content error: ${content}`)
@@ -222,6 +223,7 @@ export class LanguageHandlers {
     const actions = tree.state.actions;
     const positions: AbsolutePosition[] = [];
     const ranges = this.languageService.yamlDiagnosticsRange.get(uri);
+    const jinjaLinks = this.languageService.jinjaSemanticTokens.get(uri);
     actions.forEach((value, key) => {
       const position: AbsolutePosition = {
         line: value.action_name.startPosition.row,
@@ -233,8 +235,8 @@ export class LanguageHandlers {
       positions.push(position);
     });
     keys.forEach((value, key) => {
-      if(ranges && isInLspRange(value.semantic_key.startPosition, ranges)) {
-        return ;
+      if (ranges && isInLspRange(value.semantic_key.startPosition, ranges)) {
+        return;
       }
       const position: AbsolutePosition = {
         line: value.semantic_key.startPosition.row,
@@ -248,8 +250,8 @@ export class LanguageHandlers {
       if (!semanticValue) {
         return;
       }
-      if(ranges && isInLspRange(semanticValue.startPosition, ranges)) {
-        return ;
+      if (ranges && isInLspRange(semanticValue.startPosition, ranges)) {
+        return;
       }
       const valuePosition: AbsolutePosition = {
         line: semanticValue.startPosition.row,
@@ -259,7 +261,20 @@ export class LanguageHandlers {
         tokenType: SemanticTokenTypes.event
       };
       positions.push(valuePosition);
-    })
+    });
+    for (const jinjaLink of jinjaLinks) {
+      if (jinjaLink.identifierType != JsIdentifierType.Link) {
+        continue;
+      }
+      const linkPosition: AbsolutePosition = {
+        line: jinjaLink.start.line,
+        startChar: jinjaLink.start.character,
+        length: jinjaLink.end.character - jinjaLink.start.character,
+        tokenModifiers: [SemanticTokenModifiers.defaultLibrary],
+        tokenType: SemanticTokenTypes.operator
+      }
+      positions.push(linkPosition);
+    }
     positions.forEach((item) => {
       const t = item.tokenType;
       const m = item.tokenModifiers[0];
@@ -301,16 +316,16 @@ export class LanguageHandlers {
     if (a.line == b.line) {
       const aLength = a.startChar + a.length;
       const bLength = b.startChar + b.length;
-      if(aLength < bLength) {
+      if (aLength < bLength) {
         return -1;
       }
-      else if(aLength > bLength) {
+      else if (aLength > bLength) {
         return 1;
       }
       else {
         return 0
       }
-      
+
     }
     return 0;
   }
@@ -357,24 +372,16 @@ export class LanguageHandlers {
       const source = oldDocument.getText();
       const state = oldTree.state;
       const texts = state.texts.entries();
+      let tokens = [];
       for (const text of texts) {
         const body = text[1].text_body;
         if (!body) {
           continue;
         }
-        const diags = this.languageService.jinjaTemplates.addOne(text[0], uri, body.text, body.startPosition.row);
-        const lsp_diags: Diagnostic[] = [];
-        for (const diag of diags) {
-          if (!diag.error) {
-            continue;
-          }
-          lsp_diags.push({
-            message: diag.error,
-            range: { start: diag.start, end: diag.end },
-          });
-        }
-        diagnostics = diagnostics.concat(lsp_diags);
+        const identifiers = this.languageService.jinjaTemplates.addOne(text[0], uri, body.text, body.startPosition.row);
+        tokens = tokens.concat(identifiers);
       }
+      this.languageService.jinjaSemanticTokens.set(uri, tokens);
       this.publishJinjaDiagnostics(uri, diagnostics).then(() => { });
     }
   }

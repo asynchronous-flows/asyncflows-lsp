@@ -58,7 +58,7 @@ import { getSelectionRanges } from './services/yamlSelectionRanges';
 import { FlowState, initQuery, Text } from '../tree_sitter_queries/queries';
 import { Point, Query, Tree } from 'tree-sitter';
 import { LspComment } from '../helper';
-import { NodejsLspFiles } from '@jinja-lsp/functions';
+import { JsIdentifier, NodejsLspFiles } from '@jinja-lsp/functions';
 
 export enum SchemaPriority {
   SchemaStore = 1,
@@ -198,6 +198,8 @@ export interface LanguageService {
   resetJinjaVariables(uri: string, diagnostics: Diagnostic[]): void;
   globalJinjaActions: Map<string, any[]>;
   yamlDiagnosticsRange: Map<string, Range[]>;
+  resetSemanticTokens: Map<string, boolean>;
+  jinjaSemanticTokens: Map<string, JsIdentifier[]>
 }
 
 export function getLanguageService(params: {
@@ -326,14 +328,10 @@ export function getLanguageService(params: {
         if (!body) {
           continue;
         }
-        const column = adjustChar(point.column, body.startPosition.column);
-        if (!(point.row >= body.startPosition.row + 1 && column >= body.startPosition.column)) {
+        // const column = adjustChar(point.column, body.startPosition.column);
+        if (!(point.row >= body.startPosition.row + 1 && point.row <= body.endPosition.row)) {
           continue;
         }
-        if (!(point.row <= body.endPosition.row && column <= body.endPosition.column)) {
-          continue;
-        }
-        point.column = column;
         return [item, point, body.startPosition.row];
       }
       return undefined;
@@ -343,7 +341,9 @@ export function getLanguageService(params: {
     resetJinjaVariables(uri: string, diagnostic = []) {
     },
     globalJinjaActions: new Map(),
-    yamlDiagnosticsRange: new Map()
+    yamlDiagnosticsRange: new Map(),
+    resetSemanticTokens: new Map(),
+    jinjaSemanticTokens: new Map()
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

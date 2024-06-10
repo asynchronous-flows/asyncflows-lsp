@@ -8,6 +8,9 @@ export const tokenTypesLegend = [
   SemanticTokenTypes.enum,
   SemanticTokenTypes.function,
   SemanticTokenTypes.event,
+  SemanticTokenTypes.comment,
+  SemanticTokenTypes.macro,
+  SemanticTokenTypes.operator,
 ];
 
 
@@ -15,5 +18,6 @@ export const tokenModifiersLegend = [
   SemanticTokenModifiers.declaration,
   SemanticTokenModifiers.modification,
   SemanticTokenModifiers.abstract,
-  SemanticTokenModifiers.async
+  SemanticTokenModifiers.async,
+  SemanticTokenModifiers.defaultLibrary
   ];
