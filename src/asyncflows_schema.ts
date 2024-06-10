@@ -3,13 +3,47 @@ export default {
     "Blob_": {
       "properties": {
         "id": {
-          "title": "Id",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
+            }
+          ],
+          "title": "Id"
         },
         "file_extension": {
           "anyOf": [
             {
               "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
             },
             {
               "type": "null"
@@ -25,9 +59,122 @@ export default {
       "title": "Blob_",
       "type": "object"
     },
+    "ContextLambda": {
+      "additionalProperties": false,
+      "description": "A lambda declaration for prompt context in config.",
+      "properties": {
+        "stream": {
+          "default": false,
+          "title": "Stream",
+          "type": "boolean"
+        },
+        "lambda": {
+          "description": "\nA lambda declaration is a python expression evaluated within the context of the flow and any provided variables.\nIf you reference an action's output, it will ensure that action runs before this one.\n",
+          "markdownDescription": "\nA lambda declaration is a python expression evaluated within the context of the flow and any provided variables.  \nIf you reference an action's output, it will ensure that action runs before this one.\n\nReference variables or action outputs like:\n\n> ```yaml\n> lambda: |\n> ```\n> ```python\n>   \"My name is \" + name + \". The output of action_id is \" + action_id.output_name\n> ```\n\nYou can also use list comprehension and conditionals:\n\n> ```yaml\n> lambda: |\n> ```\n> ```python\n>   [item for item in items if item.name != 'foo']\n> ```\n",
+          "title": "Lambda",
+          "type": "string"
+        },
+        "heading": {
+          "description": "The heading for the context element.",
+          "markdownDescription": "\nThe heading for the context element.\n\nIf `quote_style` is set to `backticks`, the heading will be wrapped in backticks, according to the following jinja template:    \n\n> ~~~jinja\n> {{ heading }}\n> ```\n> {{ value }}\n> ```\n> ~~~\n\n\nIf `quote_style` is set to `xml`, the heading will be wrapped in XML tags, according to the following jinja template:\n\n> ```jinja\n> <{{ heading }}>\n> {{ value }}\n> </{{ heading }}>\n> ```\n\n",
+          "title": "Heading",
+          "type": "string"
+        }
+      },
+      "required": [
+        "lambda",
+        "heading"
+      ],
+      "title": "ContextLambda",
+      "type": "object"
+    },
+    "ContextLink": {
+      "additionalProperties": false,
+      "description": "An input declaration for prompt context in config.",
+      "properties": {
+        "stream": {
+          "default": false,
+          "title": "Stream",
+          "type": "boolean"
+        },
+        "link": {
+          "description": "A link declaration references another action's output, and ensures that action runs before this one.",
+          "title": "Link",
+          "type": "string"
+        },
+        "heading": {
+          "description": "The heading for the context element.",
+          "markdownDescription": "\nThe heading for the context element.\n\nIf `quote_style` is set to `backticks`, the heading will be wrapped in backticks, according to the following jinja template:    \n\n> ~~~jinja\n> {{ heading }}\n> ```\n> {{ value }}\n> ```\n> ~~~\n\n\nIf `quote_style` is set to `xml`, the heading will be wrapped in XML tags, according to the following jinja template:\n\n> ```jinja\n> <{{ heading }}>\n> {{ value }}\n> </{{ heading }}>\n> ```\n\n",
+          "title": "Heading",
+          "type": "string"
+        }
+      },
+      "required": [
+        "link",
+        "heading"
+      ],
+      "title": "ContextLink",
+      "type": "object"
+    },
+    "ContextTemplate": {
+      "additionalProperties": false,
+      "description": "A template string for prompt context in config.",
+      "properties": {
+        "stream": {
+          "default": false,
+          "title": "Stream",
+          "type": "boolean"
+        },
+        "text": {
+          "description": "\nA text declaration is a jinja2 template, rendered within the context of the flow and any provided variables.\nIf you reference an action's output, it will ensure that action runs before this one.\n\nFor more information, see the Jinja2 documentation: https://jinja.palletsprojects.com/en/3.0.x/templates/.\n",
+          "markdownDescription": "\nA text declaration is a jinja2 template, rendered within the context of the flow and any provided variables.  \nIf you reference an action's output, it will ensure that action runs before this one.\n\nReference variables or action outputs like: \n\n> ```yaml\n> text: |\n> ```\n> ```jinja\n>   Hi {{ name }}, the output of action_id is {{ action_id.output_name }}\n> ```\n\nIt also supports advanced features such as loops and conditionals:\n\n> ```yaml\n> text: |\n> ```\n> ```jinja\n>   {% for item in items -%}\n>     {% if item.name != 'foo' -%}\n>     {{ item.name }}: {{ item.value }}\n>     {% endif %}\n>   {% endfor %}\n> ```\n\nFor more information, see the [Jinja2 documentation](https://jinja.palletsprojects.com/en/3.0.x/templates/).\n",
+          "title": "Text",
+          "type": "string"
+        },
+        "heading": {
+          "description": "The heading for the context element.",
+          "markdownDescription": "\nThe heading for the context element.\n\nIf `quote_style` is set to `backticks`, the heading will be wrapped in backticks, according to the following jinja template:    \n\n> ~~~jinja\n> {{ heading }}\n> ```\n> {{ value }}\n> ```\n> ~~~\n\n\nIf `quote_style` is set to `xml`, the heading will be wrapped in XML tags, according to the following jinja template:\n\n> ```jinja\n> <{{ heading }}>\n> {{ value }}\n> </{{ heading }}>\n> ```\n\n",
+          "title": "Heading",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "heading"
+      ],
+      "title": "ContextTemplate",
+      "type": "object"
+    },
+    "ContextVar": {
+      "additionalProperties": false,
+      "description": "A variable declaration for prompt context in config.",
+      "properties": {
+        "stream": {
+          "default": false,
+          "title": "Stream",
+          "type": "boolean"
+        },
+        "var": {
+          "description": "A variable declaration references a variable (or path to nested variable) in the context.",
+          "title": "Var",
+          "type": "string"
+        },
+        "heading": {
+          "description": "The heading for the context element.",
+          "markdownDescription": "\nThe heading for the context element.\n\nIf `quote_style` is set to `backticks`, the heading will be wrapped in backticks, according to the following jinja template:    \n\n> ~~~jinja\n> {{ heading }}\n> ```\n> {{ value }}\n> ```\n> ~~~\n\n\nIf `quote_style` is set to `xml`, the heading will be wrapped in XML tags, according to the following jinja template:\n\n> ```jinja\n> <{{ heading }}>\n> {{ value }}\n> </{{ heading }}>\n> ```\n\n",
+          "title": "Heading",
+          "type": "string"
+        }
+      },
+      "required": [
+        "var",
+        "heading"
+      ],
+      "title": "ContextVar",
+      "type": "object"
+    },
     "EnvDeclaration": {
       "additionalProperties": false,
-      "description": "An env declaration is a string that references an environment variable.",
       "properties": {
         "stream": {
           "default": false,
@@ -35,6 +182,7 @@ export default {
           "type": "boolean"
         },
         "env": {
+          "description": "An environment declaration references the name of an environment variable that is loaded during runtime.",
           "title": "Env",
           "type": "string"
         }
@@ -48,18 +196,38 @@ export default {
     "File_": {
       "properties": {
         "sources": {
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/Blob_"
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Blob_"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
               },
-              {
-                "type": "string"
-              }
-            ]
-          },
-          "title": "Sources",
-          "type": "array"
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
+            }
+          ],
+          "description": "List of blobs or URLs to download the file from",
+          "title": "Sources"
         }
       },
       "required": [
@@ -99,7 +267,7 @@ export default {
           "additionalProperties": {
             "anyOf": [
               {
-                "$ref": "#/$defs/HintedLoop"
+                "$ref": "#/$defs/execute_db_statementActionInvocation"
               },
               {
                 "$ref": "#/$defs/extract_listActionInvocation"
@@ -111,13 +279,19 @@ export default {
                 "$ref": "#/$defs/extract_xml_tagActionInvocation"
               },
               {
-                "$ref": "#/$defs/execute_db_statementActionInvocation"
+                "$ref": "#/$defs/get_db_schemaActionInvocation"
+              },
+              {
+                "$ref": "#/$defs/get_urlActionInvocation"
               },
               {
                 "$ref": "#/$defs/ocrActionInvocation"
               },
               {
-                "$ref": "#/$defs/get_db_schemaActionInvocation"
+                "$ref": "#/$defs/promptActionInvocation"
+              },
+              {
+                "$ref": "#/$defs/scoreActionInvocation"
               },
               {
                 "$ref": "#/$defs/retrieveActionInvocation"
@@ -126,13 +300,7 @@ export default {
                 "$ref": "#/$defs/rerankActionInvocation"
               },
               {
-                "$ref": "#/$defs/promptActionInvocation"
-              },
-              {
-                "$ref": "#/$defs/get_urlActionInvocation"
-              },
-              {
-                "$ref": "#/$defs/scoreActionInvocation"
+                "$ref": "#/$defs/HintedLoop"
               }
             ]
           },
@@ -150,7 +318,6 @@ export default {
     },
     "LambdaDeclaration": {
       "additionalProperties": false,
-      "description": "A lambda declaration is a python expression that can be evaluated within a context.",
       "properties": {
         "stream": {
           "default": false,
@@ -158,6 +325,8 @@ export default {
           "type": "boolean"
         },
         "lambda": {
+          "description": "\nA lambda declaration is a python expression evaluated within the context of the flow and any provided variables.\nIf you reference an action's output, it will ensure that action runs before this one.\n",
+          "markdownDescription": "\nA lambda declaration is a python expression evaluated within the context of the flow and any provided variables.  \nIf you reference an action's output, it will ensure that action runs before this one.\n\nReference variables or action outputs like:\n\n> ```yaml\n> lambda: |\n> ```\n> ```python\n>   \"My name is \" + name + \". The output of action_id is \" + action_id.output_name\n> ```\n\nYou can also use list comprehension and conditionals:\n\n> ```yaml\n> lambda: |\n> ```\n> ```python\n>   [item for item in items if item.name != 'foo']\n> ```\n",
           "title": "Lambda",
           "type": "string"
         }
@@ -170,7 +339,6 @@ export default {
     },
     "LinkDeclaration": {
       "additionalProperties": false,
-      "description": "An link declaration is a string that references another action's output",
       "properties": {
         "stream": {
           "default": false,
@@ -178,6 +346,7 @@ export default {
           "type": "boolean"
         },
         "link": {
+          "description": "A link declaration references another action's output, and ensures that action runs before this one.",
           "title": "Link",
           "type": "string"
         }
@@ -188,7 +357,7 @@ export default {
       "title": "LinkDeclaration",
       "type": "object"
     },
-    "ModelConfigDeclaration": {
+    "ModelConfig_": {
       "additionalProperties": false,
       "properties": {
         "max_output_tokens": {
@@ -198,9 +367,6 @@ export default {
             },
             {
               "$ref": "#/$defs/VarDeclaration"
-            },
-            {
-              "$ref": "#/$defs/LinkDeclaration"
             },
             {
               "$ref": "#/$defs/TextDeclaration"
@@ -221,9 +387,6 @@ export default {
               "$ref": "#/$defs/VarDeclaration"
             },
             {
-              "$ref": "#/$defs/LinkDeclaration"
-            },
-            {
               "$ref": "#/$defs/TextDeclaration"
             },
             {
@@ -240,9 +403,6 @@ export default {
             },
             {
               "$ref": "#/$defs/VarDeclaration"
-            },
-            {
-              "$ref": "#/$defs/LinkDeclaration"
             },
             {
               "$ref": "#/$defs/TextDeclaration"
@@ -266,9 +426,6 @@ export default {
               "$ref": "#/$defs/VarDeclaration"
             },
             {
-              "$ref": "#/$defs/LinkDeclaration"
-            },
-            {
               "$ref": "#/$defs/TextDeclaration"
             },
             {
@@ -288,9 +445,6 @@ export default {
             },
             {
               "$ref": "#/$defs/VarDeclaration"
-            },
-            {
-              "$ref": "#/$defs/LinkDeclaration"
             },
             {
               "$ref": "#/$defs/TextDeclaration"
@@ -314,9 +468,6 @@ export default {
               "$ref": "#/$defs/VarDeclaration"
             },
             {
-              "$ref": "#/$defs/LinkDeclaration"
-            },
-            {
               "$ref": "#/$defs/TextDeclaration"
             },
             {
@@ -332,6 +483,7 @@ export default {
         "model": {
           "anyOf": [
             {
+              "description": "Run inference on [Ollama](https://ollama.com/); defaults `api_base` to `localhost:11434`",
               "enum": [
                 "ollama/llama3",
                 "ollama/llama3:8b",
@@ -346,6 +498,7 @@ export default {
               "type": "string"
             },
             {
+              "description": "OpenAI model; requires `OPENAI_API_KEY` environment variable",
               "enum": [
                 "gpt-4o",
                 "gpt-4-1106-preview",
@@ -359,12 +512,14 @@ export default {
             },
             {
               "const": "gemini-pro",
+              "description": "Google model; requires `GCP_CREDENTIALS_64` environment variable (base64-encoded GCP credentials JSON)",
               "enum": [
                 "gemini-pro"
               ],
               "type": "string"
             },
             {
+              "description": "Anthropic model; requires `ANTHROPIC_API_KEY` environment variable",
               "enum": [
                 "claude-3-haiku-20240307",
                 "claude-3-opus-20240229",
@@ -377,9 +532,6 @@ export default {
             },
             {
               "$ref": "#/$defs/VarDeclaration"
-            },
-            {
-              "$ref": "#/$defs/LinkDeclaration"
             },
             {
               "$ref": "#/$defs/TextDeclaration"
@@ -398,9 +550,6 @@ export default {
             },
             {
               "$ref": "#/$defs/VarDeclaration"
-            },
-            {
-              "$ref": "#/$defs/LinkDeclaration"
             },
             {
               "$ref": "#/$defs/TextDeclaration"
@@ -424,9 +573,6 @@ export default {
               "$ref": "#/$defs/VarDeclaration"
             },
             {
-              "$ref": "#/$defs/LinkDeclaration"
-            },
-            {
               "$ref": "#/$defs/TextDeclaration"
             },
             {
@@ -440,10 +586,10 @@ export default {
           "title": "Auth Token"
         }
       },
-      "title": "ModelConfigDeclaration",
+      "title": "ModelConfig_",
       "type": "object"
     },
-    "OptionalModelConfigActionFieldTemplate": {
+    "OptionalModelConfig_": {
       "additionalProperties": false,
       "properties": {
         "max_output_tokens": {
@@ -611,6 +757,7 @@ export default {
         "model": {
           "anyOf": [
             {
+              "description": "Run inference on [Ollama](https://ollama.com/); defaults `api_base` to `localhost:11434`",
               "enum": [
                 "ollama/llama3",
                 "ollama/llama3:8b",
@@ -625,6 +772,7 @@ export default {
               "type": "string"
             },
             {
+              "description": "OpenAI model; requires `OPENAI_API_KEY` environment variable",
               "enum": [
                 "gpt-4o",
                 "gpt-4-1106-preview",
@@ -638,12 +786,14 @@ export default {
             },
             {
               "const": "gemini-pro",
+              "description": "Google model; requires `GCP_CREDENTIALS_64` environment variable (base64-encoded GCP credentials JSON)",
               "enum": [
                 "gemini-pro"
               ],
               "type": "string"
             },
             {
+              "description": "Anthropic model; requires `ANTHROPIC_API_KEY` environment variable",
               "enum": [
                 "claude-3-haiku-20240307",
                 "claude-3-opus-20240229",
@@ -731,107 +881,7 @@ export default {
           "title": "Auth Token"
         }
       },
-      "title": "OptionalModelConfigActionFieldTemplate",
-      "type": "object"
-    },
-    "PromptContextInConfigLambda": {
-      "additionalProperties": false,
-      "description": "A lambda declaration for prompt context in config.",
-      "properties": {
-        "stream": {
-          "default": false,
-          "title": "Stream",
-          "type": "boolean"
-        },
-        "lambda": {
-          "title": "Lambda",
-          "type": "string"
-        },
-        "heading": {
-          "title": "Heading",
-          "type": "string"
-        }
-      },
-      "required": [
-        "lambda",
-        "heading"
-      ],
-      "title": "PromptContextInConfigLambda",
-      "type": "object"
-    },
-    "PromptContextInConfigLink": {
-      "additionalProperties": false,
-      "description": "An input declaration for prompt context in config.",
-      "properties": {
-        "stream": {
-          "default": false,
-          "title": "Stream",
-          "type": "boolean"
-        },
-        "link": {
-          "title": "Link",
-          "type": "string"
-        },
-        "heading": {
-          "title": "Heading",
-          "type": "string"
-        }
-      },
-      "required": [
-        "link",
-        "heading"
-      ],
-      "title": "PromptContextInConfigLink",
-      "type": "object"
-    },
-    "PromptContextInConfigTemplate": {
-      "additionalProperties": false,
-      "description": "A template string for prompt context in config.",
-      "properties": {
-        "stream": {
-          "default": false,
-          "title": "Stream",
-          "type": "boolean"
-        },
-        "text": {
-          "title": "Text",
-          "type": "string"
-        },
-        "heading": {
-          "title": "Heading",
-          "type": "string"
-        }
-      },
-      "required": [
-        "text",
-        "heading"
-      ],
-      "title": "PromptContextInConfigTemplate",
-      "type": "object"
-    },
-    "PromptContextInConfigVar": {
-      "additionalProperties": false,
-      "description": "A variable declaration for prompt context in config.",
-      "properties": {
-        "stream": {
-          "default": false,
-          "title": "Stream",
-          "type": "boolean"
-        },
-        "var": {
-          "title": "Var",
-          "type": "string"
-        },
-        "heading": {
-          "title": "Heading",
-          "type": "string"
-        }
-      },
-      "required": [
-        "var",
-        "heading"
-      ],
-      "title": "PromptContextInConfigVar",
+      "title": "OptionalModelConfig_",
       "type": "object"
     },
     "QuoteStyle": {
@@ -846,13 +896,32 @@ export default {
       "additionalProperties": false,
       "properties": {
         "role": {
-          "enum": [
-            "user",
-            "system",
-            "assistant"
+          "anyOf": [
+            {
+              "enum": [
+                "user",
+                "system",
+                "assistant"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
+            }
           ],
-          "title": "Role",
-          "type": "string"
+          "title": "Role"
         }
       },
       "required": [
@@ -863,7 +932,6 @@ export default {
     },
     "TextDeclaration": {
       "additionalProperties": false,
-      "description": "A template declaration is a string that can be rendered within a context.",
       "properties": {
         "stream": {
           "default": false,
@@ -871,6 +939,8 @@ export default {
           "type": "boolean"
         },
         "text": {
+          "description": "\nA text declaration is a jinja2 template, rendered within the context of the flow and any provided variables.\nIf you reference an action's output, it will ensure that action runs before this one.\n\nFor more information, see the Jinja2 documentation: https://jinja.palletsprojects.com/en/3.0.x/templates/.\n",
+          "markdownDescription": "\nA text declaration is a jinja2 template, rendered within the context of the flow and any provided variables.  \nIf you reference an action's output, it will ensure that action runs before this one.\n\nReference variables or action outputs like: \n\n> ```yaml\n> text: |\n> ```\n> ```jinja\n>   Hi {{ name }}, the output of action_id is {{ action_id.output_name }}\n> ```\n\nIt also supports advanced features such as loops and conditionals:\n\n> ```yaml\n> text: |\n> ```\n> ```jinja\n>   {% for item in items -%}\n>     {% if item.name != 'foo' -%}\n>     {{ item.name }}: {{ item.value }}\n>     {% endif %}\n>   {% endfor %}\n> ```\n\nFor more information, see the [Jinja2 documentation](https://jinja.palletsprojects.com/en/3.0.x/templates/).\n",
           "title": "Text",
           "type": "string"
         }
@@ -885,8 +955,29 @@ export default {
       "additionalProperties": false,
       "properties": {
         "text": {
-          "title": "Text",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
+            }
+          ],
+          "description": "\nA text declaration is a jinja2 template, rendered within the context of the flow and any provided variables.\nIf you reference an action's output, it will ensure that action runs before this one.\n\nFor more information, see the Jinja2 documentation: https://jinja.palletsprojects.com/en/3.0.x/templates/.\n",
+          "markdownDescription": "\nA text declaration is a jinja2 template, rendered within the context of the flow and any provided variables.  \nIf you reference an action's output, it will ensure that action runs before this one.\n\nReference variables or action outputs like: \n\n> ```yaml\n> text: |\n> ```\n> ```jinja\n>   Hi {{ name }}, the output of action_id is {{ action_id.output_name }}\n> ```\n\nIt also supports advanced features such as loops and conditionals:\n\n> ```yaml\n> text: |\n> ```\n> ```jinja\n>   {% for item in items -%}\n>     {% if item.name != 'foo' -%}\n>     {{ item.name }}: {{ item.value }}\n>     {% endif %}\n>   {% endfor %}\n> ```\n\nFor more information, see the [Jinja2 documentation](https://jinja.palletsprojects.com/en/3.0.x/templates/).\n",
+          "title": "Text"
         },
         "role": {
           "anyOf": [
@@ -897,6 +988,21 @@ export default {
                 "assistant"
               ],
               "type": "string"
+            },
+            {
+              "$ref": "#/$defs/VarDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LinkDeclaration"
+            },
+            {
+              "$ref": "#/$defs/TextDeclaration"
+            },
+            {
+              "$ref": "#/$defs/EnvDeclaration"
+            },
+            {
+              "$ref": "#/$defs/LambdaDeclaration"
             },
             {
               "type": "null"
@@ -914,7 +1020,6 @@ export default {
     },
     "VarDeclaration": {
       "additionalProperties": false,
-      "description": "A variable declaration is a string that references a variable (or path to nested variable) in the context.",
       "properties": {
         "stream": {
           "default": false,
@@ -922,6 +1027,7 @@ export default {
           "type": "boolean"
         },
         "var": {
+          "description": "A variable declaration references a variable (or path to nested variable) in the context.",
           "title": "Var",
           "type": "string"
         }
@@ -934,13 +1040,17 @@ export default {
     },
     "execute_db_statementActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `database_url`: str  \n  Database URL (asynchronous)\n- `statement`: str  \n  SQL statement to execute\n- `allowed_statement_prefixes`: list[str]  \n  List of allowed statement prefixes\n- `max_rows`: int  \n  Maximum number of rows to return\n\nOUTPUTS\n- `text`: str  \n  Result of the SQL statement\n- `data`: list[list[Any]]\n- `headers`: list[str]",
+      "markdownDescription": "**Inputs**\n- `database_url`: str  \n  Database URL (asynchronous)\n- `statement`: str  \n  SQL statement to execute\n- `allowed_statement_prefixes`: list[str]  \n  List of allowed statement prefixes\n- `max_rows`: int  \n  Maximum number of rows to return\n\n**Outputs**\n- `text`: str  \n  Result of the SQL statement\n- `data`: list[list[Any]]\n- `headers`: list[str]",
       "properties": {
         "action": {
           "const": "execute_db_statement",
+          "description": "INPUTS\n- `database_url`: str  \n  Database URL (asynchronous)\n- `statement`: str  \n  SQL statement to execute\n- `allowed_statement_prefixes`: list[str]  \n  List of allowed statement prefixes\n- `max_rows`: int  \n  Maximum number of rows to return\n\nOUTPUTS\n- `text`: str  \n  Result of the SQL statement\n- `data`: list[list[Any]]\n- `headers`: list[str]",
           "enum": [
             "execute_db_statement"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `database_url`: str  \n  Database URL (asynchronous)\n- `statement`: str  \n  SQL statement to execute\n- `allowed_statement_prefixes`: list[str]  \n  List of allowed statement prefixes\n- `max_rows`: int  \n  Maximum number of rows to return\n\n**Outputs**\n- `text`: str  \n  Result of the SQL statement\n- `data`: list[list[Any]]\n- `headers`: list[str]\n\n---",
+          "title": "Execute Db Statement Action",
           "type": "string"
         },
         "cache_key": {
@@ -991,7 +1101,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Database Url"
+          "description": "`database_url`: str  \n  Database URL (asynchronous)",
+          "markdownDescription": "- `database_url`: str  \n  Database URL (asynchronous)\n\n---",
+          "title": "Execute Db Statement Action Input"
         },
         "statement": {
           "anyOf": [
@@ -1014,7 +1126,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Statement"
+          "description": "`statement`: str  \n  SQL statement to execute",
+          "markdownDescription": "- `statement`: str  \n  SQL statement to execute\n\n---",
+          "title": "Execute Db Statement Action Input"
         },
         "allowed_statement_prefixes": {
           "anyOf": [
@@ -1043,7 +1157,9 @@ export default {
           "default": [
             "SELECT"
           ],
-          "title": "Allowed Statement Prefixes"
+          "description": "`allowed_statement_prefixes`: list[str]  \n  List of allowed statement prefixes",
+          "markdownDescription": "- `allowed_statement_prefixes`: list[str]  \n  List of allowed statement prefixes\n\n---",
+          "title": "Execute Db Statement Action Input"
         },
         "max_rows": {
           "anyOf": [
@@ -1067,7 +1183,9 @@ export default {
             }
           ],
           "default": 5,
-          "title": "Max Rows"
+          "description": "`max_rows`: int  \n  Maximum number of rows to return",
+          "markdownDescription": "- `max_rows`: int  \n  Maximum number of rows to return\n\n---",
+          "title": "Execute Db Statement Action Input"
         }
       },
       "required": [
@@ -1075,18 +1193,22 @@ export default {
         "database_url",
         "statement"
       ],
-      "title": "execute_db_statementActionInvocation",
+      "title": "Execute Db Statement Action",
       "type": "object"
     },
     "extract_listActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `text`: str\n- `valid_values`: list[str] (optional)\n- `list_format`: 'comma' | 'newline' | 'space' | 'bullet points'\n\nOUTPUTS\n- `results`: list[str]",
+      "markdownDescription": "**Inputs**\n- `text`: str\n- `valid_values`: list[str] (optional)\n- `list_format`: 'comma' | 'newline' | 'space' | 'bullet points'\n\n**Outputs**\n- `results`: list[str]",
       "properties": {
         "action": {
           "const": "extract_list",
+          "description": "INPUTS\n- `text`: str\n- `valid_values`: list[str] (optional)\n- `list_format`: 'comma' | 'newline' | 'space' | 'bullet points'\n\nOUTPUTS\n- `results`: list[str]",
           "enum": [
             "extract_list"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `text`: str\n- `valid_values`: list[str] (optional)\n- `list_format`: 'comma' | 'newline' | 'space' | 'bullet points'\n\n**Outputs**\n- `results`: list[str]\n\n---",
+          "title": "Extract List Action",
           "type": "string"
         },
         "cache_key": {
@@ -1137,7 +1259,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Text"
+          "description": "`text`: str",
+          "markdownDescription": "- `text`: str\n\n---",
+          "title": "Extract List Action Input"
         },
         "valid_values": {
           "anyOf": [
@@ -1167,7 +1291,9 @@ export default {
             }
           ],
           "default": null,
-          "title": "Valid Values"
+          "description": "`valid_values`: list[str] (optional)",
+          "markdownDescription": "- `valid_values`: list[str] (optional)\n\n---",
+          "title": "Extract List Action Input"
         },
         "list_format": {
           "anyOf": [
@@ -1197,25 +1323,31 @@ export default {
             }
           ],
           "default": "bullet points",
-          "title": "List Format"
+          "description": "`list_format`: 'comma' | 'newline' | 'space' | 'bullet points'",
+          "markdownDescription": "- `list_format`: 'comma' | 'newline' | 'space' | 'bullet points'\n\n---",
+          "title": "Extract List Action Input"
         }
       },
       "required": [
         "action",
         "text"
       ],
-      "title": "extract_listActionInvocation",
+      "title": "Extract List Action",
       "type": "object"
     },
     "extract_pdf_textActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `file`: File | str\n- `min_start_chars`: int\n\nOUTPUTS\n- `title`: str (optional)\n- `start_of_text`: str (optional)\n- `full_text`: str (optional)\n- `pages`: list[Page] (optional)",
+      "markdownDescription": "**Inputs**\n- `file`: [File](file:///Users/rafael/asyncflows/asyncflows/models/file.py#L19) | str\n- `min_start_chars`: int\n\n**Outputs**\n- `title`: str (optional)\n- `start_of_text`: str (optional)\n- `full_text`: str (optional)\n- `pages`: list[[Page](file:///Users/rafael/asyncflows/asyncflows/actions/extract_pdf_text.py#L15)] (optional)",
       "properties": {
         "action": {
           "const": "extract_pdf_text",
+          "description": "INPUTS\n- `file`: File | str\n- `min_start_chars`: int\n\nOUTPUTS\n- `title`: str (optional)\n- `start_of_text`: str (optional)\n- `full_text`: str (optional)\n- `pages`: list[Page] (optional)",
           "enum": [
             "extract_pdf_text"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `file`: [File](file:///Users/rafael/asyncflows/asyncflows/models/file.py#L19) | str\n- `min_start_chars`: int\n\n**Outputs**\n- `title`: str (optional)\n- `start_of_text`: str (optional)\n- `full_text`: str (optional)\n- `pages`: list[[Page](file:///Users/rafael/asyncflows/asyncflows/actions/extract_pdf_text.py#L15)] (optional)\n\n---",
+          "title": "Extract Pdf Text Action",
           "type": "string"
         },
         "cache_key": {
@@ -1269,7 +1401,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "File"
+          "description": "`file`: File | str",
+          "markdownDescription": "- `file`: [File](file:///Users/rafael/asyncflows/asyncflows/models/file.py#L19) | str\n\n---",
+          "title": "Extract Pdf Text Action Input"
         },
         "min_start_chars": {
           "anyOf": [
@@ -1293,25 +1427,31 @@ export default {
             }
           ],
           "default": 1000,
-          "title": "Min Start Chars"
+          "description": "`min_start_chars`: int",
+          "markdownDescription": "- `min_start_chars`: int\n\n---",
+          "title": "Extract Pdf Text Action Input"
         }
       },
       "required": [
         "action",
         "file"
       ],
-      "title": "extract_pdf_textActionInvocation",
+      "title": "Extract Pdf Text Action",
       "type": "object"
     },
     "extract_xml_tagActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `text`: str  \n  Text to extract out of <tag>text</tag>\n- `tag`: str  \n  Tag to extract from\n\nOUTPUTS\n- `result`: str  \n  Text extracted from the tag",
+      "markdownDescription": "**Inputs**\n- `text`: str  \n  Text to extract out of <tag>text</tag>\n- `tag`: str  \n  Tag to extract from\n\n**Outputs**\n- `result`: str  \n  Text extracted from the tag",
       "properties": {
         "action": {
           "const": "extract_xml_tag",
+          "description": "INPUTS\n- `text`: str  \n  Text to extract out of <tag>text</tag>\n- `tag`: str  \n  Tag to extract from\n\nOUTPUTS\n- `result`: str  \n  Text extracted from the tag",
           "enum": [
             "extract_xml_tag"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `text`: str  \n  Text to extract out of <tag>text</tag>\n- `tag`: str  \n  Tag to extract from\n\n**Outputs**\n- `result`: str  \n  Text extracted from the tag\n\n---",
+          "title": "Extract Xml Tag Action",
           "type": "string"
         },
         "cache_key": {
@@ -1362,7 +1502,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Text"
+          "description": "`text`: str  \n  Text to extract out of <tag>text</tag>",
+          "markdownDescription": "- `text`: str  \n  Text to extract out of <tag>text</tag>\n\n---",
+          "title": "Extract Xml Tag Action Input"
         },
         "tag": {
           "anyOf": [
@@ -1385,7 +1527,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Tag"
+          "description": "`tag`: str  \n  Tag to extract from",
+          "markdownDescription": "- `tag`: str  \n  Tag to extract from\n\n---",
+          "title": "Extract Xml Tag Action Input"
         }
       },
       "required": [
@@ -1393,18 +1537,22 @@ export default {
         "text",
         "tag"
       ],
-      "title": "extract_xml_tagActionInvocation",
+      "title": "Extract Xml Tag Action",
       "type": "object"
     },
     "get_db_schemaActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `database_url`: str  \n  Database URL (synchronous)\n\nOUTPUTS\n- `schema_text`: str  \n  Text describing the database schema in `CREATE TABLE` statements",
+      "markdownDescription": "**Inputs**\n- `database_url`: str  \n  Database URL (synchronous)\n\n**Outputs**\n- `schema_text`: str  \n  Text describing the database schema in `CREATE TABLE` statements",
       "properties": {
         "action": {
           "const": "get_db_schema",
+          "description": "INPUTS\n- `database_url`: str  \n  Database URL (synchronous)\n\nOUTPUTS\n- `schema_text`: str  \n  Text describing the database schema in `CREATE TABLE` statements",
           "enum": [
             "get_db_schema"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `database_url`: str  \n  Database URL (synchronous)\n\n**Outputs**\n- `schema_text`: str  \n  Text describing the database schema in `CREATE TABLE` statements\n\n---",
+          "title": "Get Db Schema Action",
           "type": "string"
         },
         "cache_key": {
@@ -1455,25 +1603,31 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Database Url"
+          "description": "`database_url`: str  \n  Database URL (synchronous)",
+          "markdownDescription": "- `database_url`: str  \n  Database URL (synchronous)\n\n---",
+          "title": "Get Db Schema Action Input"
         }
       },
       "required": [
         "action",
         "database_url"
       ],
-      "title": "get_db_schemaActionInvocation",
+      "title": "Get Db Schema Action",
       "type": "object"
     },
     "get_urlActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `url`: str  \n  URL of the webpage to GET\n\nOUTPUTS\n- `result`: str  \n  Text content of the webpage",
+      "markdownDescription": "**Inputs**\n- `url`: str  \n  URL of the webpage to GET\n\n**Outputs**\n- `result`: str  \n  Text content of the webpage",
       "properties": {
         "action": {
           "const": "get_url",
+          "description": "INPUTS\n- `url`: str  \n  URL of the webpage to GET\n\nOUTPUTS\n- `result`: str  \n  Text content of the webpage",
           "enum": [
             "get_url"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `url`: str  \n  URL of the webpage to GET\n\n**Outputs**\n- `result`: str  \n  Text content of the webpage\n\n---",
+          "title": "Get Url Action",
           "type": "string"
         },
         "cache_key": {
@@ -1524,25 +1678,31 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Url"
+          "description": "`url`: str  \n  URL of the webpage to GET",
+          "markdownDescription": "- `url`: str  \n  URL of the webpage to GET\n\n---",
+          "title": "Get Url Action Input"
         }
       },
       "required": [
         "action",
         "url"
       ],
-      "title": "get_urlActionInvocation",
+      "title": "Get Url Action",
       "type": "object"
     },
     "ocrActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `pdf`: File | str\n\nOUTPUTS\n- `pdf_ocr`: str",
+      "markdownDescription": "**Inputs**\n- `pdf`: [File](file:///Users/rafael/asyncflows/asyncflows/models/file.py#L19) | str\n\n**Outputs**\n- `pdf_ocr`: str",
       "properties": {
         "action": {
           "const": "ocr",
+          "description": "INPUTS\n- `pdf`: File | str\n\nOUTPUTS\n- `pdf_ocr`: str",
           "enum": [
             "ocr"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `pdf`: [File](file:///Users/rafael/asyncflows/asyncflows/models/file.py#L19) | str\n\n**Outputs**\n- `pdf_ocr`: str\n\n---",
+          "title": "Ocr Action",
           "type": "string"
         },
         "cache_key": {
@@ -1596,25 +1756,31 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Pdf"
+          "description": "`pdf`: File | str",
+          "markdownDescription": "- `pdf`: [File](file:///Users/rafael/asyncflows/asyncflows/models/file.py#L19) | str\n\n---",
+          "title": "Ocr Action Input"
         }
       },
       "required": [
         "action",
         "pdf"
       ],
-      "title": "ocrActionInvocation",
+      "title": "Ocr Action",
       "type": "object"
     },
     "promptActionInvocation": {
       "additionalProperties": false,
+      "description": "Prompt the LLM with a message and receive a response.\n\nINPUTS\n- `model`: OptionalModelConfig (optional)\n- `quote_style`: 'backticks' | 'xml' (optional)  \n  The quote style to use for the prompt. Defaults to XML-style quotes for Claude models and backticks for others.\n- `prompt`: list[RoleElement | TextElement | ContextVar | ContextLink | ContextTemplate | ContextLambda]\n\nOUTPUTS\n- `result`: str  \n  Response given by the LLM",
+      "markdownDescription": "Prompt the LLM with a message and receive a response.\n\n**Inputs**\n- `model`: [OptionalModelConfig](file:///Users/rafael/asyncflows/asyncflows/models/config/model.py#L87) (optional)\n- `quote_style`: 'backticks' | 'xml' (optional)  \n  The quote style to use for the prompt. Defaults to XML-style quotes for Claude models and backticks for others.\n- `prompt`: list[[RoleElement](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L39) | [TextElement](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L49) | [ContextVar](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L206) | [ContextLink](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L212) | [ContextTemplate](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L218) | [ContextLambda](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L224)]\n\n**Outputs**\n- `result`: str  \n  Response given by the LLM",
       "properties": {
         "action": {
           "const": "prompt",
+          "description": "Prompt the LLM with a message and receive a response.\n\nINPUTS\n- `model`: OptionalModelConfig (optional)\n- `quote_style`: 'backticks' | 'xml' (optional)  \n  The quote style to use for the prompt. Defaults to XML-style quotes for Claude models and backticks for others.\n- `prompt`: list[RoleElement | TextElement | ContextVar | ContextLink | ContextTemplate | ContextLambda]\n\nOUTPUTS\n- `result`: str  \n  Response given by the LLM",
           "enum": [
             "prompt"
           ],
-          "title": "Action",
+          "markdownDescription": "Prompt the LLM with a message and receive a response.\n\n**Inputs**\n- `model`: [OptionalModelConfig](file:///Users/rafael/asyncflows/asyncflows/models/config/model.py#L87) (optional)\n- `quote_style`: 'backticks' | 'xml' (optional)  \n  The quote style to use for the prompt. Defaults to XML-style quotes for Claude models and backticks for others.\n- `prompt`: list[[RoleElement](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L39) | [TextElement](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L49) | [ContextVar](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L206) | [ContextLink](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L212) | [ContextTemplate](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L218) | [ContextLambda](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L224)]\n\n**Outputs**\n- `result`: str  \n  Response given by the LLM\n\n---",
+          "title": "Prompt Action",
           "type": "string"
         },
         "cache_key": {
@@ -1647,7 +1813,7 @@ export default {
         "model": {
           "anyOf": [
             {
-              "$ref": "#/$defs/OptionalModelConfigActionFieldTemplate"
+              "$ref": "#/$defs/OptionalModelConfig_"
             },
             {
               "$ref": "#/$defs/VarDeclaration"
@@ -1669,7 +1835,9 @@ export default {
             }
           ],
           "default": null,
-          "title": "Model"
+          "description": "Prompt the LLM with a message and receive a response.\n\n`model`: OptionalModelConfig (optional)",
+          "markdownDescription": "Prompt the LLM with a message and receive a response.\n\n- `model`: [OptionalModelConfig](file:///Users/rafael/asyncflows/asyncflows/models/config/model.py#L87) (optional)\n\n---",
+          "title": "Prompt Action Input"
         },
         "quote_style": {
           "anyOf": [
@@ -1696,7 +1864,9 @@ export default {
             }
           ],
           "default": null,
-          "title": "Quote Style"
+          "description": "Prompt the LLM with a message and receive a response.\n\n`quote_style`: 'backticks' | 'xml' (optional)  \n  The quote style to use for the prompt. Defaults to XML-style quotes for Claude models and backticks for others.",
+          "markdownDescription": "Prompt the LLM with a message and receive a response.\n\n- `quote_style`: 'backticks' | 'xml' (optional)  \n  The quote style to use for the prompt. Defaults to XML-style quotes for Claude models and backticks for others.\n\n---",
+          "title": "Prompt Action Input"
         },
         "prompt": {
           "anyOf": [
@@ -1710,16 +1880,16 @@ export default {
                     "$ref": "#/$defs/TextElement_"
                   },
                   {
-                    "$ref": "#/$defs/PromptContextInConfigVar"
+                    "$ref": "#/$defs/ContextVar"
                   },
                   {
-                    "$ref": "#/$defs/PromptContextInConfigLink"
+                    "$ref": "#/$defs/ContextLink"
                   },
                   {
-                    "$ref": "#/$defs/PromptContextInConfigTemplate"
+                    "$ref": "#/$defs/ContextTemplate"
                   },
                   {
-                    "$ref": "#/$defs/PromptContextInConfigLambda"
+                    "$ref": "#/$defs/ContextLambda"
                   }
                 ]
               },
@@ -1741,25 +1911,31 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Prompt"
+          "description": "Prompt the LLM with a message and receive a response.\n\n`prompt`: list[RoleElement | TextElement | ContextVar | ContextLink | ContextTemplate | ContextLambda]",
+          "markdownDescription": "Prompt the LLM with a message and receive a response.\n\n- `prompt`: list[[RoleElement](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L39) | [TextElement](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L49) | [ContextVar](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L206) | [ContextLink](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L212) | [ContextTemplate](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L218) | [ContextLambda](file:///Users/rafael/asyncflows/asyncflows/actions/utils/prompt_context.py#L224)]\n\n---",
+          "title": "Prompt Action Input"
         }
       },
       "required": [
         "action",
         "prompt"
       ],
-      "title": "promptActionInvocation",
+      "title": "Prompt Action",
       "type": "object"
     },
     "rerankActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `model`: 'cross-encoder/ms-marco-TinyBERT-L-2-v2' | 'BAAI/bge-reranker-base'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\nOUTPUTS\n- `result`: list[Any]",
+      "markdownDescription": "**Inputs**\n- `model`: 'cross-encoder/ms-marco-TinyBERT-L-2-v2' | 'BAAI/bge-reranker-base'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\n**Outputs**\n- `result`: list[Any]",
       "properties": {
         "action": {
           "const": "rerank",
+          "description": "INPUTS\n- `model`: 'cross-encoder/ms-marco-TinyBERT-L-2-v2' | 'BAAI/bge-reranker-base'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\nOUTPUTS\n- `result`: list[Any]",
           "enum": [
             "rerank"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `model`: 'cross-encoder/ms-marco-TinyBERT-L-2-v2' | 'BAAI/bge-reranker-base'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\n**Outputs**\n- `result`: list[Any]\n\n---",
+          "title": "Rerank Action",
           "type": "string"
         },
         "cache_key": {
@@ -1815,7 +1991,9 @@ export default {
             }
           ],
           "default": "cross-encoder/ms-marco-TinyBERT-L-2-v2",
-          "title": "Model"
+          "description": "`model`: 'cross-encoder/ms-marco-TinyBERT-L-2-v2' | 'BAAI/bge-reranker-base'",
+          "markdownDescription": "- `model`: 'cross-encoder/ms-marco-TinyBERT-L-2-v2' | 'BAAI/bge-reranker-base'\n\n---",
+          "title": "Rerank Action Input"
         },
         "device": {
           "anyOf": [
@@ -1848,7 +2026,9 @@ export default {
             }
           ],
           "default": null,
-          "title": "Device"
+          "description": "`device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)",
+          "markdownDescription": "- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n\n---",
+          "title": "Rerank Action Input"
         },
         "documents": {
           "anyOf": [
@@ -1872,7 +2052,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Documents"
+          "description": "`documents`: list[Any]",
+          "markdownDescription": "- `documents`: list[Any]\n\n---",
+          "title": "Rerank Action Input"
         },
         "texts": {
           "anyOf": [
@@ -1902,7 +2084,9 @@ export default {
             }
           ],
           "default": null,
-          "title": "Texts"
+          "description": "`texts`: None (optional)",
+          "markdownDescription": "- `texts`: None (optional)\n\n---",
+          "title": "Rerank Action Input"
         },
         "query": {
           "anyOf": [
@@ -1925,7 +2109,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Query"
+          "description": "`query`: str",
+          "markdownDescription": "- `query`: str\n\n---",
+          "title": "Rerank Action Input"
         },
         "k": {
           "anyOf": [
@@ -1949,7 +2135,9 @@ export default {
             }
           ],
           "default": 10,
-          "title": "K"
+          "description": "`k`: int",
+          "markdownDescription": "- `k`: int\n\n---",
+          "title": "Rerank Action Input"
         }
       },
       "required": [
@@ -1957,18 +2145,22 @@ export default {
         "documents",
         "query"
       ],
-      "title": "rerankActionInvocation",
+      "title": "Rerank Action",
       "type": "object"
     },
     "retrieveActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `model`: 'sentence-transformers/all-mpnet-base-v2' | 'BAAI/bge-small-en-v1.5'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\nOUTPUTS\n- `result`: list[Any]",
+      "markdownDescription": "**Inputs**\n- `model`: 'sentence-transformers/all-mpnet-base-v2' | 'BAAI/bge-small-en-v1.5'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\n**Outputs**\n- `result`: list[Any]",
       "properties": {
         "action": {
           "const": "retrieve",
+          "description": "INPUTS\n- `model`: 'sentence-transformers/all-mpnet-base-v2' | 'BAAI/bge-small-en-v1.5'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\nOUTPUTS\n- `result`: list[Any]",
           "enum": [
             "retrieve"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `model`: 'sentence-transformers/all-mpnet-base-v2' | 'BAAI/bge-small-en-v1.5'\n- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n- `documents`: list[Any]\n- `texts`: None (optional)\n- `query`: str\n- `k`: int\n\n**Outputs**\n- `result`: list[Any]\n\n---",
+          "title": "Retrieve Action",
           "type": "string"
         },
         "cache_key": {
@@ -2024,7 +2216,9 @@ export default {
             }
           ],
           "default": "sentence-transformers/all-mpnet-base-v2",
-          "title": "Model"
+          "description": "`model`: 'sentence-transformers/all-mpnet-base-v2' | 'BAAI/bge-small-en-v1.5'",
+          "markdownDescription": "- `model`: 'sentence-transformers/all-mpnet-base-v2' | 'BAAI/bge-small-en-v1.5'\n\n---",
+          "title": "Retrieve Action Input"
         },
         "device": {
           "anyOf": [
@@ -2057,7 +2251,9 @@ export default {
             }
           ],
           "default": null,
-          "title": "Device"
+          "description": "`device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)",
+          "markdownDescription": "- `device`: 'cpu' | 'cuda' | 'mps' | 'tensorrt' (optional)\n\n---",
+          "title": "Retrieve Action Input"
         },
         "documents": {
           "anyOf": [
@@ -2081,7 +2277,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Documents"
+          "description": "`documents`: list[Any]",
+          "markdownDescription": "- `documents`: list[Any]\n\n---",
+          "title": "Retrieve Action Input"
         },
         "texts": {
           "anyOf": [
@@ -2111,7 +2309,9 @@ export default {
             }
           ],
           "default": null,
-          "title": "Texts"
+          "description": "`texts`: None (optional)",
+          "markdownDescription": "- `texts`: None (optional)\n\n---",
+          "title": "Retrieve Action Input"
         },
         "query": {
           "anyOf": [
@@ -2134,7 +2334,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Query"
+          "description": "`query`: str",
+          "markdownDescription": "- `query`: str\n\n---",
+          "title": "Retrieve Action Input"
         },
         "k": {
           "anyOf": [
@@ -2158,7 +2360,9 @@ export default {
             }
           ],
           "default": 10,
-          "title": "K"
+          "description": "`k`: int",
+          "markdownDescription": "- `k`: int\n\n---",
+          "title": "Retrieve Action Input"
         }
       },
       "required": [
@@ -2166,18 +2370,22 @@ export default {
         "documents",
         "query"
       ],
-      "title": "retrieveActionInvocation",
+      "title": "Retrieve Action",
       "type": "object"
     },
     "scoreActionInvocation": {
       "additionalProperties": false,
+      "description": "INPUTS\n- `mutated_response_output`: list\n- `expected_output`: str\n\nOUTPUTS\n- `scores`: list",
+      "markdownDescription": "**Inputs**\n- `mutated_response_output`: list\n- `expected_output`: str\n\n**Outputs**\n- `scores`: list",
       "properties": {
         "action": {
           "const": "score",
+          "description": "INPUTS\n- `mutated_response_output`: list\n- `expected_output`: str\n\nOUTPUTS\n- `scores`: list",
           "enum": [
             "score"
           ],
-          "title": "Action",
+          "markdownDescription": "**Inputs**\n- `mutated_response_output`: list\n- `expected_output`: str\n\n**Outputs**\n- `scores`: list\n\n---",
+          "title": "Score Action",
           "type": "string"
         },
         "cache_key": {
@@ -2229,7 +2437,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Mutated Response Output"
+          "description": "`mutated_response_output`: list",
+          "markdownDescription": "- `mutated_response_output`: list\n\n---",
+          "title": "Score Action Input"
         },
         "expected_output": {
           "anyOf": [
@@ -2252,7 +2462,9 @@ export default {
               "$ref": "#/$defs/LambdaDeclaration"
             }
           ],
-          "title": "Expected Output"
+          "description": "`expected_output`: str",
+          "markdownDescription": "- `expected_output`: str\n\n---",
+          "title": "Score Action Input"
         }
       },
       "required": [
@@ -2260,14 +2472,14 @@ export default {
         "mutated_response_output",
         "expected_output"
       ],
-      "title": "scoreActionInvocation",
+      "title": "Score Action",
       "type": "object"
     }
   },
   "additionalProperties": false,
   "properties": {
     "default_model": {
-      "$ref": "#/$defs/ModelConfigDeclaration"
+      "$ref": "#/$defs/ModelConfig_"
     },
     "action_timeout": {
       "default": 360,
@@ -2278,7 +2490,7 @@ export default {
       "additionalProperties": {
         "anyOf": [
           {
-            "$ref": "#/$defs/HintedLoop"
+            "$ref": "#/$defs/execute_db_statementActionInvocation"
           },
           {
             "$ref": "#/$defs/extract_listActionInvocation"
@@ -2290,13 +2502,19 @@ export default {
             "$ref": "#/$defs/extract_xml_tagActionInvocation"
           },
           {
-            "$ref": "#/$defs/execute_db_statementActionInvocation"
+            "$ref": "#/$defs/get_db_schemaActionInvocation"
+          },
+          {
+            "$ref": "#/$defs/get_urlActionInvocation"
           },
           {
             "$ref": "#/$defs/ocrActionInvocation"
           },
           {
-            "$ref": "#/$defs/get_db_schemaActionInvocation"
+            "$ref": "#/$defs/promptActionInvocation"
+          },
+          {
+            "$ref": "#/$defs/scoreActionInvocation"
           },
           {
             "$ref": "#/$defs/retrieveActionInvocation"
@@ -2305,13 +2523,7 @@ export default {
             "$ref": "#/$defs/rerankActionInvocation"
           },
           {
-            "$ref": "#/$defs/promptActionInvocation"
-          },
-          {
-            "$ref": "#/$defs/get_urlActionInvocation"
-          },
-          {
-            "$ref": "#/$defs/scoreActionInvocation"
+            "$ref": "#/$defs/HintedLoop"
           }
         ]
       },
@@ -2319,14 +2531,21 @@ export default {
       "type": "object"
     },
     "default_output": {
-      "title": "Default Output",
-      "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Default Output"
     }
   },
   "required": [
     "default_model",
-    "flow",
-    "default_output"
+    "flow"
   ],
   "title": "HintedActionConfig",
   "type": "object"

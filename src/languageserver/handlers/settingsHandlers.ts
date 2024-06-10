@@ -405,10 +405,10 @@ export class SettingsHandler {
             links.push(e);
           }
         }
-        this.languageService.globalJinjaActions = links;
+        this.languageService.globalJinjaActions.set(uri, links)
         this.languageService.jinjaTemplates.addGlobalContext(
           uri,
-          this.languageService.globalJinjaActions
+          links
         );
         break
       }

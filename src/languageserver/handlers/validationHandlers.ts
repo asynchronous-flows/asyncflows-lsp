@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { get_state, initQuery, initYamlParser, query_flows } from '../../tree_sitter_queries/queries';
-import { Connection } from 'vscode-languageserver';
+import { Connection, Position, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic } from 'vscode-languageserver-types';
 import { isKubernetesAssociatedDocument } from '../../languageservice/parser/isKubernetes';
@@ -60,12 +60,14 @@ export class ValidationHandler {
       .doValidation(textDocument, isKubernetesAssociatedDocument(textDocument, this.yamlSettings.specificValidatorPaths))
       .then((diagnosticResults) => {
         const diagnostics: Diagnostic[] = [];
+        const ranges: Range[] = [];
         for (const diagnosticItem of diagnosticResults) {
           // Convert all warnings to errors
           if (diagnosticItem.severity === 2) {
             diagnosticItem.severity = 1;
           }
           diagnostics.push(diagnosticItem);
+          ranges.push(diagnosticItem.range);
         }
 
         const removeDuplicatesDiagnostics = removeDuplicatesObj(diagnostics);
@@ -73,6 +75,7 @@ export class ValidationHandler {
         //   uri: textDocument.uri,
         //   diagnostics: removeDuplicatesDiagnostics,
         // });
+        this.languageService.yamlDiagnosticsRange.set(textDocument.uri, ranges);
         clearTimeout(this.jinjaCallback);
         this.jinjaCallback = setTimeout(() => {
           this.languageService.resetJinjaVariables(textDocument.uri, removeDuplicatesDiagnostics);

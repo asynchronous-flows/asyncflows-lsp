@@ -24,6 +24,8 @@ import {
   TextDocumentEdit,
   SemanticTokenTypes,
   SemanticTokenModifiers,
+  ProtocolRequestType0,
+  SemanticTokensRefreshRequest,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -45,7 +47,7 @@ import { SettingsState } from '../../yamlSettings';
 import { ValidationHandler } from './validationHandlers';
 import { ResultLimitReachedNotification } from '../../requestTypes';
 import * as path from 'path';
-import { hasAsyncFlows, LspComment, read2 } from '../../helper';
+import { hasAsyncFlows, isInLspRange, LspComment, read2 } from '../../helper';
 import { SyntaxNode } from 'tree-sitter';
 import { emptyFlowState, get_state, parseNewTree } from '../../tree_sitter_queries/queries';
 import { toInputEdit } from '../../tree_sitter_queries/toInputEdit';
@@ -102,6 +104,7 @@ export class LanguageHandlers {
         if (!content.includes('Traceback')) {
           console.log('Adding new schema');
           this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
+          this.connection.sendRequest(SemanticTokensRefreshRequest.method).then((v)=>{})
         }
         else {
           console.log(`content error: ${content}`)
@@ -215,8 +218,10 @@ export class LanguageHandlers {
       return [];
     }
     const links = tree.state.links;
+    const keys = tree.state.selected_keys;
     const actions = tree.state.actions;
     const positions: AbsolutePosition[] = [];
+    const ranges = this.languageService.yamlDiagnosticsRange.get(uri);
     actions.forEach((value, key) => {
       const position: AbsolutePosition = {
         line: value.action_name.startPosition.row,
@@ -227,23 +232,33 @@ export class LanguageHandlers {
       };
       positions.push(position);
     });
-    links.forEach((value, key) => {
-      const linkValue = value.link_value;
-      if (!linkValue) {
-        return;
-      }
-      const text = linkValue.text.split(".")[0];
-      if (!actions.get(text)) {
-        return;
+    keys.forEach((value, key) => {
+      if(ranges && isInLspRange(value.semantic_key.startPosition, ranges)) {
+        return ;
       }
       const position: AbsolutePosition = {
-        line: linkValue.startPosition.row,
-        startChar: linkValue.startPosition.column,
-        length: linkValue.endPosition.column - linkValue.startPosition.column,
+        line: value.semantic_key.startPosition.row,
+        startChar: value.semantic_key.startPosition.column,
+        length: value.semantic_key.endPosition.column - value.semantic_key.startPosition.column,
         tokenModifiers: [SemanticTokenModifiers.declaration],
         tokenType: SemanticTokenTypes.enum
       };
       positions.push(position);
+      const semanticValue = value.semantic_body;
+      if (!semanticValue) {
+        return;
+      }
+      if(ranges && isInLspRange(semanticValue.startPosition, ranges)) {
+        return ;
+      }
+      const valuePosition: AbsolutePosition = {
+        line: semanticValue.startPosition.row,
+        startChar: semanticValue.startPosition.column,
+        length: semanticValue.endPosition.column - semanticValue.startPosition.column,
+        tokenModifiers: [SemanticTokenModifiers.async],
+        tokenType: SemanticTokenTypes.event
+      };
+      positions.push(valuePosition);
     })
     positions.forEach((item) => {
       const t = item.tokenType;
@@ -282,6 +297,20 @@ export class LanguageHandlers {
     }
     if (a.line > b.line) {
       return 1;
+    }
+    if (a.line == b.line) {
+      const aLength = a.startChar + a.length;
+      const bLength = b.startChar + b.length;
+      if(aLength < bLength) {
+        return -1;
+      }
+      else if(aLength > bLength) {
+        return 1;
+      }
+      else {
+        return 0
+      }
+      
     }
     return 0;
   }

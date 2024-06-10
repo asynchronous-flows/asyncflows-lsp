@@ -12,4 +12,8 @@ export const tokenTypesLegend = [
 
 
 export const tokenModifiersLegend = [
-  SemanticTokenModifiers.declaration, SemanticTokenModifiers.modification, SemanticTokenModifiers.abstract];
+  SemanticTokenModifiers.declaration,
+  SemanticTokenModifiers.modification,
+  SemanticTokenModifiers.abstract,
+  SemanticTokenModifiers.async
+  ];

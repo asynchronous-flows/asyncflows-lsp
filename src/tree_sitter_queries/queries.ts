@@ -7,7 +7,7 @@ const TSQuery = require('tree-sitter');
 
 export function parseNewTree(source: string, oldTree: Tree | undefined, edit: Edit) {
   const parser = initYamlParser() as Parser;
-  if(oldTree) {
+  if (oldTree) {
     oldTree.edit(edit);
   }
   const newTree = parser.parse(source, oldTree);
@@ -37,6 +37,7 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
     let actionName = undefined;
     let link: Link | undefined = undefined;
     let text: Text | undefined = undefined;
+    let semanticItem: SemanticNode | undefined = undefined;
     for (let i = 0; i < captures.length; i++) {
       const captureName = captures[i].name;
       const node = captures[i].node;
@@ -64,14 +65,23 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
       else if (captureName == "link_value") {
         link!.link_value! = node;
       }
-      else if(captureName == "text_key") {
-        if(!flowState.texts.get(node.id)) {
-          flowState.texts.set(node.id, {text: node});
+      else if (captureName == "text_key") {
+        if (!flowState.texts.get(node.id)) {
+          flowState.texts.set(node.id, { text: node });
           text = flowState.texts.get(node.id);
         }
       }
-      else if(captureName == "text_value") {
+      else if (captureName == "text_value") {
         text.text_body = node;
+      }
+      else if(captureName == "semantic_key") {
+        if(!flowState.selected_keys.get(node.id)) {
+          flowState.selected_keys.set(node.id, {semantic_key: node});
+          semanticItem = flowState.selected_keys.get(node.id);
+        }
+      }
+      else if(captureName == "semantic_value") {
+        semanticItem.semantic_body = node;
       }
       else if (captureName == "output_key") {
         // if(!flowstatk)
@@ -115,10 +125,18 @@ export type FlowState = {
   comments: Map<number, Comment>,
   output: Output,
   texts: Map<number, Text>
+  selected_keys: Map<number, SemanticNode>
 }
 
 export function emptyFlowState(): FlowState {
-  return { actions: new Map(), links: new Map(), comments: new Map(), output: {}, texts: new Map() }
+  return {
+    actions: new Map(),
+    links: new Map(),
+    comments: new Map(),
+    output: {},
+    texts: new Map(),
+    selected_keys: new Map()
+  }
 }
 
 export type Link = {
@@ -136,9 +154,14 @@ export type Output = {
   output_body?: SyntaxNode
 }
 
-export type Text =  {
- text: SyntaxNode,
- text_body?: SyntaxNode 
+export type Text = {
+  text: SyntaxNode,
+  text_body?: SyntaxNode
+}
+
+export type SemanticNode = {
+  semantic_key: SyntaxNode,
+  semantic_body?: SyntaxNode
 }
 
 export type Comment = SyntaxNode
@@ -182,6 +205,12 @@ export const FLOW_QUERY = `
 	key: (flow_node) @text_key
     value: (block_node)? @text_value
     (#eq? @text_key "text")  
+)
+
+(block_mapping_pair
+	key: (flow_node) @semantic_key
+    (#match? @semantic_key "^(link|var|env|lambda|text)$")
+    value: (flow_node)? @semantic_value
 )
 
 (comment)? @comment    

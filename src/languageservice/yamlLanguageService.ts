@@ -39,6 +39,7 @@ import {
   Connection,
   DocumentOnTypeFormattingParams,
   DefinitionParams,
+  Range,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { getFoldingRanges } from './services/yamlFolding';
@@ -195,7 +196,8 @@ export interface LanguageService {
   jinjaTemplates: NodejsLspFiles;
   jinjaVariables: any,
   resetJinjaVariables(uri: string, diagnostics: Diagnostic[]): void;
-  globalJinjaActions: string[];
+  globalJinjaActions: Map<string, any[]>;
+  yamlDiagnosticsRange: Map<string, Range[]>;
 }
 
 export function getLanguageService(params: {
@@ -340,7 +342,8 @@ export function getLanguageService(params: {
     jinjaVariables: {},
     resetJinjaVariables(uri: string, diagnostic = []) {
     },
-    globalJinjaActions: [] as string[]
+    globalJinjaActions: new Map(),
+    yamlDiagnosticsRange: new Map()
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

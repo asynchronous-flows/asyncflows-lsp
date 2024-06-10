@@ -6,6 +6,8 @@ import { SettingsState } from "./yamlSettings";
 import { SchemaPriority } from "./languageservice/yamlLanguageService";
 import { JSONDocument } from "./languageservice/parser/jsonParser07";
 import { SingleYAMLDocument } from "./languageservice/parser/yaml-documents";
+import { Point } from "tree-sitter";
+import { Position, Range } from "vscode-languageserver";
 
 export function readPyProject(): string | TomlConfig {
   let errors: string | TomlConfig = "Config not found";
@@ -112,7 +114,7 @@ export function hasAsyncFlows(doc: SingleYAMLDocument | JSONDocument): LspCommen
     let counter = 0;
     for (let comment of comments) {
       if (comment.includes("yaml-language-server") && comment.includes("asyncflows_schema.json")) {
-        return { hasComment: true, line: counter, length: comment.length};
+        return { hasComment: true, line: counter, length: comment.length };
       }
       else if (comment.includes('asyncflows-lsp') || comment.includes('asyncflows-language-server')) {
         return { hasComment: true, line: counter }
@@ -121,6 +123,28 @@ export function hasAsyncFlows(doc: SingleYAMLDocument | JSONDocument): LspCommen
     }
   }
   return { hasComment: false }
+}
+
+export function toLspPosition(point: Point): Position {
+  return { character: point.column, line: point.row };
+}
+
+export function toLspRange(startPoint: Point, endPoint: Point): Range {
+  const start = toLspPosition(startPoint);
+  const end = toLspPosition(endPoint);
+  return { start, end };
+}
+
+export function isInLspRange(point: Point, ranges: Range[]): boolean {
+  const position = toLspPosition(point);
+  for(const range of ranges) {
+    if(position.character >= range.start.character && position.character <= range.end.character) {
+      if(position.line >= range.start.line && position.line <= range.end.line) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export type LspComment = { hasComment: boolean, line?: number, length?: number };
