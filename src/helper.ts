@@ -83,13 +83,9 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
   let stdoutArray = [];
   let fd3Array = [];
   cmd.stdout.on('data', (data) => {
-    let output = data.toString() as string;
-    // settings.newSchema = output;
     stdoutArray.push(data);
   })
   cmd.stdio[3].on('data', (data) => {
-    let output = data.toString() as string;
-    // settings.newSchema = output;
     fd3Array.push(data);
   })
   cmd.stderr.on('data', (err) => {
@@ -99,8 +95,10 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
     console.log(`child process exited with code ${code}`);
     let dataBuffer: Buffer;
     if (fd3Array.length != 0) {
+      console.log('Loading schema from fd3');
       dataBuffer = Buffer.concat(fd3Array);
     } else {
+      console.log('Loading schema from stdout');
       dataBuffer = Buffer.concat(stdoutArray);
     }
     updateConfig(dataBuffer.toString());
