@@ -28,7 +28,7 @@ import {
 } from 'vscode-languageserver-types';
 import { JSONSchema } from './jsonSchema';
 import { YAMLDocumentSymbols } from './services/documentSymbols';
-import { YAMLHover } from './services/yamlHover';
+import { isAllSchemasMatched, markdownEnum, removePipe, YAMLHover } from './services/yamlHover';
 import { YAMLValidation } from './services/yamlValidation';
 import { YAMLFormatter } from './services/yamlFormatter';
 import { DocumentSymbolsContext } from 'vscode-json-languageservice';
@@ -59,6 +59,8 @@ import { FlowState, initQuery, Text } from '../tree_sitter_queries/queries';
 import { Point, Query, Tree } from 'tree-sitter';
 import { LspComment } from '../helper';
 import { JsIdentifier, NodejsLspFiles } from '@jinja-lsp/functions';
+import { matchOffsetToDocument } from './utils/arrUtils';
+import { stringify as stringifyYAML } from 'yaml';
 
 export enum SchemaPriority {
   SchemaStore = 1,
@@ -199,7 +201,8 @@ export interface LanguageService {
   globalJinjaActions: Map<string, any[]>;
   yamlDiagnosticsRange: Map<string, Range[]>;
   resetSemanticTokens: Map<string, boolean>;
-  jinjaSemanticTokens: Map<string, JsIdentifier[]>
+  jinjaSemanticTokens: Map<string, JsIdentifier[]>;
+  getAsyncFlowsType(position: Position, doc: TextDocument): string | null;
 }
 
 export function getLanguageService(params: {
@@ -343,7 +346,18 @@ export function getLanguageService(params: {
     globalJinjaActions: new Map(),
     yamlDiagnosticsRange: new Map(),
     resetSemanticTokens: new Map(),
-    jinjaSemanticTokens: new Map()
+    jinjaSemanticTokens: new Map(),
+    getAsyncFlowsType(position: Position, document: TextDocument): string | null {
+      if (!document) {
+        return null;
+      }
+      const doc = yamlDocumentsCache.getYamlDocument(document);
+      const offset = document.offsetAt(position);
+      const currentDoc = matchOffsetToDocument(offset, doc);
+      let node = currentDoc.getNodeFromOffset(offset);
+      let title: string | undefined = undefined;
+      return title
+    }
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

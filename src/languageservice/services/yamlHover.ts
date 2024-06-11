@@ -232,7 +232,7 @@ export class YAMLHover {
   }
 }
 
-interface markdownEnum {
+export interface markdownEnum {
   value: string;
   description: string;
 }
@@ -275,7 +275,7 @@ function toMarkdownCodeBlock(content: string): string {
  * @param schema scheam which is having anyOf
  * @returns true if all the schemas which inside anyOf presents in matching schema
  */
-function isAllSchemasMatched(node: ASTNode, matchingSchemas: IApplicableSchema[], schema: JSONSchema): boolean {
+export function isAllSchemasMatched(node: ASTNode, matchingSchemas: IApplicableSchema[], schema: JSONSchema): boolean {
   let count = 0;
   for (const matchSchema of matchingSchemas) {
     if (node === matchSchema.node && matchSchema.schema !== schema) {
@@ -292,3 +292,7 @@ function isAllSchemasMatched(node: ASTNode, matchingSchemas: IApplicableSchema[]
   }
   return count === schema.anyOf.length;
 }
+
+export const removePipe = (value: string): string => {
+  return value.replace(/\|\|\s*$/, '');
+};

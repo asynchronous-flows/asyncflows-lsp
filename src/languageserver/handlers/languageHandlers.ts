@@ -114,7 +114,7 @@ export class LanguageHandlers {
       )
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
-      const data = this.intoSemanticTokens(params.textDocument.uri);
+      const data = await this.intoSemanticTokens(params.textDocument.uri);
       return { data }
     });
     this.connection.onDidOpenTextDocument((e) => {
@@ -212,7 +212,7 @@ export class LanguageHandlers {
     return edits;
   }
 
-  intoSemanticTokens(uri: string): number[] {
+  async intoSemanticTokens(uri: string): Promise<number[]> {
     const tree = this.languageService.trees.get(uri);
     const doc = this.yamlSettings.documents2.get(uri);
     if (!tree || !doc || !this.languageService.hasAsyncFlows(doc).hasComment) {
@@ -221,9 +221,10 @@ export class LanguageHandlers {
     const links = tree.state.links;
     const keys = tree.state.selected_keys;
     const actions = tree.state.actions;
-    const positions: AbsolutePosition[] = [];
+    let positions: AbsolutePosition[] = [];
     const ranges = this.languageService.yamlDiagnosticsRange.get(uri);
     const jinjaLinks = this.languageService.jinjaSemanticTokens.get(uri);
+    const ignoredText = [];
     actions.forEach((value, key) => {
       const position: AbsolutePosition = {
         line: value.action_name.startPosition.row,
@@ -234,24 +235,46 @@ export class LanguageHandlers {
       };
       positions.push(position);
     });
-    keys.forEach((value, key) => {
-      if (ranges && isInLspRange(value.semantic_key.startPosition, ranges)) {
-        return;
+    for (const value of keys) {
+      const semantic_key = value[1].semantic_key;
+      if (ranges && isInLspRange(semantic_key.startPosition, ranges)) {
+        continue;
       }
       const position: AbsolutePosition = {
-        line: value.semantic_key.startPosition.row,
-        startChar: value.semantic_key.startPosition.column,
-        length: value.semantic_key.endPosition.column - value.semantic_key.startPosition.column,
+        line: semantic_key.startPosition.row,
+        startChar: semantic_key.startPosition.column,
+        length: semantic_key.endPosition.column - semantic_key.startPosition.column,
         tokenModifiers: [SemanticTokenModifiers.declaration],
         tokenType: SemanticTokenTypes.enum
       };
       positions.push(position);
-      const semanticValue = value.semantic_body;
+      const semanticValue = value[1].semantic_body;
+      if (semantic_key.text == "text") {
+        const hover = await this.languageService.doHover(doc, {
+          character: semantic_key.startPosition.column,
+          line: semantic_key.startPosition.row
+        });
+        if (hover == null) {
+          continue;
+        }
+        // @ts-ignore
+        const declaration = hover.contents.value;
+        if (declaration) {
+          if (declaration.includes('LinkDeclaration')) {
+            positions.pop();
+            continue;
+          }
+          else {
+            continue;
+          }
+        }
+        continue;
+      }
       if (!semanticValue) {
-        return;
+        continue;
       }
       if (ranges && isInLspRange(semanticValue.startPosition, ranges)) {
-        return;
+        continue;
       }
       const valuePosition: AbsolutePosition = {
         line: semanticValue.startPosition.row,
@@ -261,7 +284,7 @@ export class LanguageHandlers {
         tokenType: SemanticTokenTypes.event
       };
       positions.push(valuePosition);
-    });
+    }
     for (const jinjaLink of jinjaLinks) {
       if (jinjaLink.identifierType != JsIdentifierType.Link) {
         continue;

@@ -83,6 +83,9 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
       else if(captureName == "semantic_value") {
         semanticItem.semantic_body = node;
       }
+      else if(captureName == "semantic_value_block") {
+        semanticItem.semantic_body_block = node;
+      }
       else if (captureName == "output_key") {
         // if(!flowstatk)
       }
@@ -162,6 +165,7 @@ export type Text = {
 export type SemanticNode = {
   semantic_key: SyntaxNode,
   semantic_body?: SyntaxNode
+  semantic_body_block?: SyntaxNode
 }
 
 export type Comment = SyntaxNode
@@ -211,6 +215,7 @@ export const FLOW_QUERY = `
 	key: (flow_node) @semantic_key
     (#match? @semantic_key "^(link|var|env|lambda|text)$")
     value: (flow_node)? @semantic_value
+    value: (block_node)? @semantic_value_block    
 )
 
 (comment)? @comment    
