@@ -79,7 +79,13 @@ export interface TomlConfig {
 }
 
 export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void, pythonPath: string) {
-  const cmd = spawn(pythonPath, ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")]);
+  const cmd = spawn(
+    pythonPath, 
+    ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")], 
+    {
+      stdio: ['ignore', 'pipe', 'pipe', 'pipe']
+    }
+  );
   let stdoutArray = [];
   let fd3Array = [];
   cmd.stdout.on('data', (data) => {
