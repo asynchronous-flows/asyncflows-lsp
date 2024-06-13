@@ -202,6 +202,7 @@ export interface LanguageService {
   yamlDiagnosticsRange: Map<string, Range[]>;
   resetSemanticTokens: Map<string, boolean>;
   jinjaSemanticTokens: Map<string, JsIdentifier[]>;
+  pythonSemanticTokens: Map<string, JsIdentifier[]>;
   getAsyncFlowsType(position: Position, doc: TextDocument): string | null;
 }
 
@@ -357,7 +358,8 @@ export function getLanguageService(params: {
       let node = currentDoc.getNodeFromOffset(offset);
       let title: string | undefined = undefined;
       return title
-    }
+    },
+    pythonSemanticTokens: new Map()
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

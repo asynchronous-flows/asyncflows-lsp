@@ -38,6 +38,7 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
     let link: Link | undefined = undefined;
     let text: Text | undefined = undefined;
     let semanticItem: SemanticNode | undefined = undefined;
+    let lambdaPython: LambdaPython | undefined = undefined;
     for (let i = 0; i < captures.length; i++) {
       const captureName = captures[i].name;
       const node = captures[i].node;
@@ -86,6 +87,16 @@ export function query_flows(source: string, query: Query, node: Tree, point: Poi
       else if(captureName == "semantic_value_block") {
         semanticItem.semantic_body_block = node;
       }
+      else if(captureName == "lambda_key") {
+        if(!flowState.lambdas.get(node.id)) {
+          flowState.lambdas.set(node.id, {lambda_key: node});
+          lambdaPython = flowState.lambdas.get(node.id);
+        }
+       lambdaPython.lambda_key = node; 
+      }
+      else if(captureName == "lambda_value") {
+        lambdaPython.lambda_body = node;
+      }
       else if (captureName == "output_key") {
         // if(!flowstatk)
       }
@@ -129,6 +140,7 @@ export type FlowState = {
   output: Output,
   texts: Map<number, Text>
   selected_keys: Map<number, SemanticNode>
+  lambdas: Map<number, LambdaPython>
 }
 
 export function emptyFlowState(): FlowState {
@@ -138,7 +150,8 @@ export function emptyFlowState(): FlowState {
     comments: new Map(),
     output: {},
     texts: new Map(),
-    selected_keys: new Map()
+    selected_keys: new Map(),
+    lambdas: new Map()
   }
 }
 
@@ -166,6 +179,11 @@ export type SemanticNode = {
   semantic_key: SyntaxNode,
   semantic_body?: SyntaxNode
   semantic_body_block?: SyntaxNode
+}
+
+export type LambdaPython = {
+  lambda_key: SyntaxNode,
+  lambda_body?: SyntaxNode,
 }
 
 export type Comment = SyntaxNode
@@ -212,6 +230,12 @@ export const FLOW_QUERY = `
 )
 
 (block_mapping_pair
+	key: (flow_node) @lambda_key
+  value: (block_node)? @lambda_value
+  (#eq? @lambda_key "lambda")  
+)
+
+(block_mapping_pair
 	key: (flow_node) @semantic_key
     (#match? @semantic_key "^(link|var|env|lambda|text)$")
     value: (flow_node)? @semantic_value
@@ -219,4 +243,4 @@ export const FLOW_QUERY = `
 )
 
 (comment)? @comment    
-`;
+  `;

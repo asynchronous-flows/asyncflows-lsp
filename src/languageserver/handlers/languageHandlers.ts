@@ -165,6 +165,7 @@ export class LanguageHandlers {
     this.languageService.jinjaTemplates.deleteAll(uri);
     for (const item of this.yamlSettings.documents2.entries()) {
       this.readJinjaBlocks(item[0], diagnostics)
+      this.readLambdaBlocks(item[0]);
     }
   }
 
@@ -201,7 +202,7 @@ export class LanguageHandlers {
         ]
       }
     });
-    this.connection.window.showInformationMessage('Resolved conflicts with YAML language server.')
+    this.connection.window.showInformationMessage('Resolved conflicts with YAML language server. Updated modeline.')
   }
 
   convertToTextEdit(changes: DidChangeEvent[]): TextEdit[] {
@@ -223,7 +224,14 @@ export class LanguageHandlers {
     const actions = tree.state.actions;
     let positions: AbsolutePosition[] = [];
     const ranges = this.languageService.yamlDiagnosticsRange.get(uri);
-    const jinjaLinks = this.languageService.jinjaSemanticTokens.get(uri);
+    let jinjaLinks = this.languageService.jinjaSemanticTokens.get(uri);
+    let pythonLinks = this.languageService.pythonSemanticTokens.get(uri);
+    if (jinjaLinks == undefined) {
+      jinjaLinks = [];
+    }
+    else if(pythonLinks == undefined) {
+      pythonLinks = [];
+    }
     const ignoredText = [];
     actions.forEach((value, key) => {
       const position: AbsolutePosition = {
@@ -293,6 +301,19 @@ export class LanguageHandlers {
         line: jinjaLink.start.line,
         startChar: jinjaLink.start.character,
         length: jinjaLink.end.character - jinjaLink.start.character,
+        tokenModifiers: [SemanticTokenModifiers.defaultLibrary],
+        tokenType: SemanticTokenTypes.operator
+      }
+      positions.push(linkPosition);
+    }
+    for (const pythonLink of pythonLinks) {
+      if (pythonLink.identifierType != JsIdentifierType.Link) {
+        continue;
+      }
+      const linkPosition: AbsolutePosition = {
+        line: pythonLink.start.line,
+        startChar: pythonLink.start.character,
+        length: pythonLink.end.character - pythonLink.start.character,
         tokenModifiers: [SemanticTokenModifiers.defaultLibrary],
         tokenType: SemanticTokenTypes.operator
       }
@@ -385,6 +406,30 @@ export class LanguageHandlers {
     }
   }
 
+  readLambdaBlocks(uri: string, diagnostics = []) {
+    const oldTree = this.languageService.trees.get(uri);
+    if (oldTree) {
+      const oldDocument = this.yamlSettings.documents2.get(uri);
+      if (!oldDocument) {
+        return;
+      }
+      const state = oldTree.state;
+      const lambdas = state.lambdas.entries();
+      let tokens = [];
+      for (const lambda of lambdas) {
+        const body = lambda[1].lambda_body;
+        if (!body) {
+          continue;
+        }
+        const text = body.text.replace('|', ' ');
+        const identifiers = this.languageService.jinjaTemplates.addOne(lambda[0], uri, text, body.startPosition.row, "py");
+        tokens = tokens.concat(identifiers);
+      }
+      this.languageService.pythonSemanticTokens.set(uri, tokens);
+      // this.publishJinjaDiagnostics(uri, diagnostics).then(() => { });
+    }
+  }
+
   readJinjaBlocks(uri: string, diagnostics = []) {
     const oldTree = this.languageService.trees.get(uri);
     if (oldTree) {
@@ -392,7 +437,6 @@ export class LanguageHandlers {
       if (!oldDocument) {
         return;
       }
-      const source = oldDocument.getText();
       const state = oldTree.state;
       const texts = state.texts.entries();
       let tokens = [];
@@ -401,7 +445,7 @@ export class LanguageHandlers {
         if (!body) {
           continue;
         }
-        const identifiers = this.languageService.jinjaTemplates.addOne(text[0], uri, body.text, body.startPosition.row);
+        const identifiers = this.languageService.jinjaTemplates.addOne(text[0], uri, body.text, body.startPosition.row, "jinja");
         tokens = tokens.concat(identifiers);
       }
       this.languageService.jinjaSemanticTokens.set(uri, tokens);
