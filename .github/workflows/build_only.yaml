@@ -1,0 +1,100 @@
+name: build only
+env:
+  FETCH_DEPTH: 1
+on: workflow_dispatch
+
+jobs:
+  dist:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            target: win32-x64
+            code-target: win32-x64
+          - os: windows-latest
+            target: win32-arm64
+            code-target: win32-arm64
+          - os: ubuntu-20.04
+            target: linux-x64
+            code-target: linux-x64
+          - os: ubuntu-20.04
+            target: linux-arm64
+            code-target: linux-arm64
+          - os: ubuntu-20.04
+            target: linux-armhf
+            code-target: linux-armhf
+          - os: macos-12
+            target: x86_64-apple-darwin
+            code-target: darwin-x64
+          - os: macos-12
+            target: aarch64-apple-darwin
+            code-target: darwin-arm64
+
+    name: dist (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+
+    steps:
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ env.FETCH_DEPTH }}
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+         python-version: '3.10'       
+
+      - uses: actions/setup-python@v5 
+        with:
+          python-version: 'pypy3.10'          
+
+      - name: Install toolchain dependencies
+        if: matrix.container == 'rockylinux:8'
+        shell: bash
+        run: |
+          dnf install -y gcc
+
+      - name: Update apt repositories
+        if: contains(matrix.os, 'ubuntu')
+        run: sudo apt-get update
+
+      - name: Npm install
+        run: npm install
+        working-directory: editors/code
+
+      - name: Build extension
+        run: npm run compile3
+        working-directory: editors/code
+
+      - if: contains(matrix.target, 'linux')
+        run: sh ./scripts/update-paths.sh && mkdir ../../dist
+        working-directory: editors/code
+
+      - if: contains(matrix.target, 'darwin')
+        run: sh ./scripts/update-paths-darwin.sh && mkdir ../../dist
+        working-directory: editors/code
+
+      - if: contains(matrix.target, 'win32')
+        shell: pwsh
+        run: ./scripts/update-paths-win32.ps1 && md ../../dist -ea 0
+        working-directory: editors/code
+
+
+      - name: Package extension
+        if: matrix.code-target
+        run: npx vsce package -o ../../dist/asyncflows-lsp-${{ matrix.code-target }}.vsix --target ${{ matrix.code-target }}
+        working-directory: editors/code
+
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-asyncflows-lsp-${{ matrix.code-target }}
+          path: ./dist
