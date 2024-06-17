@@ -110,7 +110,7 @@ export class YAMLServerInit {
     return {
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
-        completionProvider: { resolveProvider: false },
+        completionProvider: { resolveProvider: false,triggerCharacters: ["", " "],allCommitCharacters: [""] },
         hoverProvider: true,
         documentSymbolProvider: true,
         documentFormattingProvider: false,

@@ -129,10 +129,12 @@ export class YamlCompletion {
             value: i.description
           }
         }
-        else if(i.completionType == JsCompletionType.Identifier) {
+        else if (i.completionType == JsCompletionType.Identifier) {
           item.detail = i.description;
           if (i.insert) {
-            item.textEdit = {insert: i.insert, newText: i.newText, replace: i.replace};
+            let newRange = { start: position, end: position };
+            item.textEdit = { insert: newRange, replace: newRange, newText: "" };
+            item.additionalTextEdits = [{ newText: i.newText, range: i.replace }];
           }
         }
         else {
