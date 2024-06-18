@@ -229,10 +229,9 @@ export class LanguageHandlers {
     if (jinjaLinks == undefined) {
       jinjaLinks = [];
     }
-    else if(pythonLinks == undefined) {
+    if(pythonLinks == undefined) {
       pythonLinks = [];
     }
-    const ignoredText = [];
     actions.forEach((value, key) => {
       const position: AbsolutePosition = {
         line: value.action_name.startPosition.row,
