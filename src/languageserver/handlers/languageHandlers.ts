@@ -164,7 +164,12 @@ export class LanguageHandlers {
   resetJinjaVariables(uri: string, diagnostics = []) {
     this.languageService.jinjaTemplates.deleteAll(uri);
     for (const item of this.yamlSettings.documents2.entries()) {
-      this.readJinjaBlocks(item[0], diagnostics)
+      if(item[0] == uri) {
+        this.readJinjaBlocks(item[0], diagnostics)
+      }
+      else{
+        this.readJinjaBlocks(item[0], [])
+      }
       this.readLambdaBlocks(item[0]);
     }
   }
