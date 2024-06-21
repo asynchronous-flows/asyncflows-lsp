@@ -52,7 +52,7 @@ import { SyntaxNode } from 'tree-sitter';
 import { emptyFlowState, get_state, parseNewTree } from '../../tree_sitter_queries/queries';
 import { toInputEdit } from '../../tree_sitter_queries/toInputEdit';
 import { tokenModifiersLegend, tokenTypesLegend } from '../../semanticTokens';
-import { JsIdentifierType } from '@jinja-lsp/functions';
+import { JsIdentifierType, NodejsLspFiles } from '@jinja-lsp/functions';
 
 export class LanguageHandlers {
   private languageService: LanguageService;
@@ -164,10 +164,10 @@ export class LanguageHandlers {
   resetJinjaVariables(uri: string, diagnostics = []) {
     this.languageService.jinjaTemplates.deleteAll(uri);
     for (const item of this.yamlSettings.documents2.entries()) {
-      if(item[0] == uri) {
+      if (item[0] == uri) {
         this.readJinjaBlocks(item[0], diagnostics)
       }
-      else{
+      else {
         this.readJinjaBlocks(item[0], [])
       }
       this.readLambdaBlocks(item[0]);
@@ -234,7 +234,7 @@ export class LanguageHandlers {
     if (jinjaLinks == undefined) {
       jinjaLinks = [];
     }
-    if(pythonLinks == undefined) {
+    if (pythonLinks == undefined) {
       pythonLinks = [];
     }
     actions.forEach((value, key) => {
@@ -426,8 +426,15 @@ export class LanguageHandlers {
           continue;
         }
         const text = body.text.replace('|', ' ');
-        const identifiers = this.languageService.jinjaTemplates.addOne(lambda[0], uri, text, body.startPosition.row, "py");
-        tokens = tokens.concat(identifiers);
+        try {
+          const identifiers = this.languageService.jinjaTemplates.addOne(lambda[0], uri, text, body.startPosition.row, "py");
+          tokens = tokens.concat(identifiers);
+        }
+        catch (e) {
+          this.languageService.jinjaTemplates = new NodejsLspFiles();
+          console.log(`Captured error after reading python block`);
+          console.log(e);
+        }
       }
       this.languageService.pythonSemanticTokens.set(uri, tokens);
       // this.publishJinjaDiagnostics(uri, diagnostics).then(() => { });
@@ -449,8 +456,15 @@ export class LanguageHandlers {
         if (!body) {
           continue;
         }
-        const identifiers = this.languageService.jinjaTemplates.addOne(text[0], uri, body.text, body.startPosition.row, "jinja");
-        tokens = tokens.concat(identifiers);
+        try {
+          const identifiers = this.languageService.jinjaTemplates.addOne(text[0], uri, body.text, body.startPosition.row, "jinja");
+          tokens = tokens.concat(identifiers);
+        }
+        catch (e) {
+          this.languageService.jinjaTemplates = new NodejsLspFiles();
+          console.log(`Captured error after reading jinja block`);
+          console.log(e);
+        }
       }
       this.languageService.jinjaSemanticTokens.set(uri, tokens);
       this.publishJinjaDiagnostics(uri, diagnostics).then(() => { });
