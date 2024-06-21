@@ -162,7 +162,9 @@ export class LanguageHandlers {
   }
 
   resetJinjaVariables(uri: string, diagnostics = []) {
-    this.languageService.jinjaTemplates.deleteAll(uri);
+    this.languageService.safeFunction(() => {
+      this.languageService.jinjaTemplates.deleteAll(uri);
+    })
     for (const item of this.yamlSettings.documents2.entries()) {
       if (item[0] == uri) {
         this.readJinjaBlocks(item[0], diagnostics)
@@ -666,10 +668,12 @@ export class LanguageHandlers {
     }
     const textDefinition = this.languageService.inJinjaTemplate(doc.uri, params.position);
     if (textDefinition) {
-      let locations = this.languageService.jinjaTemplates.gotoDefinition(
-        textDefinition[0].text.id,
-        doc.uri, textDefinition[2], params.position
-      );
+      let locations = this.languageService.safeFunction(() => {
+        return this.languageService.jinjaTemplates.gotoDefinition(
+          textDefinition[0].text.id,
+          doc.uri, textDefinition[2], params.position
+        );
+      })
       if (!locations) {
         return [];
       }

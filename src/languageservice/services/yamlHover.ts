@@ -21,7 +21,7 @@ import { convertErrorToTelemetryMsg } from '../utils/objects';
 import { ASTNode } from 'vscode-json-languageservice';
 import { stringify as stringifyYAML } from 'yaml';
 import { TextDocumentPositionParams } from 'vscode-languageserver-protocol';
-import { basic } from '@jinja-lsp/functions';
+import { basic, JsHover } from '@jinja-lsp/functions';
 
 export class YAMLHover {
   private shouldHover: boolean;
@@ -76,10 +76,12 @@ export class YAMLHover {
     }
     const textHover = this.languageService.inJinjaTemplate(document.uri, position);
     if (textHover) {
-      const hover = this.languageService.jinjaTemplates.hover(
-        textHover[0].text.id,
-        document.uri,
-        textHover[2], position);
+      const hover: JsHover | undefined = this.languageService.safeFunction(() => {
+        return this.languageService.jinjaTemplates.hover(
+          textHover[0].text.id,
+          document.uri,
+          textHover[2], position);
+      });
       if (hover) {
         const markupContent: MarkupContent = {
           kind: MarkupKind.Markdown,

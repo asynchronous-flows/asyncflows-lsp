@@ -204,6 +204,7 @@ export interface LanguageService {
   jinjaSemanticTokens: Map<string, JsIdentifier[]>;
   pythonSemanticTokens: Map<string, JsIdentifier[]>;
   getAsyncFlowsType(position: Position, doc: TextDocument): string | null;
+  safeFunction(fn: () => any): any;
 }
 
 export function getLanguageService(params: {
@@ -359,7 +360,10 @@ export function getLanguageService(params: {
       let title: string | undefined = undefined;
       return title
     },
-    pythonSemanticTokens: new Map()
+    pythonSemanticTokens: new Map(),
+    safeFunction(fn: () => any): any {
+      return safeFunction(fn)
+    }
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);
@@ -378,5 +382,16 @@ function adjustChar(current: number, body_char: number) {
   }
   else {
     return 0
+  }
+}
+
+
+
+function safeFunction(fn: () => any) {
+  try {
+    return fn();
+  }
+  catch (e) {
+    return undefined;
   }
 }

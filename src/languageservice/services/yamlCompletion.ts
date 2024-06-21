@@ -111,10 +111,12 @@ export class YamlCompletion {
     const textCompletion = this.languageService.inJinjaTemplate(document.uri, position);
     if (textCompletion) {
       const items = [];
-      const completion = this.languageService.jinjaTemplates.complete(
-        textCompletion[0].text.id,
-        document.uri,
-        textCompletion[2], position);
+      const completion = this.languageService.safeFunction(() => {
+        return this.languageService.jinjaTemplates.complete(
+          textCompletion[0].text.id,
+          document.uri,
+          textCompletion[2], position);
+      })
       if (!completion) {
         return Promise.resolve({ isIncomplete: false, items: [] });
       }
