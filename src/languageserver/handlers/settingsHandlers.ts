@@ -399,16 +399,19 @@ export class SettingsHandler {
       if (key == "__LinkHintLiteral") {
         // @ts-ignore
         const values = value.anyOf;
+        if ((values instanceof Array) == false) {
+          return;
+        }
         for (const l of values) {
-          if(!l.description) {
+          if (!l.description) {
             l.description = ""
           }
-          if(!l.markdownDescription) {
+          if (!l.markdownDescription) {
             l.markdownDescription = "";
           }
           const enumValues = l.enum;
           for (const e of enumValues) {
-            links.push({name: e, description: l.markdownDescription});
+            links.push({ name: e, description: l.markdownDescription });
           }
         }
         this.languageService.globalJinjaActions.set(uri, links)
