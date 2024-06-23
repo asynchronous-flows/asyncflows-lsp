@@ -1,7 +1,7 @@
 {
   "name": "asyncflows-lsp",
   "description": "Asyncflows language server",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "author": "Gorkem Ercan (Red Hat)",
   "license": "See LICENSE file",
   "contributors": [
