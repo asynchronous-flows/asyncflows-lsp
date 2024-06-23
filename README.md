@@ -4,16 +4,26 @@
 Language Server for asyncflows
 </div>
 
-# Installation
+## Configuration
 
 To associate an asyncflows YAML file with the language server, place this snippet at the top of the file:
+
+```yaml
+# asyncflows-language-server
+```
+
+If you specificed schema like this:
 
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/asynchronous-flows/asyncflows/main/schemas/asyncflows_schema.json
 ```
 
+It will be automatically updated to the first one. 
+
 Then, follow the instructions for your editor.
 If your editor is not specified here, but you would like to use the language server, please open an issue.
+
+## Installation
 
 ### VSCode
 
@@ -67,7 +77,7 @@ name = "yaml"
 language-servers = ["asyncflows-lsp", "yaml-lsp"]
 ```
 
-# Development
+### Development
 
 ## VSCode
 
