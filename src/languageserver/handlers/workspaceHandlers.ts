@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { LanguageService } from '../../languageservice/yamlLanguageService';
+import { initPythonPath, LanguageService, PythonPath } from '../../languageservice/yamlLanguageService';
 import { ExecuteCommandParams, Connection, MessageActionItem, ProtocolRequestType0, ShowMessageRequest, ShowMessageRequestParams, MessageType } from 'vscode-languageserver';
 import { CommandExecutor } from '../commandExecutor';
 import { spawn, spawnSync } from 'child_process';
@@ -24,8 +24,17 @@ export class WorkspaceHandlers {
       if (!params.arguments) {
         return;
       }
-      if (params.arguments.length == 1) {
-        this.languageService.pythonPath = params.arguments[0]
+      if (params.arguments.length > 0) {
+        if (params.arguments[1]) {
+          this.languageService.pythonPath[1].reject();
+          const py: PythonPath = {
+            resolve: () => { },
+            reject: () => { }
+          }
+          const pythonPath = initPythonPath(py);
+          this.languageService.pythonPath = [pythonPath, py]
+        }
+        this.languageService.pythonPath[1].resolve(params.arguments[0]);
         this.getAsyncFlows(params.arguments[0]).then(() => { });
       }
     }
