@@ -135,6 +135,19 @@ export class LanguageHandlers {
       if (comment.hasComment && comment.length) {
         this.editTopComment(textDocument, comment);
       }
+      this.languageService.pythonPath[0].then(pythonPath => {
+        read2(e.textDocument.uri, this.yamlSettings, (content) => {
+          if (!content.includes('Traceback')) {
+            console.log('Adding new schema');
+            this.languageService.resetSemanticTokens.set(e.textDocument.uri, true);
+            this.languageService.addSchema2(e.textDocument.uri, content, this.languageService);
+          }
+          else {
+            console.log(`content error: ${content}`)
+          }
+        }, pythonPath
+        );
+      })
     });
     this.connection.onDidChangeTextDocument((event) => {
       // @ts-ignore
