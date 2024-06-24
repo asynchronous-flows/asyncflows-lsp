@@ -15,5 +15,8 @@ $treeSitter = 'var __dirname = "node_modules\\\\tree-sitter";';
 $content = Get-Content -Path dist\languageserver.js; 
 $updatedContent = $content -replace $yamlGrammar, "var __dirname = YAML_PATH;"; 
 $updatedContent = $updatedContent -replace $treeSitter, "var __dirname = TREESITTER_PATH;"; 
-$updatedContent = $updatedContent -replace '(const __dirname = "(node_modules\\\\@jinja-lsp\\\\functions-)(.*)";)', 'const __dirname = PATH2.join(EXT_PATH, "$2$3", "functions.$3.node");\nprocess.dlopen(module, __dirname);\nreturn;\n';
+$updatedContent = $updatedContent -replace '(var __dirname = "(node_modules\\\\@jinja-lsp\\\\functions-)(.*)";)', 'var __dirname = PATH2.join(EXT_PATH, "$2$3", "functions.$3.node");
+process.dlopen(module, __dirname);
+return;
+';
 Set-Content -Path "dist\languageserver.js" -Value $updatedContent
