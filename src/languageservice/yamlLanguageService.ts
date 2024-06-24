@@ -193,7 +193,7 @@ export interface LanguageService {
   trees: Map<string, { tree: Tree, state: FlowState }>;
   inJinjaTemplate: (uri: string, position: Position) => [Text, Point, number] | undefined;
   stateQuery: Query;
-  pythonPath: string;
+  pythonPath: [Promise<string>, PythonPath];
   doValidation2(doc: TextDocument, with_jinja: boolean): void;
   jinjaTemplates: NodejsLspFiles;
   jinjaVariables: any,
@@ -227,6 +227,13 @@ export function getLanguageService(params: {
   const yamlDefinition = new YamlDefinition(params.telemetry);
 
   new JSONSchemaSelection(schemaService, params.yamlSettings, params.connection);
+
+  const py: PythonPath = {
+    resolve: () => {},
+    reject: () => {}
+  }
+
+  const pythonPath = initPythonPath(py);
 
   const languageService = {
     configure2: (schemas) => {
@@ -313,7 +320,7 @@ export function getLanguageService(params: {
     },
     trees: new Map(),
     stateQuery: initQuery() as Query,
-    pythonPath: "python",
+    pythonPath: [pythonPath, py] as [Promise<string>, PythonPath],
     doValidation2(doc: TextDocument, with_jinja = false) {
     },
     inJinjaTemplate(uri: string, position: Position): [Text, Point, number] | undefined {
@@ -394,4 +401,17 @@ function safeFunction(fn: () => any) {
   catch (e) {
     return undefined;
   }
+}
+
+export function initPythonPath(py: PythonPath): Promise<string> {
+  return new Promise((resolve, reject) => {
+    py.resolve = resolve;
+    py.reject = reject;
+  })
+}
+
+export type PythonPath = {
+  // path: Promise<string>,
+  resolve: (value: string) => void,
+  reject: () => void
 }

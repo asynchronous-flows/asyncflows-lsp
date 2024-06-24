@@ -101,17 +101,20 @@ export class LanguageHandlers {
       if (comment.hasComment && comment.length) {
         this.editTopComment(document, comment);
       }
-      read2(params.textDocument.uri, this.yamlSettings, (content) => {
-        if (!content.includes('Traceback')) {
-          console.log('Adding new schema');
-          this.languageService.resetSemanticTokens.set(params.textDocument.uri, true);
-          this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
-        }
-        else {
-          console.log(`content error: ${content}`)
-        }
-      }, this.languageService.pythonPath
-      )
+
+      this.languageService.pythonPath[0].then(pythonPath => {
+        read2(params.textDocument.uri, this.yamlSettings, (content) => {
+          if (!content.includes('Traceback')) {
+            console.log('Adding new schema');
+            this.languageService.resetSemanticTokens.set(params.textDocument.uri, true);
+            this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
+          }
+          else {
+            console.log(`content error: ${content}`)
+          }
+        }, pythonPath
+        );
+      })
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
       const data = await this.intoSemanticTokens(params.textDocument.uri);
@@ -400,15 +403,17 @@ export class LanguageHandlers {
       if (!this.languageService.hasAsyncFlows(document).hasComment) {
         return undefined;
       }
-      read2(uri, this.yamlSettings, (content) => {
-        if (!content.includes('Traceback (most recent')) {
-          this.languageService.addSchema2(uri, content, this.languageService);
-        }
-        else {
-          console.log(`content error: ${content}`)
-        }
-      }, this.languageService.pythonPath
-      );
+      this.languageService.pythonPath[0].then((pythonPath) => {
+        read2(uri, this.yamlSettings, (content) => {
+          if (!content.includes('Traceback (most recent')) {
+            this.languageService.addSchema2(uri, content, this.languageService);
+          }
+          else {
+            console.log(`content error: ${content}`)
+          }
+        }, pythonPath
+        );
+      });
     }
   }
 
