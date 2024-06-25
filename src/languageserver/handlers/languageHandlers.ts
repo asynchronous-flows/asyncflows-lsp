@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, Diagnostic, LocationLink, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
+import { Connection, Diagnostic, LocationLink, Position, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
 import {
   CodeActionParams,
   DidChangeWatchedFilesParams,
@@ -136,6 +136,9 @@ export class LanguageHandlers {
         this.editTopComment(textDocument, comment);
       }
       this.languageService.pythonPath[0].then(pythonPath => {
+        if(!comment.hasComment) {
+          return ;
+        }
         read2(e.textDocument.uri, this.yamlSettings, (content) => {
           if (!content.includes('Traceback')) {
             console.log('Adding new schema');
@@ -849,4 +852,20 @@ type AbsolutePosition = {
   length: number,
   tokenType: string | number,
   tokenModifiers: string[] | number
+}
+
+
+export function extensionLog(connection: Connection, message?: string) {
+  let diagnostics = [];
+  if (message) {
+    diagnostics.push({
+      message: message,
+      range:
+        Range.create(Position.create(0, 0), Position.create(0, 0))
+    });
+  }
+  connection.sendDiagnostics({
+    diagnostics: diagnostics,
+    uri: "file://asyncflows.log"
+  })
 }

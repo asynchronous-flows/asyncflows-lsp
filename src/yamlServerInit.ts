@@ -163,7 +163,7 @@ export class YAMLServerInit {
     this.languageHandler.registerHandlers();
     new NotificationHandlers(this.connection, this.languageService, this.yamlSettings, this.settingsHandler).registerHandlers();
     new RequestHandlers(this.connection, this.languageService).registerHandlers();
-    new WorkspaceHandlers(this.connection, commandExecutor, this.languageService).registerHandlers();
+    new WorkspaceHandlers(this.connection, commandExecutor, this.languageService, this.yamlSettings).registerHandlers();
   }
 
   start(): void {
