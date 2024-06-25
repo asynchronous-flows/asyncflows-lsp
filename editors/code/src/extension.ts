@@ -8,11 +8,15 @@ import { workspace, ExtensionContext } from 'vscode';
 
 import {
 	CodeLensRequest,
+	DidRenameFilesNotification,
 	LanguageClient,
 	LanguageClientOptions,
 	MessageSignature,
+	ProtocolRequestType0,
+	RenameFilesParams,
 	ServerOptions,
-	TransportKind
+	TransportKind,
+	WillRenameFilesRequest
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
@@ -52,12 +56,33 @@ export async function activate(context: ExtensionContext) {
 		},
 		middleware: {
 			handleDiagnostics(uri, diagnostics, next) {
-				output.appendLine(uri.toString());
 				if (uri.toString() == "file://asyncflows.log/") {
 					if (diagnostics.length == 1) {
-						if(diagnostics[0].message == "setInterpreter") {
-			        vscode.commands.executeCommand('python.setInterpreter').then((v) => {
-			        });							
+						const msg = JSON.parse(diagnostics[0].message);
+						if (msg.t == "setInterpreter") {
+							vscode.commands.executeCommand('python.setInterpreter').then((v) => {
+							});
+						}
+						else if (msg.t == "renameFile") {
+							const editor = vscode.window.activeTextEditor;
+							const before = msg.before;
+							const after = msg.after;
+							const params: RenameFilesParams = {
+								files: [
+									{ oldUri: before, newUri: after }
+								]
+							};
+							client.sendRequest(WillRenameFilesRequest.type,
+								params
+							).then((v) => {
+								if (!editor) {
+									return;
+								}
+								vscode.workspace.fs.rename(vscode.Uri.file(before), vscode.Uri.file(after), {
+									overwrite: false
+								}).then((value) => {
+								});
+							})
 						}
 					}
 				}

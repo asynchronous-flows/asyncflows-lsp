@@ -28,7 +28,7 @@ import {
 } from 'vscode-languageserver-types';
 import { JSONSchema } from './jsonSchema';
 import { YAMLDocumentSymbols } from './services/documentSymbols';
-import { isAllSchemasMatched, markdownEnum, removePipe, YAMLHover } from './services/yamlHover';
+import { YAMLHover } from './services/yamlHover';
 import { YAMLValidation } from './services/yamlValidation';
 import { YAMLFormatter } from './services/yamlFormatter';
 import { DocumentSymbolsContext } from 'vscode-json-languageservice';
@@ -190,6 +190,7 @@ export interface LanguageService {
   updatedSchema: Map<string, any>;
   configure2: (schemas: SchemasSettings[]) => void;
   hasAsyncFlows: (doc: TextDocument) => LspComment;
+  hasAsyncFlows2: (doc: TextDocument) => boolean;
   trees: Map<string, { tree: Tree, state: FlowState }>;
   inJinjaTemplate: (uri: string, position: Position) => [Text, Point, number] | undefined;
   stateQuery: Query;
@@ -229,8 +230,8 @@ export function getLanguageService(params: {
   new JSONSchemaSelection(schemaService, params.yamlSettings, params.connection);
 
   const py: PythonPath = {
-    resolve: () => {},
-    reject: () => {}
+    resolve: () => { },
+    reject: () => { }
   }
 
   const pythonPath = initPythonPath(py);
@@ -317,6 +318,9 @@ export function getLanguageService(params: {
     updatedSchema: new Map(),
     hasAsyncFlows(document: TextDocument) {
       return yamlValidation.hasAsyncFlows(document);
+    },
+    hasAsyncFlows2(document: TextDocument): boolean {
+      return document.uri.endsWith('.flow.yaml')      
     },
     trees: new Map(),
     stateQuery: initQuery() as Query,

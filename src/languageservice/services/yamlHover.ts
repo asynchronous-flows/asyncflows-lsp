@@ -63,7 +63,7 @@ export class YAMLHover {
 
   // method copied from https://github.com/microsoft/vscode-json-languageservice/blob/2ea5ad3d2ffbbe40dea11cfe764a502becf113ce/src/services/jsonHover.ts#L23
   private getHover(document: TextDocument, position: Position, doc: SingleYAMLDocument): Promise<Hover | null> {
-    if (!this.languageService.hasAsyncFlows(document).hasComment) {
+    if (!this.languageService.hasAsyncFlows2(document)) {
       return Promise.resolve(null);
     }
     const offset = document.offsetAt(position);

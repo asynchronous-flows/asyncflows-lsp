@@ -40,7 +40,7 @@ export class WorkspaceHandlers {
           this.languageService.pythonPath = [pythonPath, py]
           this.languageService.pythonPath[0].then(pythonPath => {
             for (const doc of this.languageSettings.documents2) {
-              if(this.languageService.hasAsyncFlows(doc[1]).hasComment == false) {
+              if(this.languageService.hasAsyncFlows2(doc[1]) == false) {
                 continue
               }
               read2(doc[0], this.languageSettings, (content) => {
@@ -86,7 +86,7 @@ export class WorkspaceHandlers {
             });
           }
           else if (selectedAction.title == "Change interpreter") {
-            extensionLog(this.connection, "setInterpreter");
+            extensionLog(this.connection, JSON.stringify({t: "setInterpreter"}));
             extensionLog(this.connection);
           }
 

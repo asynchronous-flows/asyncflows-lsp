@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, Diagnostic, LocationLink, Position, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
+import { Connection, Diagnostic, LocationLink, MessageActionItem, MessageType, Position, ShowMessageRequest, ShowMessageRequestParams, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
 import {
   CodeActionParams,
   DidChangeWatchedFilesParams,
@@ -26,6 +26,7 @@ import {
   SemanticTokenModifiers,
   ProtocolRequestType0,
   SemanticTokensRefreshRequest,
+  WillRenameFilesRequest,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -40,6 +41,7 @@ import {
   SymbolInformation,
   TextEdit,
   SemanticTokens,
+  RenameFile,
 } from 'vscode-languageserver-types';
 import { isKubernetesAssociatedDocument } from '../../languageservice/parser/isKubernetes';
 import { LanguageService } from '../../languageservice/yamlLanguageService';
@@ -97,9 +99,12 @@ export class LanguageHandlers {
     this.connection.onDeclaration((params) => this.declarationHandler(params));
     this.connection.onDidSaveTextDocument((params) => {
       const document = this.yamlSettings.documents2.get(params.textDocument.uri);
-      const comment = this.languageService.hasAsyncFlows(document);
-      if (comment.hasComment && comment.length) {
-        this.editTopComment(document, comment);
+      const comment = this.languageService.hasAsyncFlows2(document);
+      // if (comment.hasComment && comment.length) {
+      //   this.editTopComment(document, comment);
+      // }
+      if (comment) {
+
       }
 
       this.languageService.pythonPath[0].then(pythonPath => {
@@ -132,12 +137,42 @@ export class LanguageHandlers {
       this.yamlSettings.documents2.set(e.textDocument.uri, textDocument);
       this.languageService.doValidation(textDocument, false);
       const comment = this.languageService.hasAsyncFlows(textDocument);
-      if (comment.hasComment && comment.length) {
-        this.editTopComment(textDocument, comment);
+      let toGenerateSchema = false;
+      if (comment.hasComment) {
+        toGenerateSchema = true;
+        if (!this.languageService.hasAsyncFlows2(textDocument)) {
+          // recommend rename
+          let parts = textDocument.uri.split('/');
+          let fileName = parts.at(-1);
+          let newFileName = fileName.replace(".yaml", ".flow.yaml");
+          parts.pop()
+          parts.push(newFileName);
+          const messageParams: ShowMessageRequestParams = {
+            type: MessageType.Info,
+            message: `Old-style flow ${fileName} found, would you like to refactor to new-style ${newFileName}?`,
+            actions: [
+              { title: "Yes" },
+            ]
+          };
+          this.connection.sendRequest(ShowMessageRequest.type, messageParams).then((selectedAction: MessageActionItem | null) => {
+            if (selectedAction) {
+              if (selectedAction.title == "Yes") {
+                extensionLog(this.connection, JSON.stringify({ t: "renameFile", before: textDocument.uri, after: parts.join('/') }));
+                extensionLog(this.connection);
+              }
+            }
+          });
+        }
+      }
+      // if (comment.hasComment && comment.length) {
+      //   this.editTopComment(textDocument, comment);
+      // }
+      if (toGenerateSchema == false) {
+        return;
       }
       this.languageService.pythonPath[0].then(pythonPath => {
-        if(!comment.hasComment) {
-          return ;
+        if (!comment.hasComment) {
+          return;
         }
         read2(e.textDocument.uri, this.yamlSettings, (content) => {
           if (!content.includes('Traceback')) {
@@ -176,6 +211,16 @@ export class LanguageHandlers {
       this.cancelLimitExceededWarnings(event.textDocument.uri);
       this.languageService.doValidation2(newTextDocument, false);
       this.fetchNewSchema(newTextDocument.uri);
+    });
+    this.connection.onRequest(WillRenameFilesRequest.type, (params) => {
+      for(const f of params.files) {
+        const doc = this.yamlSettings.documents2.get(f.oldUri);
+        if(doc) {
+          this.yamlSettings.documents2.set(f.newUri, doc);
+          this.yamlSettings.documents2.delete(f.oldUri);
+        }
+      }
+      return null
     });
     // this.yamlSettings.documents.onDidClose((event) => this.cancelLimitExceededWarnings(event.document.uri));
   }
@@ -242,7 +287,7 @@ export class LanguageHandlers {
   async intoSemanticTokens(uri: string): Promise<number[]> {
     const tree = this.languageService.trees.get(uri);
     const doc = this.yamlSettings.documents2.get(uri);
-    if (!tree || !doc || !this.languageService.hasAsyncFlows(doc).hasComment) {
+    if (!tree || !doc || !this.languageService.hasAsyncFlows2(doc)) {
       return [];
     }
     const links = tree.state.links;
@@ -416,7 +461,7 @@ export class LanguageHandlers {
         return;
       }
       const document = this.yamlSettings.documents2.get(uri);
-      if (!this.languageService.hasAsyncFlows(document).hasComment) {
+      if (!this.languageService.hasAsyncFlows2(document)) {
         return undefined;
       }
       this.languageService.pythonPath[0].then((pythonPath) => {
@@ -520,7 +565,7 @@ export class LanguageHandlers {
     if (!document) {
       return [];
     }
-    if (!this.languageService.hasAsyncFlows(document).hasComment) {
+    if (!this.languageService.hasAsyncFlows2(document)) {
       return [];
     }
     // if (!this.languageService.asyncFlowsDocs.has(documentSymbolParams.textDocument.uri)) {
@@ -684,7 +729,7 @@ export class LanguageHandlers {
     if (!doc) {
       return [];
     }
-    if (!this.languageService.hasAsyncFlows(doc).hasComment) {
+    if (!this.languageService.hasAsyncFlows2(doc)) {
       return [];
     }
     const textDefinition = this.languageService.inJinjaTemplate(doc.uri, params.position);
