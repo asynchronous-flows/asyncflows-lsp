@@ -65,8 +65,8 @@ export async function activate(context: ExtensionContext) {
 						}
 						else if (msg.t == "renameFile") {
 							const editor = vscode.window.activeTextEditor;
-							const before = msg.before;
-							const after = msg.after;
+							let before = msg.before;
+							let after = msg.after;
 							const params: RenameFilesParams = {
 								files: [
 									{ oldUri: before, newUri: after }
@@ -78,6 +78,8 @@ export async function activate(context: ExtensionContext) {
 								if (!editor) {
 									return;
 								}
+								before = decodeURI(before);
+								after = decodeURI(after);
 								vscode.workspace.fs.rename(vscode.Uri.file(before.replace("file://", "")), vscode.Uri.file(after.replace("file://", "")), {
 									overwrite: false
 								}).then((value) => {

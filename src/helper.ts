@@ -79,6 +79,7 @@ export interface TomlConfig {
 }
 
 export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void, pythonPath: string) {
+  yamlConfig = decodeURI(yamlConfig);
   const cmd = spawn(
     pythonPath, 
     ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")], 
