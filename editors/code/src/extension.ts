@@ -78,7 +78,7 @@ export async function activate(context: ExtensionContext) {
 								if (!editor) {
 									return;
 								}
-								vscode.workspace.fs.rename(vscode.Uri.file(before), vscode.Uri.file(after), {
+								vscode.workspace.fs.rename(vscode.Uri.file(before.replace("file://", "")), vscode.Uri.file(after.replace("file://", "")), {
 									overwrite: false
 								}).then((value) => {
 								});
