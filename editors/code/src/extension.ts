@@ -7,16 +7,10 @@ import * as path from 'path';
 import { workspace, ExtensionContext } from 'vscode';
 
 import {
-	CodeLensRequest,
-	DidRenameFilesNotification,
 	LanguageClient,
 	LanguageClientOptions,
-	MessageSignature,
-	ProtocolRequestType0,
-	RenameFilesParams,
 	ServerOptions,
-	TransportKind,
-	WillRenameFilesRequest
+	TransportKind
 } from 'vscode-languageclient/node';
 
 import * as vscode from 'vscode';
@@ -54,41 +48,6 @@ export async function activate(context: ExtensionContext) {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/.yaml')
 		},
-		middleware: {
-			handleDiagnostics(uri, diagnostics, next) {
-				if (uri.toString() == "file://asyncflows.log/") {
-					if (diagnostics.length == 1) {
-						const msg = JSON.parse(diagnostics[0].message);
-						if (msg.t == "setInterpreter") {
-							vscode.commands.executeCommand('python.setInterpreter').then((v) => {
-							});
-						}
-						else if (msg.t == "renameFile") {
-							const editor = vscode.window.activeTextEditor;
-							const before = msg.before;
-							const after = msg.after;
-							const params: RenameFilesParams = {
-								files: [
-									{ oldUri: before, newUri: after }
-								]
-							};
-							client.sendRequest(WillRenameFilesRequest.type,
-								params
-							).then((v) => {
-								if (!editor) {
-									return;
-								}
-								vscode.workspace.fs.rename(vscode.Uri.file(before.replace("file://", "")), vscode.Uri.file(after.replace("file://", "")), {
-									overwrite: false
-								}).then((value) => {
-								});
-							})
-						}
-					}
-				}
-				next(uri, diagnostics);
-			},
-		}
 	};
 
 	// semanticTokens();
@@ -103,7 +62,6 @@ export async function activate(context: ExtensionContext) {
 
 	const pythonExtension = vscode.extensions.getExtension('ms-python.python');
 	const jinjaExtension = vscode.extensions.getExtension('samuelcolvin.jinjahtml');
-	setInterpreter(context, output, pythonExtension)
 	if (!pythonExtension) {
 		vscode.window.showErrorMessage('Python extension is not installed.');
 		output.appendLine('Python extension is not installed.')
@@ -128,7 +86,7 @@ export async function activate(context: ExtensionContext) {
 	client.start();
 }
 
-async function getInterpreter(pythonExtension: vscode.Extension<any>, update = false) {
+async function getInterpreter(pythonExtension: vscode.Extension<any>) {
 	const pythonApi = pythonExtension.exports;
 	const interpreter = await pythonApi.settings.getExecutionDetails();
 	if (interpreter == undefined) {
@@ -141,11 +99,7 @@ async function getInterpreter(pythonExtension: vscode.Extension<any>, update = f
 		else {
 			vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter.execCommand.join(' ')}`);
 			const interpreterPath = `${interpreter.execCommand.join(' ')}`;
-			let args = [interpreterPath];
-			if (update) {
-				args.push('true');
-			}
-			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: args })
+			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath] })
 		}
 	}
 }
@@ -167,14 +121,4 @@ function tsPaths(extensionPath: string): [string, string] {
 
 	return [newYamlPath, newTreeSitterPath]
 
-}
-
-async function setInterpreter(context: vscode.ExtensionContext, output: vscode.OutputChannel, pythonExt: vscode.Extension<any>): Promise<null> {
-	// python.setInterpreter
-	const pythonApi = pythonExt.exports;
-	const interpreter = await pythonApi.settings.onDidChangeExecutionDetails(change => {
-		getInterpreter(pythonExt, true).then(() => { });
-	});
-
-	return Promise.resolve(null)
 }
