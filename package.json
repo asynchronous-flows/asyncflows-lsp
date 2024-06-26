@@ -31,7 +31,7 @@
     "prettier": "2.8.7"
   },
   "dependencies": {
-    "@jinja-lsp/functions": "0.0.10",
+    "@jinja-lsp/functions": "0.0.11",
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
     "ajv": "^8.11.0",
     "jschardet": "3.1.2",

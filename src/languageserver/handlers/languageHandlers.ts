@@ -100,9 +100,10 @@ export class LanguageHandlers {
     this.connection.onDidSaveTextDocument((params) => {
       const document = this.yamlSettings.documents2.get(params.textDocument.uri);
       const comment = this.languageService.hasAsyncFlows2(document);
-      // if (comment.hasComment && comment.length) {
-      //   this.editTopComment(document, comment);
-      // }
+      const comment2 = this.languageService.hasAsyncFlows(document);
+      if (comment2.hasComment && comment2.length) {
+        this.editTopComment(document, comment2);
+      }
       if (comment) {
 
       }
@@ -213,9 +214,9 @@ export class LanguageHandlers {
       this.fetchNewSchema(newTextDocument.uri);
     });
     this.connection.onRequest(WillRenameFilesRequest.type, (params) => {
-      for(const f of params.files) {
+      for (const f of params.files) {
         const doc = this.yamlSettings.documents2.get(f.oldUri);
-        if(doc) {
+        if (doc) {
           this.yamlSettings.documents2.set(f.newUri, doc);
           this.yamlSettings.documents2.delete(f.oldUri);
         }
@@ -288,7 +289,9 @@ export class LanguageHandlers {
     const tree = this.languageService.trees.get(uri);
     const doc = this.yamlSettings.documents2.get(uri);
     if (!tree || !doc || !this.languageService.hasAsyncFlows2(doc)) {
-      return [];
+      if(!this.languageService.hasAsyncFlows(doc).hasComment) {
+        return [];
+      }
     }
     const links = tree.state.links;
     const keys = tree.state.selected_keys;
@@ -462,7 +465,10 @@ export class LanguageHandlers {
       }
       const document = this.yamlSettings.documents2.get(uri);
       if (!this.languageService.hasAsyncFlows2(document)) {
-        return undefined;
+        if (!this.languageService.hasAsyncFlows(document).hasComment) {
+
+          return undefined;
+        }
       }
       this.languageService.pythonPath[0].then((pythonPath) => {
         read2(uri, this.yamlSettings, (content) => {
@@ -566,7 +572,9 @@ export class LanguageHandlers {
       return [];
     }
     if (!this.languageService.hasAsyncFlows2(document)) {
-      return [];
+      if (!this.languageService.hasAsyncFlows(document).hasComment) {
+        return [];
+      }
     }
     // if (!this.languageService.asyncFlowsDocs.has(documentSymbolParams.textDocument.uri)) {
     //   return;
@@ -730,7 +738,10 @@ export class LanguageHandlers {
       return [];
     }
     if (!this.languageService.hasAsyncFlows2(doc)) {
-      return [];
+      if (!this.languageService.hasAsyncFlows(doc).hasComment) {
+
+        return [];
+      }
     }
     const textDefinition = this.languageService.inJinjaTemplate(doc.uri, params.position);
     if (textDefinition) {
