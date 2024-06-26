@@ -20,6 +20,7 @@ import { registerCommands } from './languageservice/services/yamlCommands';
 import { readPyProject } from './helper';
 import * as child_process from 'child_process';
 import { tokenModifiersLegend, tokenTypesLegend } from './semanticTokens';
+import { FileOperationsFeature } from 'vscode-languageserver/lib/common/fileOperations';
 
 export class YAMLServerInit {
   languageService: LanguageService;
@@ -107,10 +108,23 @@ export class YAMLServerInit {
     this.registerHandlers();
     registerCommands(commandExecutor, this.connection);
 
+    const fileOperationFilter  = {
+      pattern: {
+        glob: '**/*.yaml',
+        options: { ignoreCase: true },
+      },
+    }
+
+    const folderOperationFilter  = {
+      pattern: {
+        glob: '**/*',
+      },
+    }
+
     return {
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
-        completionProvider: { resolveProvider: false,triggerCharacters: [""], allCommitCharacters: [""] },
+        completionProvider: { resolveProvider: false, triggerCharacters: [""], allCommitCharacters: [""] },
         hoverProvider: true,
         documentSymbolProvider: true,
         documentFormattingProvider: false,
@@ -136,6 +150,14 @@ export class YAMLServerInit {
             changeNotifications: true,
             supported: true,
           },
+          fileOperations: {
+            didRename: {
+              filters: [fileOperationFilter, folderOperationFilter],
+            },
+            willRename: {
+              filters: [fileOperationFilter, folderOperationFilter],
+            }
+          }
         },
         semanticTokensProvider: {
           full: true,
@@ -163,7 +185,7 @@ export class YAMLServerInit {
     this.languageHandler.registerHandlers();
     new NotificationHandlers(this.connection, this.languageService, this.yamlSettings, this.settingsHandler).registerHandlers();
     new RequestHandlers(this.connection, this.languageService).registerHandlers();
-    new WorkspaceHandlers(this.connection, commandExecutor, this.languageService).registerHandlers();
+    new WorkspaceHandlers(this.connection, commandExecutor, this.languageService, this.yamlSettings).registerHandlers();
   }
 
   start(): void {

@@ -28,7 +28,7 @@ import {
 } from 'vscode-languageserver-types';
 import { JSONSchema } from './jsonSchema';
 import { YAMLDocumentSymbols } from './services/documentSymbols';
-import { isAllSchemasMatched, markdownEnum, removePipe, YAMLHover } from './services/yamlHover';
+import { YAMLHover } from './services/yamlHover';
 import { YAMLValidation } from './services/yamlValidation';
 import { YAMLFormatter } from './services/yamlFormatter';
 import { DocumentSymbolsContext } from 'vscode-json-languageservice';
@@ -190,10 +190,11 @@ export interface LanguageService {
   updatedSchema: Map<string, any>;
   configure2: (schemas: SchemasSettings[]) => void;
   hasAsyncFlows: (doc: TextDocument) => LspComment;
+  hasAsyncFlows2: (doc: TextDocument) => boolean;
   trees: Map<string, { tree: Tree, state: FlowState }>;
   inJinjaTemplate: (uri: string, position: Position) => [Text, Point, number] | undefined;
   stateQuery: Query;
-  pythonPath: string;
+  pythonPath: [Promise<string>, PythonPath];
   doValidation2(doc: TextDocument, with_jinja: boolean): void;
   jinjaTemplates: NodejsLspFiles;
   jinjaVariables: any,
@@ -227,6 +228,13 @@ export function getLanguageService(params: {
   const yamlDefinition = new YamlDefinition(params.telemetry);
 
   new JSONSchemaSelection(schemaService, params.yamlSettings, params.connection);
+
+  const py: PythonPath = {
+    resolve: () => { },
+    reject: () => { }
+  }
+
+  const pythonPath = initPythonPath(py);
 
   const languageService = {
     configure2: (schemas) => {
@@ -311,9 +319,12 @@ export function getLanguageService(params: {
     hasAsyncFlows(document: TextDocument) {
       return yamlValidation.hasAsyncFlows(document);
     },
+    hasAsyncFlows2(document: TextDocument): boolean {
+      return document.uri.endsWith('.flow.yaml')      
+    },
     trees: new Map(),
     stateQuery: initQuery() as Query,
-    pythonPath: "python",
+    pythonPath: [pythonPath, py] as [Promise<string>, PythonPath],
     doValidation2(doc: TextDocument, with_jinja = false) {
     },
     inJinjaTemplate(uri: string, position: Position): [Text, Point, number] | undefined {
@@ -394,4 +405,17 @@ function safeFunction(fn: () => any) {
   catch (e) {
     return undefined;
   }
+}
+
+export function initPythonPath(py: PythonPath): Promise<string> {
+  return new Promise((resolve, reject) => {
+    py.resolve = resolve;
+    py.reject = reject;
+  })
+}
+
+export type PythonPath = {
+  // path: Promise<string>,
+  resolve: (value: string) => void,
+  reject: () => void
 }

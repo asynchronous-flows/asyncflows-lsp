@@ -104,8 +104,10 @@ export class YamlCompletion {
 
 
   async doComplete(document: TextDocument, position: Position, isKubernetes = false, doComplete = true): Promise<CompletionList> {
-    if (!this.languageService.hasAsyncFlows(document).hasComment) {
-      return Promise.resolve({ isIncomplete: false, items: [] });
+    if (!this.languageService.hasAsyncFlows2(document)) {
+      if (!this.languageService.hasAsyncFlows(document).hasComment) {
+        return Promise.resolve({ isIncomplete: false, items: [] });
+      }
     }
 
     const textCompletion = this.languageService.inJinjaTemplate(document.uri, position);
