@@ -86,7 +86,11 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
       stdio: ['ignore', 'pipe', 'pipe', 'pipe']
     }
   );
+  let stdoutArray = [];
   let fd3Array = [];
+  cmd.stdout.on('data', (data) => {
+    stdoutArray.push(data);
+  })
   cmd.stdio[3].on('data', (data) => {
     fd3Array.push(data);
   })
@@ -99,6 +103,9 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
     if (fd3Array.length != 0) {
       console.log('Loading schema from fd3');
       dataBuffer = Buffer.concat(fd3Array);
+    } else {
+      console.log('Loading schema from stdout');
+      dataBuffer = Buffer.concat(stdoutArray);
     }
     updateConfig(dataBuffer.toString());
   })
