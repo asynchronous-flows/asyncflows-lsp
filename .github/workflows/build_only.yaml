@@ -9,19 +9,19 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            target: win32-x64
+            target: x86_64-pc-windows-msvc
             code-target: win32-x64
           - os: windows-latest
-            target: win32-arm64
+            target: aarch64-pc-windows-msvc
             code-target: win32-arm64
           - os: ubuntu-20.04
-            target: linux-x64
+            target: x86_64-unknown-linux-gnu
             code-target: linux-x64
           - os: ubuntu-20.04
-            target: linux-arm64
+            target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
           - os: ubuntu-20.04
-            target: linux-armhf
+            target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
           - os: macos-12
             target: x86_64-apple-darwin
@@ -65,6 +65,15 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: sudo apt-get update
 
+      - name: Install AArch64 target toolchain
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: sudo apt-get install gcc-aarch64-linux-gnu
+
+      - name: Install ARM target toolchain
+        if: matrix.target == 'arm-unknown-linux-gnueabihf'
+        run: sudo apt-get install gcc-arm-linux-gnueabihf
+        
+
       - name: Npm install
         run: npm install
         working-directory: editors/code
@@ -73,7 +82,7 @@ jobs:
         run: npm run compile3
         working-directory: editors/code
 
-      - if: contains(matrix.target, 'linux')
+      - if: contains(matrix.code-target, 'linux')
         run: sh ./scripts/update-paths.sh && mkdir ../../dist
         working-directory: editors/code
 
@@ -81,7 +90,7 @@ jobs:
         run: sh ./scripts/update-paths-darwin.sh && mkdir ../../dist
         working-directory: editors/code
 
-      - if: contains(matrix.target, 'win32')
+      - if: contains(matrix.code-target, 'win32')
         shell: pwsh
         run: ./scripts/update-paths-win32.ps1 && md ../../dist -ea 0
         working-directory: editors/code
