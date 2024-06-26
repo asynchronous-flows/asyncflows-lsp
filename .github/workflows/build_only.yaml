@@ -104,6 +104,24 @@ jobs:
         if: matrix.code-target
         run: npx vsce package -o ../../dist/asyncflows-lsp-${{ matrix.code-target }}.vsix --target ${{ matrix.code-target }}
         working-directory: editors/code
+        
+
+      - name: Print dist contents
+        run: |
+          echo "Contents of dist directory:"
+          ls -lR ../../dist
+          echo "File contents:"
+          for file in ../../dist/*; do
+            echo "--- $file ---"
+            if [[ -f "$file" ]]; then
+              if [[ "$file" == *.vsix ]]; then
+                echo "VSIX file, skipping content display"
+              else
+                head -n 50 "$file"
+              fi
+            fi
+          done
+        working-directory: editors/code
 
 
       - name: Upload artifacts
