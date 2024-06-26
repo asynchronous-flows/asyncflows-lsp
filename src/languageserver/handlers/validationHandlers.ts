@@ -27,6 +27,11 @@ export class ValidationHandler {
 
     this.connection.onDidCloseTextDocument((event) => {
       const document = this.yamlSettings.documents2.get(event.textDocument.uri);
+      if(!document) {
+      this.connection.sendDiagnostics({ uri: event.textDocument.uri, diagnostics: [] });
+        return ;
+      }
+      console.log(`doc: ${document}`);
       this.cleanPendingValidation(document);
       this.connection.sendDiagnostics({ uri: event.textDocument.uri, diagnostics: [] });
     });
