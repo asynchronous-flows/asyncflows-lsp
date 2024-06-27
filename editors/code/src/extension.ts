@@ -48,6 +48,21 @@ export async function activate(context: ExtensionContext) {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/.yaml')
 		},
+
+		middleware: {
+			handleDiagnostics(uri, diagnostics, next) {
+				if (uri.toString() == "file://asyncflows.log/") {
+					if (diagnostics.length == 1) {
+						const msg = JSON.parse(diagnostics[0].message);
+						if (msg.t == "setInterpreter") {
+							vscode.commands.executeCommand('python.setInterpreter').then((v) => {
+							});
+						}
+					}
+				}
+				next(uri, diagnostics);
+			},
+		}
 	};
 
 	// semanticTokens();
@@ -104,7 +119,7 @@ async function getInterpreter(pythonExtension: vscode.Extension<any>, update = f
 			if (update) {
 				args.push('true');
 			}
-			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: args})
+			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: args })
 		}
 	}
 }
@@ -132,8 +147,8 @@ async function setInterpreter(context: vscode.ExtensionContext, output: vscode.O
 	// python.setInterpreter
 	const pythonApi = pythonExt.exports;
 	const interpreter = await pythonApi.settings.onDidChangeExecutionDetails(change => {
-		getInterpreter(pythonExt, true).then(() => {});
+		getInterpreter(pythonExt, true).then(() => { });
 	});
-	
+
 	return Promise.resolve(null)
 }
