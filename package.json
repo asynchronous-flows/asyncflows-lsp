@@ -1,7 +1,7 @@
 {
   "name": "asyncflows-lsp",
   "description": "Asyncflows language server",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "author": "Asynchronous Flows",
   "license": "See LICENSE file",
   "contributors": [
