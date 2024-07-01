@@ -48,6 +48,21 @@ export async function activate(context: ExtensionContext) {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/.yaml')
 		},
+
+		middleware: {
+			handleDiagnostics(uri, diagnostics, next) {
+				if (uri.toString() == "file://asyncflows.log/") {
+					if (diagnostics.length == 1) {
+						const msg = JSON.parse(diagnostics[0].message);
+						if (msg.t == "setInterpreter") {
+							vscode.commands.executeCommand('python.setInterpreter').then((v) => {
+							});
+						}
+					}
+				}
+				next(uri, diagnostics);
+			},
+		}
 	};
 
 	// semanticTokens();
@@ -62,6 +77,7 @@ export async function activate(context: ExtensionContext) {
 
 	const pythonExtension = vscode.extensions.getExtension('ms-python.python');
 	const jinjaExtension = vscode.extensions.getExtension('samuelcolvin.jinjahtml');
+	setInterpreter(context, output, pythonExtension)
 	if (!pythonExtension) {
 		vscode.window.showErrorMessage('Python extension is not installed.');
 		output.appendLine('Python extension is not installed.')
@@ -86,7 +102,7 @@ export async function activate(context: ExtensionContext) {
 	client.start();
 }
 
-async function getInterpreter(pythonExtension: vscode.Extension<any>) {
+async function getInterpreter(pythonExtension: vscode.Extension<any>, update = false) {
 	const pythonApi = pythonExtension.exports;
 	const interpreter = await pythonApi.settings.getExecutionDetails();
 	if (interpreter == undefined) {
@@ -99,7 +115,11 @@ async function getInterpreter(pythonExtension: vscode.Extension<any>) {
 		else {
 			vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter.execCommand.join(' ')}`);
 			const interpreterPath = `${interpreter.execCommand.join(' ')}`;
-			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [interpreterPath] })
+			let args = [interpreterPath];
+			if (update) {
+				args.push('true');
+			}
+			client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: args })
 		}
 	}
 }
@@ -121,4 +141,14 @@ function tsPaths(extensionPath: string): [string, string] {
 
 	return [newYamlPath, newTreeSitterPath]
 
+}
+
+async function setInterpreter(context: vscode.ExtensionContext, output: vscode.OutputChannel, pythonExt: vscode.Extension<any>): Promise<null> {
+	// python.setInterpreter
+	const pythonApi = pythonExt.exports;
+	const interpreter = await pythonApi.settings.onDidChangeExecutionDetails(change => {
+		getInterpreter(pythonExt, true).then(() => { });
+	});
+
+	return Promise.resolve(null)
 }

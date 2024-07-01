@@ -79,6 +79,7 @@ export interface TomlConfig {
 }
 
 export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void, pythonPath: string) {
+  yamlConfig = decodeURIComponent(yamlConfig);
   const cmd = spawn(
     pythonPath, 
     ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")], 
@@ -90,7 +91,7 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
   let fd3Array = [];
   cmd.stdout.on('data', (data) => {
     stdoutArray.push(data);
-  })
+  })  
   cmd.stdio[3].on('data', (data) => {
     fd3Array.push(data);
   })
