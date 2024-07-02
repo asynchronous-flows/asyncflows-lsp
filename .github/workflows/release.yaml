@@ -18,15 +18,18 @@ jobs:
           - os: windows-latest
             target: aarch64-pc-windows-msvc
             code-target: win32-arm64
+            package-name: win32-arm64-msvc
           - os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
             code-target: linux-x64
           - os: ubuntu-20.04
             target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
+            package-name: linux-arm64-gnu
           - os: ubuntu-20.04
             target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
+            package-name: linux-arm-gnueabihf
           - os: macos-12
             target: x86_64-apple-darwin
             code-target: darwin-x64
@@ -81,6 +84,15 @@ jobs:
       - name: Npm install
         run: npm install
         working-directory: editors/code
+
+      - name: Fetch correct Nodejs bindings(Linux)
+        if: ${{ contains(matrix.code-target, 'linux') && matrix.package-name }} 
+        run: sh ./scripts/update-nm.sh ${{ matrix.package-name }}
+
+      - name: Fetch correct Nodejs bindings(Windows)
+        if: ${{ contains(matrix.code-target, 'win32') && matrix.package-name }} 
+        run: ./scripts/update-nm.ps1 ${{ matrix.package-name }}
+        
 
       - name: Build extension
         run: npm run compile3

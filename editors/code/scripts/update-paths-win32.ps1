@@ -20,3 +20,5 @@ process.dlopen(module, __dirname);
 return;
 ';
 Set-Content -Path "dist\languageserver.js" -Value $updatedContent
+
+Remove-Item -Path "dist\*node"
