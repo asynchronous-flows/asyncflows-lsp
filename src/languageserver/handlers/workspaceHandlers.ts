@@ -45,7 +45,7 @@ export class WorkspaceHandlers {
                 continue
               }
               read2(doc[0], this.languageSettings, (content) => {
-                if (!content.includes('Traceback')) {
+                if (!content.includes('Traceback (most recent')) {
                   console.log('Adding new schema');
                   this.languageService.resetSemanticTokens.set(doc[0], true);
                   this.languageService.addSchema2(doc[0], content, this.languageService);
@@ -56,7 +56,7 @@ export class WorkspaceHandlers {
               }, pythonPath
               );
             }
-          }).catch(() => {})
+          }).catch((_) => {})
         }
       }
       this.getAsyncFlows(params.arguments[0]).then(() => { });

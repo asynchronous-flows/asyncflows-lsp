@@ -104,7 +104,7 @@ export class LanguageHandlers {
 
       this.languageService.pythonPath[0].then(pythonPath => {
         read2(params.textDocument.uri, this.yamlSettings, (content) => {
-          if (!content.includes('Traceback')) {
+          if (!content.includes('Traceback (most recent')) {
             console.log('Adding new schema');
             this.languageService.resetSemanticTokens.set(params.textDocument.uri, true);
             this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
@@ -114,7 +114,7 @@ export class LanguageHandlers {
           }
         }, pythonPath
         );
-      })
+      }).catch(_=>{})
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
       const data = await this.intoSemanticTokens(params.textDocument.uri);
@@ -137,7 +137,7 @@ export class LanguageHandlers {
       }
       this.languageService.pythonPath[0].then(pythonPath => {
         read2(e.textDocument.uri, this.yamlSettings, (content) => {
-          if (!content.includes('Traceback')) {
+          if (!content.includes('Traceback (most recent')) {
             console.log('Adding new schema');
             this.languageService.resetSemanticTokens.set(e.textDocument.uri, true);
             this.languageService.addSchema2(e.textDocument.uri, content, this.languageService);
@@ -147,7 +147,7 @@ export class LanguageHandlers {
           }
         }, pythonPath
         );
-      })
+      }).catch((_)=>{})
     });
     this.connection.onDidChangeTextDocument((event) => {
       // @ts-ignore
@@ -422,7 +422,7 @@ export class LanguageHandlers {
           }
         }, pythonPath
         );
-      });
+      }).catch(_=>{});
     }
   }
 
