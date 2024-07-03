@@ -1,9 +1,9 @@
 import "path"
-import { readFile, readFileSync, stat, statSync } from "fs"
+import { readFileSync,  statSync } from "fs"
 import { parse as tomlParse } from "toml";
 import { spawn } from "child_process";
 import { SettingsState } from "./yamlSettings";
-import { SchemaPriority } from "./languageservice/yamlLanguageService";
+import { LanguageService, SchemaPriority } from "./languageservice/yamlLanguageService";
 import { JSONDocument } from "./languageservice/parser/jsonParser07";
 import { SingleYAMLDocument } from "./languageservice/parser/yaml-documents";
 import { Point } from "tree-sitter";
@@ -78,11 +78,16 @@ export interface TomlConfig {
   actions: string,
 }
 
-export function read2(yamlConfig: string, settings: SettingsState, updateConfig: (content: string) => void, pythonPath: string) {
+export function read2(yamlConfig: string,
+  settings: SettingsState,
+  pythonPath: string,
+  languageService: LanguageService,
+  toReset = false) {
+  const uri = yamlConfig.toString();
   yamlConfig = decodeURIComponent(yamlConfig);
   const cmd = spawn(
-    pythonPath, 
-    ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")], 
+    pythonPath,
+    ['-m', 'asyncflows.scripts.generate_config_schema', '--flow', yamlConfig.replace("file://", "")],
     {
       stdio: ['ignore', 'pipe', 'pipe', 'pipe']
     }
@@ -91,7 +96,7 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
   let fd3Array = [];
   cmd.stdout.on('data', (data) => {
     stdoutArray.push(data);
-  })  
+  })
   cmd.stdio[3].on('data', (data) => {
     fd3Array.push(data);
   })
@@ -108,7 +113,16 @@ export function read2(yamlConfig: string, settings: SettingsState, updateConfig:
       console.log('Loading schema from stdout');
       dataBuffer = Buffer.concat(stdoutArray);
     }
-    updateConfig(dataBuffer.toString());
+    const content = dataBuffer.toString();
+    if (!content.includes('Traceback (most recent')) {
+      if (toReset) {
+        languageService.resetSemanticTokens.set(uri, true);
+      }
+      languageService.addSchema2(uri, content, languageService);
+    }
+    else {
+      console.log(`content error: ${content}`)
+    }
   })
 }
 
@@ -153,9 +167,9 @@ export function toLspRange(startPoint: Point, endPoint: Point): Range {
 
 export function isInLspRange(point: Point, ranges: Range[]): boolean {
   const position = toLspPosition(point);
-  for(const range of ranges) {
-    if(position.character >= range.start.character && position.character <= range.end.character) {
-      if(position.line >= range.start.line && position.line <= range.end.line) {
+  for (const range of ranges) {
+    if (position.character >= range.start.character && position.character <= range.end.character) {
+      if (position.line >= range.start.line && position.line <= range.end.line) {
         return true;
       }
     }

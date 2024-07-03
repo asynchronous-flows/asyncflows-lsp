@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, Diagnostic, LocationLink, Position, TextDocument, TextDocumentChangeEvent } from 'vscode-languageserver';
+import { Connection, Diagnostic, LocationLink, Position, TextDocument, } from 'vscode-languageserver';
 import {
   CodeActionParams,
   DidChangeWatchedFilesParams,
@@ -21,11 +21,8 @@ import {
   SemanticTokensRequest,
   Range,
   uinteger,
-  TextDocumentEdit,
   SemanticTokenTypes,
   SemanticTokenModifiers,
-  ProtocolRequestType0,
-  SemanticTokensRefreshRequest,
 } from 'vscode-languageserver-protocol';
 import {
   CodeAction,
@@ -39,7 +36,6 @@ import {
   SelectionRange,
   SymbolInformation,
   TextEdit,
-  SemanticTokens,
 } from 'vscode-languageserver-types';
 import { isKubernetesAssociatedDocument } from '../../languageservice/parser/isKubernetes';
 import { LanguageService } from '../../languageservice/yamlLanguageService';
@@ -47,7 +43,7 @@ import { SettingsState } from '../../yamlSettings';
 import { ValidationHandler } from './validationHandlers';
 import { ResultLimitReachedNotification } from '../../requestTypes';
 import * as path from 'path';
-import { hasAsyncFlows, isInLspRange, LspComment, read2 } from '../../helper';
+import { isInLspRange, LspComment, read2 } from '../../helper';
 import { SyntaxNode } from 'tree-sitter';
 import { emptyFlowState, get_state, parseNewTree } from '../../tree_sitter_queries/queries';
 import { toInputEdit } from '../../tree_sitter_queries/toInputEdit';
@@ -103,18 +99,8 @@ export class LanguageHandlers {
       }
 
       this.languageService.pythonPath[0].then(pythonPath => {
-        read2(params.textDocument.uri, this.yamlSettings, (content) => {
-          if (!content.includes('Traceback (most recent')) {
-            console.log('Adding new schema');
-            this.languageService.resetSemanticTokens.set(params.textDocument.uri, true);
-            this.languageService.addSchema2(params.textDocument.uri, content, this.languageService);
-          }
-          else {
-            console.log(`content error: ${content}`)
-          }
-        }, pythonPath
-        );
-      }).catch(_=>{})
+        read2(params.textDocument.uri, this.yamlSettings, pythonPath, this.languageService, true);
+      }).catch(_ => { })
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
       const data = await this.intoSemanticTokens(params.textDocument.uri);
@@ -136,18 +122,8 @@ export class LanguageHandlers {
         this.editTopComment(textDocument, comment);
       }
       this.languageService.pythonPath[0].then(pythonPath => {
-        read2(e.textDocument.uri, this.yamlSettings, (content) => {
-          if (!content.includes('Traceback (most recent')) {
-            console.log('Adding new schema');
-            this.languageService.resetSemanticTokens.set(e.textDocument.uri, true);
-            this.languageService.addSchema2(e.textDocument.uri, content, this.languageService);
-          }
-          else {
-            console.log(`content error: ${content}`)
-          }
-        }, pythonPath
-        );
-      }).catch((_)=>{})
+        read2(e.textDocument.uri, this.yamlSettings, pythonPath, this.languageService, true);
+      }).catch((_) => { })
     });
     this.connection.onDidChangeTextDocument((event) => {
       // @ts-ignore
@@ -182,9 +158,9 @@ export class LanguageHandlers {
       this.languageService.jinjaTemplates.deleteAll(uri);
     })
     const doc = this.yamlSettings.documents2.get(uri);
-    if(doc) {
-        this.readJinjaBlocks(uri, diagnostics)
-        this.readLambdaBlocks(uri);
+    if (doc) {
+      this.readJinjaBlocks(uri, diagnostics)
+      this.readLambdaBlocks(uri);
     }
   }
 
@@ -413,16 +389,8 @@ export class LanguageHandlers {
         return undefined;
       }
       this.languageService.pythonPath[0].then((pythonPath) => {
-        read2(uri, this.yamlSettings, (content) => {
-          if (!content.includes('Traceback (most recent')) {
-            this.languageService.addSchema2(uri, content, this.languageService);
-          }
-          else {
-            console.log(`content error: ${content}`)
-          }
-        }, pythonPath
-        );
-      }).catch(_=>{});
+        read2(uri, this.yamlSettings, pythonPath, this.languageService);
+      }).catch(_ => { });
     }
   }
 

@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { initPythonPath, LanguageService, PythonPath } from '../../languageservice/yamlLanguageService';
-import { ExecuteCommandParams, Connection, MessageActionItem, ProtocolRequestType0, ShowMessageRequest, ShowMessageRequestParams, MessageType } from 'vscode-languageserver';
+import { ExecuteCommandParams, Connection, MessageActionItem,  ShowMessageRequest, ShowMessageRequestParams, MessageType } from 'vscode-languageserver';
 import { CommandExecutor } from '../commandExecutor';
-import { spawn, spawnSync } from 'child_process';
+import { spawn } from 'child_process';
 import { SettingsState } from '../../yamlSettings';
 import { read2 } from '../../helper';
 import { extensionLog } from './languageHandlers';
@@ -44,17 +44,7 @@ export class WorkspaceHandlers {
               if (this.languageService.hasAsyncFlows(doc[1]).hasComment == false) {
                 continue
               }
-              read2(doc[0], this.languageSettings, (content) => {
-                if (!content.includes('Traceback (most recent')) {
-                  console.log('Adding new schema');
-                  this.languageService.resetSemanticTokens.set(doc[0], true);
-                  this.languageService.addSchema2(doc[0], content, this.languageService);
-                }
-                else {
-                  console.log(`content error: ${content}`)
-                }
-              }, pythonPath
-              );
+              read2(doc[0], this.languageSettings, pythonPath, this.languageService, true);
             }
           }).catch((_) => {})
         }
@@ -94,7 +84,7 @@ async getAsyncFlows(python = 'python') {
                 notification = true;
               }
             });
-            installation.stdout.on('end', (event) => {
+            installation.stdout.on('end', (_) => {
               this.languageService.pythonPath[1].resolve(python);
               this.connection.window.showInformationMessage('Asyncflows successfully installed.')
             });
@@ -103,7 +93,6 @@ async getAsyncFlows(python = 'python') {
             extensionLog(this.connection, JSON.stringify({ t: "setInterpreter" }));
             extensionLog(this.connection);
           }
-
         }
       });
     });
