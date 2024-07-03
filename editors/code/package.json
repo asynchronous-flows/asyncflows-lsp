@@ -3,7 +3,7 @@
   "displayName": "asyncflows",
   "description": "Autocomplete and highlighting for asyncflows YAML config.",
   "license": "See LICENSE file",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "repository": {
     "url": "https://github.com/asynchronous-flows/asyncflows-lsp/"
   },
@@ -70,7 +70,7 @@
   },
   "dependencies": {
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
-    "asyncflows-lsp": "0.1.11",
+    "asyncflows-lsp": "0.1.13",
     "jschardet": "^3.1.2",
     "tree-sitter": "^0.21.1",
     "ts-loader": "^9.5.1",

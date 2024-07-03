@@ -1,9 +1,19 @@
 $prependContent = @"
-const YAML_PATH=process.env.YAML_PATH;
-const TREESITTER_PATH=process.env.TREESITTER_PATH;    
-const EXT_PATH=process.env.EXT_PATH;
-const PATH2=require("path");
+let YAML_PATH=process.env.YAML_PATH;
+let TREESITTER_PATH=process.env.TREESITTER_PATH;    
+let EXT_PATH=process.env.EXT_PATH;
+let PATH2=require("path");
 
+if(EXT_PATH == undefined) {
+    const new_path = PATH2.join(__dirname, '..');
+    EXT_PATH = new_path;
+    let parts = "node_modules/@tree-sitter-grammars/tree-sitter-yaml/bindings/node".split("/");
+    YAML_PATH = PATH2.join(new_path);
+    for(const i of parts) {
+        YAML_PATH = PATH2.join(YAML_PATH, i);
+    }
+    TREESITTER_PATH = PATH2.join(new_path, "node_modules", "tree-sitter");
+}
 "@
 $existingContent = Get-Content -Path dist\languageserver.js -Raw
 $newContent = "$prependContent`n$existingContent"
@@ -20,3 +30,5 @@ process.dlopen(module, __dirname);
 return;
 ';
 Set-Content -Path "dist\languageserver.js" -Value $updatedContent
+
+Remove-Item -Path "dist\*node"
