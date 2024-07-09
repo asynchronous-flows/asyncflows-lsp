@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { initPythonPath, LanguageService, PythonPath } from '../../languageservice/yamlLanguageService';
-import { ExecuteCommandParams, Connection, MessageActionItem,  ShowMessageRequest, ShowMessageRequestParams, MessageType } from 'vscode-languageserver';
+import { ExecuteCommandParams, Connection, MessageActionItem, ShowMessageRequest, ShowMessageRequestParams, MessageType } from 'vscode-languageserver';
 import { CommandExecutor } from '../commandExecutor';
 import { spawn } from 'child_process';
 import { SettingsState } from '../../yamlSettings';
@@ -46,18 +46,22 @@ export class WorkspaceHandlers {
               }
               read2(doc[0], this.languageSettings, pythonPath, this.languageService, true);
             }
-          }).catch((_) => {})
+          }).catch((_) => { })
         }
       }
       this.getAsyncFlows(params.arguments[0]).then(() => { });
     }
+    else if (id == "asyncflows-lsp.vscodePing") {
+      extensionLog(this.connection, JSON.stringify({ t: "vscodePing" }));
+      extensionLog(this.connection);
+    }
   }
 
 
-async getAsyncFlows(python = 'python') {
+  async getAsyncFlows(python = 'python') {
     const cmd = spawn(python, ['-c', 'import asyncflows'])
     cmd.on('close', (code) => {
-      if(code == 0) {
+      if (code == 0) {
         this.languageService.pythonPath[1].resolve(python);
       }
     });
@@ -79,7 +83,7 @@ async getAsyncFlows(python = 'python') {
             const installation = spawn(python, ['-m', 'pip', 'install', 'asyncflows']);
             let notification = false;
             installation.stdout.on('data', (event) => {
-              if(!notification) {
+              if (!notification) {
                 this.connection.window.showInformationMessage('Installation started..')
                 notification = true;
               }
@@ -98,6 +102,6 @@ async getAsyncFlows(python = 'python') {
     });
 
   }
-}  
+}
 
-  
+

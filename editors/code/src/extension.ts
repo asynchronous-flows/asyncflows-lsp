@@ -27,6 +27,7 @@ export async function activate(context: ExtensionContext) {
 	let config = {};
 	let debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 	const tsPath = tsPaths(context.extensionPath);
+	const asyncflowsSettings = new AsyncflowsSettings();
 
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
@@ -54,6 +55,7 @@ export async function activate(context: ExtensionContext) {
 				if (uri.toString() == "file://asyncflows.log/") {
 					if (diagnostics.length == 1) {
 						const msg = JSON.parse(diagnostics[0].message);
+						asyncflowsSettings.notify(msg);
 						if (msg.t == "setInterpreter") {
 							vscode.commands.executeCommand('python.setInterpreter').then((v) => {
 							});
@@ -100,6 +102,13 @@ export async function activate(context: ExtensionContext) {
 
 	// Start the client. This will also launch the server
 	client.start();
+	// context.extension.exports = {}; 
+
+	asyncflowsSettings.pingServer = () => {
+		client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePing', arguments: [""] })
+	}
+
+	return {settings: asyncflowsSettings}
 }
 
 async function getInterpreter(pythonExtension: vscode.Extension<any>, update = false) {
@@ -151,4 +160,26 @@ async function setInterpreter(context: vscode.ExtensionContext, output: vscode.O
 	});
 
 	return Promise.resolve(null)
+}
+
+export class AsyncflowsSettings {
+	state: {(message: any): void}[]
+
+	constructor() {
+		this.state = [];
+	}
+
+	notify(message: any) {
+		for (const fn of this.state) {
+			fn(message);
+		}
+	}
+
+	addFn(fn: (message: any) => void) {
+		this.state.push(fn);
+	}
+
+	pingServer() {
+		
+	}
 }

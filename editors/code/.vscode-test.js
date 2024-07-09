@@ -5,11 +5,12 @@ module.exports = defineConfig([
   {
     label: 'integrationTests',
     files: 'out/test/**/*.test.js',
-    version: 'insiders',
-    workspaceFolder: './sampleWorkspace',
+    version: '1.82.0',
+    workspaceFolder: './example',
     mocha: {
       ui: 'tdd',
-      timeout: 20000
+      // delay: 300,
+      timeout: 50000
     }
   }
   // you can specify additional test configurations, too

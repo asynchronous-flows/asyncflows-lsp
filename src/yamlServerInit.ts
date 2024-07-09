@@ -129,7 +129,9 @@ export class YAMLServerInit {
           resolveProvider: false,
         },
         executeCommandProvider: {
-          commands: ["asyncflows-lsp.vscodePythonPath"]
+          commands: [
+            "asyncflows-lsp.vscodePythonPath",
+            "asyncflows-lsp.vscodePing"]
         },
         workspace: {
           workspaceFolders: {
