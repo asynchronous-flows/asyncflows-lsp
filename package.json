@@ -116,8 +116,5 @@
       "editors/code/out"
     ],
     "all": true
-  },
-  "resolutions": {
-    "jschardet": "3.1.2"
   }
 }
