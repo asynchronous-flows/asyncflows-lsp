@@ -86,15 +86,11 @@ jobs:
         run: npm install
         working-directory: editors/code
 
-      - name: Fetch correct Nodejs bindings(Linux)
-        if: ${{ contains(matrix.code-target, 'linux') && matrix.package-name }} 
-        run: sh ./scripts/update-nm.sh ${{ matrix.package-name }}
+      - name: Fetch correct Nodejs bindings
+        if: ${{ matrix.package-name }} 
+        run: npm install ${{ matrix.package-name }} -f
         working-directory: editors/code
 
-      - name: Fetch correct Nodejs bindings(Windows)
-        if: ${{ contains(matrix.code-target, 'win32') && matrix.package-name }} 
-        run: ./scripts/update-nm.ps1 ${{ matrix.package-name }}
-        working-directory: editors/code
 
       - name: Build extension
         run: npm run compile3
