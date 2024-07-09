@@ -7,8 +7,5 @@ sed -i '' -E 's|(var __dirname = "(\.\./\.\./(node_modules/@jinja-lsp/functions-
 rm -rf dist/*node
 
 cp -r ../../node_modules/@jinja-lsp .
-mkdir -p node_modules/@jinja-lsp
-cp -r node_modules/@jinja-lsp/* @jinja-lsp
 npm uninstall asyncflows-lsp -f
-rm -rf node_modules/@jinja-lsp
 mv -f @jinja-lsp node_modules

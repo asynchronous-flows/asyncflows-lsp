@@ -89,7 +89,6 @@ jobs:
       - name: Fetch correct Nodejs bindings
         if: ${{ matrix.package-name }} 
         run: npm install @jinja-lsp/functions-${{ matrix.package-name }} -f
-        working-directory: editors/code
 
 
       - name: Build extension

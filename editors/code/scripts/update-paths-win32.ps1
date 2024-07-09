@@ -35,12 +35,5 @@ Remove-Item -Path "dist\*node"
 
 Copy-Item -Path "..\..\node_modules\@jinja-lsp" -Destination "." -Recurse
 
-if (-Not (Test-Path -Path "node_modules\@jinja-lsp")) {
-    New-Item -Path "node_modules\@jinja-lsp" -ItemType Directory
-}
-Copy-Item -Path "node_modules\@jinja-lsp\*" -Destination "@jinja-lsp" -Recurse
 npm uninstall asyncflows-lsp -f
-if ((Test-Path -Path "node_modules\@jinja-lsp")) {
-    Remove-Item -Path "node_modules\\@jinja-lsp" -Recurse -Force
-}
 Move-Item -Path "@jinja-lsp" -Destination "node_modules" -Force
