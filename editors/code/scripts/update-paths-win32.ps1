@@ -25,10 +25,20 @@ $treeSitter = 'var __dirname = "node_modules\\\\tree-sitter";';
 $content = Get-Content -Path dist\languageserver.js; 
 $updatedContent = $content -replace $yamlGrammar, "var __dirname = YAML_PATH;"; 
 $updatedContent = $updatedContent -replace $treeSitter, "var __dirname = TREESITTER_PATH;"; 
-$updatedContent = $updatedContent -replace '(var __dirname = "(node_modules\\\\@jinja-lsp\\\\functions-)(.*)";)', 'var __dirname = PATH2.join(EXT_PATH, "$2$3", "functions.$3.node");
+$updatedContent = $updatedContent -replace '(var __dirname = "(..\\\\..\\\\(node_modules\\\\@jinja-lsp\\\\functions-))(.*)";)', 'var __dirname = PATH2.join(EXT_PATH, "$3$4", "functions.$4.node");
 process.dlopen(module, __dirname);
 return;
 ';
 Set-Content -Path "dist\languageserver.js" -Value $updatedContent
 
 Remove-Item -Path "dist\*node"
+
+Copy-Item -Path "..\..\node_modules\@jinja-lsp" -Destination "." -Recurse
+
+if (-Not (Test-Path -Path "node_modules\@jinja-lsp")) {
+    New-Item -Path "node_modules\@jinja-lsp" -ItemType Directory
+}
+Copy-Item -Path "node_modules\@jinja-lsp\*" -Destination "@jinja-lsp" -Recurse
+npm uninstall asyncflows-lsp -f
+Remove-Item "node_modules\@jinja-lsp"
+Move-Item -Path "@jinja-lsp" -Destination "node_modules" -Force
