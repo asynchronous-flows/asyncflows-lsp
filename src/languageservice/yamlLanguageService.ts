@@ -205,6 +205,7 @@ export interface LanguageService {
   pythonSemanticTokens: Map<string, JsIdentifier[]>;
   getAsyncFlowsType(position: Position, doc: TextDocument): string | null;
   safeFunction(fn: () => any): any;
+  logs: boolean
 }
 
 export function getLanguageService(params: {
@@ -370,7 +371,8 @@ export function getLanguageService(params: {
     pythonSemanticTokens: new Map(),
     safeFunction(fn: () => any): any {
       return safeFunction(fn)
-    }
+    },
+    logs: false
   };
   schemaService.languageService = languageService;
   yamlValidation.setLanguageService(languageService);

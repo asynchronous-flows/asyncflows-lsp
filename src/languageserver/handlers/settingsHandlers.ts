@@ -395,35 +395,30 @@ export class SettingsHandler {
 
   getAllActionEnums(schema: any, uri: string) {
     const links = [];
-    for (const [key, value] of Object.entries(schema.$defs)) {
-      if (key == "__LinkHintLiteral") {
-        // @ts-ignore
-        const values = value.anyOf;
-        if ((values instanceof Array) == false) {
-          return;
-        }
-        for (const l of values) {
-          if (!l.description) {
-            l.description = ""
-          }
-          if (!l.markdownDescription) {
-            l.markdownDescription = "";
-          }
-          const enumValues = l.enum;
-          for (const e of enumValues) {
-            links.push({ name: e, description: l.markdownDescription });
-          }
-        }
-        this.languageService.globalJinjaActions.set(uri, links)
-        this.languageService.safeFunction(() => {
-          this.languageService.jinjaTemplates.addGlobalContext(
-            uri,
-            links
-          );
-        })
-        break
+    const hintLiteral = schema.$defs['__LinkHintLiteral'];
+    const values = hintLiteral.anyOf;
+    if ((values instanceof Array) == false) {
+      return;
+    }
+    for (const l of values) {
+      if (!l.description) {
+        l.description = ""
+      }
+      if (!l.markdownDescription) {
+        l.markdownDescription = "";
+      }
+      const enumValues = l.enum;
+      for (const e of enumValues) {
+        links.push({ name: e, description: l.markdownDescription });
       }
     }
+    this.languageService.globalJinjaActions.set(uri, links)
+    this.languageService.safeFunction(() => {
+      this.languageService.jinjaTemplates.addGlobalContext(
+        uri,
+        links
+      );
+    })
   }
 
   /**

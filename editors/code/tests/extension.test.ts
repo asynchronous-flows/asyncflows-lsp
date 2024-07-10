@@ -10,41 +10,6 @@ import * as assert from 'assert';
 
 import * as vscode from 'vscode'
 
-async function main() {
-  try {
-    const extensionDevelopmentPath = path.resolve(__dirname, '../..');
-    console.log(extensionDevelopmentPath);
-    const extensionTestsPath = path.resolve(__dirname, './out/test');
-    const vscodeExecutablePath = await downloadAndUnzipVSCode('insiders');
-    const [cliPath, ...args] = resolveCliArgsFromVSCodeExecutablePath(vscodeExecutablePath);
-
-    // Use cp.spawn / cp.exec for custom setup
-    const result = cp.spawnSync(
-      cliPath,
-      ['--install-extension', 'asyncflows-lsp-0.1.13.vsix'],
-      {
-        encoding: 'utf-8',
-        stdio: 'inherit'
-      }
-    );
-
-    // Run the extension test
-    await runTests({
-      // Use the specified `code` executable
-      vscodeExecutablePath,
-      extensionDevelopmentPath,
-      extensionTestsPath
-    });
-
-
-  } catch (err) {
-    console.log('error in main')
-    console.error('Failed to run tests');
-    process.exit(1);
-  }
-}
-
-// main();
 
 test('Sample test', async () => {
   assert.strictEqual(-1, [1, 2, 3].indexOf(5));
@@ -54,6 +19,11 @@ test('Sample test', async () => {
   const debonoYamlUri = vscode.Uri.parse(debonoYaml);
 
   const doc = await vscode.workspace.openTextDocument(debonoYamlUri);
+  (await vscode.window.showTextDocument(doc)).edit((edit) => {
+    let lastLine = doc.lineCount;
+    let position = new vscode.Position(lastLine - 1, 0);
+    edit.insert(position, "\n");
+  });
   const ext = vscode.extensions.getExtension('AsynchronousFlows.asyncflows-lsp');
 
   function wait(ms: number) {
@@ -66,21 +36,31 @@ test('Sample test', async () => {
   }
   await wait(2000);
 
+  let returnedSchema = false;
   if (ext) {
     if (ext.exports) {
-      await vscode.commands.executeCommand('workbench.action.closeActiveEditor')      
+      // await vscode.commands.executeCommand('workbench.action.closeActiveEditor')      
       const settings = ext.exports.settings;
       settings.pingServer();
+      settings.enableLogs();
       settings.addFn((msg: any) => {
         if(typeof msg == "object") {
           const t = msg.t;
-          assert.strictEqual(t, "vscodePing");
+          console.log(`t: ${t}`)
+          if(t == "vscodePing") {
+            assert.strictEqual(msg.message, "pong");
+            doc.save().then(() => {});
+          }
+          else if(t == "onSave") {
+            const content = msg.message as string;
+            assert.strictEqual(content.includes('__LinkHintLiteral'), true);
+            returnedSchema = true;
+          }
         }
       })
     }
   }
-  await wait(3000);
+  await wait(5000);
+  assert.strictEqual(returnedSchema, true);
 
-  const doc2 = await vscode.workspace.openTextDocument(debonoYamlUri);
-  await wait(2000);
 });

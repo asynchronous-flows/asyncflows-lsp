@@ -52,8 +52,11 @@ export class WorkspaceHandlers {
       this.getAsyncFlows(params.arguments[0]).then(() => { });
     }
     else if (id == "asyncflows-lsp.vscodePing") {
-      extensionLog(this.connection, JSON.stringify({ t: "vscodePing" }));
+      extensionLog(this.connection, JSON.stringify({ t: "vscodePing", message: "pong" }));
       extensionLog(this.connection);
+    }
+    else if (id == "asyncflows-lsp.enableLogs") {
+      this.languageService.logs = true;
     }
   }
 

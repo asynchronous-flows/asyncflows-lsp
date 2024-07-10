@@ -8,6 +8,7 @@ import { JSONDocument } from "./languageservice/parser/jsonParser07";
 import { SingleYAMLDocument } from "./languageservice/parser/yaml-documents";
 import { Point } from "tree-sitter";
 import { Position, Range } from "vscode-languageserver";
+import { extensionLog } from "./languageserver/handlers/languageHandlers";
 
 export function readPyProject(): string | TomlConfig {
   let errors: string | TomlConfig = "Config not found";
@@ -82,7 +83,8 @@ export function read2(yamlConfig: string,
   settings: SettingsState,
   pythonPath: string,
   languageService: LanguageService,
-  toReset = false) {
+  toReset = false,
+  connection = undefined) {
   const uri = yamlConfig.toString();
   yamlConfig = decodeURIComponent(yamlConfig);
   const cmd = spawn(
@@ -117,6 +119,10 @@ export function read2(yamlConfig: string,
     if (!content.includes('Traceback (most recent')) {
       if (toReset) {
         languageService.resetSemanticTokens.set(uri, true);
+      }
+      if (languageService.logs && connection) {
+        extensionLog(connection, JSON.stringify({ t: "onSave", message: content }));
+        extensionLog(connection);
       }
       languageService.addSchema2(uri, content, languageService);
     }

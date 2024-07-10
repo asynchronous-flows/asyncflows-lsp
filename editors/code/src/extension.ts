@@ -107,6 +107,9 @@ export async function activate(context: ExtensionContext) {
 	asyncflowsSettings.pingServer = () => {
 		client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePing', arguments: [""] })
 	}
+	asyncflowsSettings.enableLogs = () => {
+		client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.enableLogs', arguments: [""] })
+	}
 
 	return {settings: asyncflowsSettings}
 }
@@ -180,6 +183,10 @@ export class AsyncflowsSettings {
 	}
 
 	pingServer() {
+		
+	}
+
+	enableLogs() {
 		
 	}
 }

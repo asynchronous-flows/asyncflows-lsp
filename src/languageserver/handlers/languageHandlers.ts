@@ -99,7 +99,7 @@ export class LanguageHandlers {
       }
 
       this.languageService.pythonPath[0].then(pythonPath => {
-        read2(params.textDocument.uri, this.yamlSettings, pythonPath, this.languageService, true);
+        read2(params.textDocument.uri, this.yamlSettings, pythonPath, this.languageService, true, this.connection);
       }).catch(_ => { })
     });
     this.connection.onRequest(SemanticTokensRequest.type, async (params) => {
