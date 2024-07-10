@@ -30,7 +30,6 @@ import { SchemaVersions } from '../yamlTypes';
 import Ajv, { DefinedError } from 'ajv';
 import { getSchemaTitle } from '../utils/schemaUtils';
 
-import actionSchema from "../../../src/asyncflows_schema";
 
 import { hasAsyncFlows } from '../../helper';
 

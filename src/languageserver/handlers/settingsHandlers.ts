@@ -12,7 +12,6 @@ import { SchemaSelectionRequests } from '../../requestTypes';
 import { Settings, SettingsState } from '../../yamlSettings';
 import { Telemetry } from '../../languageservice/telemetry';
 import { ValidationHandler } from './validationHandlers';
-import actionSchema from '../../asyncflows_schema';
 
 
 export class SettingsHandler {
@@ -245,29 +244,6 @@ export class SettingsHandler {
     return languageSettings;
   }
 
-  storeDefaultSchema(fileMatch: string) {
-    // this.languageService.updatedSchema.
-
-
-    this.languageService.updatedSchema.set('asyncflows_schema.json', actionSchema);
-    // const languageSettings = {
-    //   schemas: [],
-    // };
-    // if (fileMatch.endsWith("/")) {
-    //   fileMatch += "*";
-    // }
-    // else {
-    //   fileMatch += "/*"
-    // }
-
-    return {
-      uri: "asyncflows_schema.json",
-      fileMatch: [fileMatch],
-      priority: SchemaPriority.SchemaAssociation,
-      name: "asyncflows",
-      description: "Description",
-    };
-  }
 
   /**
    * Called when server settings or schema associations are changed
@@ -310,13 +286,9 @@ export class SettingsHandler {
       }
     }
 
-    let foundActionSchema = false;
     if (this.yamlSettings.schemaConfigurationSettings) {
       this.yamlSettings.schemaConfigurationSettings.forEach((schema) => {
         let uri = schema.uri;
-        if (uri == "asyncflows_schema.json") {
-          foundActionSchema = true;
-        }
         if (!uri && schema.schema) {
           uri = schema.schema.id;
         }
@@ -337,14 +309,6 @@ export class SettingsHandler {
           );
         }
       });
-    }
-    if (true) {
-      // if (this.yamlSettings.schemaConfigurationSettings.length == 0) {
-      // on load do this
-      const config = this.yamlSettings.asyncflowsConfig;
-      if (config) {
-        languageSettings.schemas.push(this.storeDefaultSchema(config.configs));
-      }
     }
 
     this.languageService.configure(languageSettings);
