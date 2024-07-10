@@ -75,21 +75,21 @@ jobs:
       - name: Install ARM target toolchain
         if: matrix.target == 'arm-unknown-linux-gnueabihf'
         run: sudo apt-get install gcc-arm-linux-gnueabihf
-        
+
+      - name: Npm install root
+        run: npm install
+
+      - name: Build root
+        run: npm rum build2       
 
       - name: Npm install
         run: npm install
         working-directory: editors/code
 
-      - name: Fetch correct Nodejs bindings(Linux)
-        if: ${{ contains(matrix.code-target, 'linux') && matrix.package-name }} 
-        run: sh ./scripts/update-nm.sh ${{ matrix.package-name }}
-        working-directory: editors/code
+      - name: Fetch correct Nodejs bindings
+        if: ${{ matrix.package-name }} 
+        run: npm install @jinja-lsp/functions-${{ matrix.package-name }} -f
 
-      - name: Fetch correct Nodejs bindings(Windows)
-        if: ${{ contains(matrix.code-target, 'win32') && matrix.package-name }} 
-        run: ./scripts/update-nm.ps1 ${{ matrix.package-name }}
-        working-directory: editors/code
 
       - name: Build extension
         run: npm run compile3

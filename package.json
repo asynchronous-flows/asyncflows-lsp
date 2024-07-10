@@ -34,7 +34,6 @@
     "@jinja-lsp/functions": "0.0.11",
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
     "ajv": "^8.11.0",
-    "jschardet": "3.1.2",
     "lodash": "4.17.21",
     "request-light": "^0.5.7",
     "toml": "^3.0.0",
@@ -49,7 +48,6 @@
     "yaml": "2.2.2"
   },
   "devDependencies": {
-    "@microsoft/eslint-formatter-sarif": "3.0.0",
     "@types/chai": "^4.2.12",
     "@types/node": "^20.12.12",
     "@types/prettier": "2.7.2",
@@ -85,7 +83,6 @@
     "coverage": "nyc mocha --require ts-node/register --timeout 5000 --require source-map-support/register --recursive --ui bdd ./test/*.test.ts",
     "coveralls": "nyc --reporter=lcov --reporter=text mocha --timeout 5000 --require ts-node/register --require source-map-support/register --recursive --ui bdd ./test/*.test.ts",
     "lint": "eslint --max-warnings 0 -c .eslintrc.js --ext .ts src test",
-    "lint-ci": "eslint --max-warnings 0 -c .eslintrc.js -f @microsoft/eslint-formatter-sarif -o eslint-result.sarif --ext .ts src test",
     "prettier-fix": "yarn prettier --write .",
     "build": "npm run clean && npm run lint && npm run compile && npm run build:libs",
     "build2": "npm run clean && npm run compile && npm run build:libs2",
@@ -116,8 +113,5 @@
       "editors/code/out"
     ],
     "all": true
-  },
-  "resolutions": {
-    "jschardet": "3.1.2"
   }
 }
