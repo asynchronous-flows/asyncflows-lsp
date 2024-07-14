@@ -45,6 +45,7 @@ export async function activate(context: ExtensionContext) {
 		// Register the server for plain text documents
 		documentSelector: [{ scheme: 'file', language: 'yaml' }],
 		initializationOptions: config,
+    progressOnInitialization: true,		
 		synchronize: {
 			// Notify the server about file changes to '.clientrc files contained in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/.yaml')
@@ -64,7 +65,7 @@ export async function activate(context: ExtensionContext) {
 				}
 				next(uri, diagnostics);
 			},
-		}
+		},
 	};
 
 	// semanticTokens();
@@ -108,7 +109,13 @@ export async function activate(context: ExtensionContext) {
 		client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePing', arguments: [""] })
 	}
 	asyncflowsSettings.enableLogs = () => {
+		let pythonPath = path.join(__dirname, '..', '.venv', 'bin', 'python');
+		pythonPath = path.resolve(pythonPath);
+		// const msg = JSON.parse('{t: """}');
+		// asyncflowsSettings.notify(msg);
+		output.appendLine(pythonPath);
 		client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.enableLogs', arguments: [""] })
+		client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: [pythonPath, 'true'] })
 	}
 
 	return {settings: asyncflowsSettings}
@@ -119,15 +126,19 @@ async function getInterpreter(pythonExtension: vscode.Extension<any>, update = f
 	const interpreter = await pythonApi.settings.getExecutionDetails();
 	if (interpreter == undefined) {
 		vscode.window.showErrorMessage(`Python interpreter is not configured.`)
+		// client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: ["python", "true"] })
 	}
 	if (interpreter) {
 		if (!interpreter.execCommand) {
 			vscode.window.showErrorMessage(`Python interpreter is not configured.`)
+			// client.sendRequest('workspace/executeCommand', { command: 'asyncflows-lsp.vscodePythonPath', arguments: ["python", "true"] })
 		}
 		else {
 			vscode.window.showInformationMessage(`Current Python Interpreter: ${interpreter.execCommand.join(' ')}`);
 			const interpreterPath = `${interpreter.execCommand.join(' ')}`;
-			let args = [interpreterPath];
+			// let args = [interpreterPath];
+		let pythonPath = ".venv/bin/python";
+			let args = [pythonPath]
 			if (update) {
 				args.push('true');
 			}

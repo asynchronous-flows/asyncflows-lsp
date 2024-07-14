@@ -11,6 +11,7 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             code-target: win32-x64
+            # to_test: true
           - os: windows-latest
             target: aarch64-pc-windows-msvc
             code-target: win32-arm64
@@ -18,6 +19,7 @@ jobs:
           - os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
             code-target: linux-x64
+            # to_test: true
           - os: ubuntu-20.04
             target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
@@ -29,6 +31,7 @@ jobs:
           - os: macos-12
             target: x86_64-apple-darwin
             code-target: darwin-x64
+            to_test: true
           - os: macos-12
             target: aarch64-apple-darwin
             code-target: darwin-arm64
@@ -38,7 +41,7 @@ jobs:
     container: ${{ matrix.container }}
 
     steps:
-      
+     
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -50,13 +53,39 @@ jobs:
           node-version: 18
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
-         python-version: '3.10'       
+         python-version: '3.11.9'       
 
-      - uses: actions/setup-python@v5 
+      - uses: actions/setup-python@v4 
         with:
           python-version: 'pypy3.10'          
+
+      - name: Cache asyncflows package
+        id: cache-pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ matrix.os }}-pip-asyncflows-${{ matrix.os }}-pip
+          restore-keys: |
+            ${{ matrix.os }}-pip-
+
+      - name: Install asyncflows(Macos)
+        if: matrix.to_test == true && matrix.os == 'macos-12'
+        run: |
+         python -m venv .venv
+         source .venv/bin/activate
+         pip install asyncflows
+         deactivate
+        working-directory: editors/code
+
+      - name: Install asyncflows(Windows)
+        if: matrix.to_test && matrix.os == 'windows-latest'
+        run: |
+         python -m venv .venv
+         .venv\Scripts\activate.ps1
+         pip install asyncflows
+        working-directory: editors/code
 
       - name: Install toolchain dependencies
         if: matrix.container == 'rockylinux:8'
@@ -114,6 +143,53 @@ jobs:
         run: npx vsce package -o ../../dist/asyncflows-lsp-${{ matrix.code-target }}.vsix --target ${{ matrix.code-target }}
         working-directory: editors/code
 
+
+      - name: Asyncflows package test(Linux)
+        if: matrix.to_test == true && matrix.os == 'ubuntu-20.04'
+        run: |
+          source .venv/bin/activate
+          python -c "import asyncflows" 
+          deactivate
+        working-directory: editors/code
+
+      - name: Asyncflows package test(Windows)
+        if: matrix.to_test && matrix.os == 'windows-latest'
+        run: |
+          .venv\Scripts\python.exe -c "import asyncflows" 
+        working-directory: editors/code
+
+      # - name: Start Xvfb(Linux)
+      #   if: contains(matrix.code-target, 'linux')
+      #   working-directory: editors/code
+      #   run: |
+      #    /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      #    echo ">>> Started xvfb"
+
+      - name: Test extension(Macos)
+        if: matrix.to_test && matrix.os == 'macos-12'
+        run: |
+          npm run compile-tests
+          npm run test-extension
+        working-directory: editors/code
+
+      - name: Test extension(Windows)
+        if: contains(matrix.os, 'windows') && matrix.to_test  
+        run: |
+          npm run compile-tests
+          npm run test-extension
+        working-directory: editors/code
+
+      - name: Check logs
+        if: always() && matrix.to_test && matrix.os == 'macos-12'
+        run: |
+          sh ./scripts/print-logs.sh
+        working-directory: editors/code
+
+      - name: Check logs(Windows)
+        if: always() && matrix.to_test && matrix.os == 'windows-latest'
+        run: |
+          ./scripts/print-logs.ps1
+        working-directory: editors/code
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

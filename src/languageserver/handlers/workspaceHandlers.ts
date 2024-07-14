@@ -62,7 +62,7 @@ export class WorkspaceHandlers {
 
 
   async getAsyncFlows(python = 'python') {
-    const cmd = spawn(python, ['-c', 'import asyncflows'])
+    const cmd = spawn(python, ['-c', '"import asyncflows"'])
     cmd.on('close', (code) => {
       if (code == 0) {
         this.languageService.pythonPath[1].resolve(python);

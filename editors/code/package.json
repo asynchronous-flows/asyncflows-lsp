@@ -49,7 +49,7 @@
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src --ext .ts,.tsx",
     "test": "sh ./scripts/e2e.sh",
-    "test2": "vscode-test",
+    "test-extension": "node ./out/test/runTest.js",
     "compile-tests": "tsc -p tests.tsconfig.json",
     "package": "vsce package",
     "publish": "vsce publish",
@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@tree-sitter-grammars/tree-sitter-yaml": "^0.6.1",
-    "asyncflows-lsp": "0.1.13",
+    "asyncflows-lsp": "0.1.13-dev.5",
     "jschardet": "^3.1.2",
     "tree-sitter": "^0.21.1",
     "ts-loader": "^9.5.1",

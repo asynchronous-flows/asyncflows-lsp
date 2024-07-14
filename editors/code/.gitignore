@@ -3,7 +3,6 @@ out/
 dist/
 .vscode-test/
 .vscode-test-web/
-test/testFixture/.vscode
 *.vsix
 .DS_Store
 test-resources
