@@ -16,3 +16,4 @@ out
 editors/code/client/out
 editors/code/.conda
 editors/code/**.vsix
+editors/code/.venv
