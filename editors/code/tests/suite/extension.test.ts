@@ -13,6 +13,7 @@ suite('Extension Test Suite 1', () => {
     console.log(`dir: ${__dirname}`)
 
     let debonoYaml = path.join(__dirname, '..', '..', '..', 'example', 'configs', 'debono.yaml')
+    console.log(process.platform);
     if (process.platform == 'win32') {
       debonoYaml = decodeURIComponent(debonoYaml);
     }
