@@ -25,8 +25,6 @@ If your editor is not specified here, but you would like to use the language ser
 
 ## Installation
 
-### VSCode
-
 You can find the extension [on the VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=AsynchronousFlows.asyncflows-lsp).
 
 Alternatively, install it manually:
@@ -38,48 +36,7 @@ Alternatively, install it manually:
 5. Select the downloaded `vsix` file
 6. Reload the window
 
-### NeoVim
-
-```lua
-local nvim_lsp = require('lspconfig')
-local configs = require('lspconfig.configs')
-
-if not configs.asyncflows_lsp then
-configs.asyncflows_lsp = {
-  default_config = {
-    name = "asyncflows-lsp",
-    cmd = { 'asyncflows-lsp --stdio' },
-    filetypes = { 'yaml' },
-    root_dir = function(fname)
-      return "."
-    end,
-},
-}
-end
-local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
-nvim_lsp.asyncflows_lsp.setup {
-  capabilities = capabilities
-}
-nvim_lsp.asyncflows_lsp.setup {
-}
-```
-
-### Helix
-
-```toml
-[language-server.asyncflows-lsp]
-command = "asyncflows-lsp"
-args = ["--stdio"]
-
-
-[[language]]
-name = "yaml"
-language-servers = ["asyncflows-lsp", "yaml-lsp"]
-```
-
 ### Development
-
-## VSCode
 
 ```sh
 git clone https://github.com/asynchronous-flows/asyncflows-lsp --depth 1
@@ -87,10 +44,3 @@ cd asyncflows-lsp
 make build
 code editors/code
 ```
-
-## Other editors
-
-```sh
-npm install -g asyncflows-lsp
-```
-
