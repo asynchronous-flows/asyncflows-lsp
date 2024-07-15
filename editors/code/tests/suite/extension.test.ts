@@ -35,7 +35,6 @@ suite('Extension Test Suite 1', () => {
         // await vscode.commands.executeCommand('workbench.action.closeActiveEditor')      
         const settings = ext.exports.settings;
         settings.enableLogs();
-        settings.pingServer();
         settings.addFn((msg: any) => {
           if (typeof msg == "object") {
             const t = msg.t;
@@ -49,10 +48,11 @@ suite('Extension Test Suite 1', () => {
               // console.log(content);
               assert.strictEqual(content.includes('__LinkHintLiteral'), true);
               returnedSchema = true;
-              vscode.commands.executeCommand('workbench.action.closeWindow').then(()=>{});
+              vscode.commands.executeCommand('workbench.action.closeWindow').then(() => { });
             }
           }
         })
+        settings.pingServer();
       }
     }
     await wait(25000);
@@ -79,13 +79,13 @@ async function getExtensions(): Promise<[vscode.Extension<any>, vscode.Extension
         const pythonExt = vscode.extensions.getExtension('ms-python.python');
         const ext = vscode.extensions.getExtension('AsynchronousFlows.asyncflows-lsp');
         let interval = (i as unknown) as number;
-        if(!ext) {
+        if (!ext) {
           return;
         }
-        if(!ext.exports) {
+        if (!ext.exports) {
           return;
         }
-        if(!pythonExt) {
+        if (!pythonExt) {
           return;
         }
         res([ext, pythonExt, interval])
@@ -94,6 +94,6 @@ async function getExtensions(): Promise<[vscode.Extension<any>, vscode.Extension
       catch (e) {
       }
     }, 500);
-    });
+  });
 
 }
