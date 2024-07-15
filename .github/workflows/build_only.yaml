@@ -31,7 +31,7 @@ jobs:
           - os: macos-12
             target: x86_64-apple-darwin
             code-target: darwin-x64
-            # to_test: true
+            to_test: true
           - os: macos-12
             target: aarch64-apple-darwin
             code-target: darwin-arm64

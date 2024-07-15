@@ -110,6 +110,9 @@ export async function activate(context: ExtensionContext) {
 	}
 	asyncflowsSettings.enableLogs = () => {
 		let pythonPath = path.join(__dirname, '..', '.venv', 'bin', 'python');
+		if(process.platform == 'win32') {
+			pythonPath = path.join(__dirname, '..', '.venv', 'Scripts', 'python.exe');
+		}
 		pythonPath = path.resolve(pythonPath);
 		// const msg = JSON.parse('{t: """}');
 		// asyncflowsSettings.notify(msg);
