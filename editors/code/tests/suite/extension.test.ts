@@ -13,7 +13,9 @@ suite('Extension Test Suite 1', () => {
     console.log(`dir: ${__dirname}`)
 
     let debonoYaml = path.join(__dirname, '..', '..', '..', 'example', 'configs', 'debono.yaml')
-    debonoYaml = decodeURIComponent(debonoYaml);
+    if (process.platform == 'win32') {
+      debonoYaml = decodeURIComponent(debonoYaml);
+    }
     const debonoYamlUri = vscode.Uri.parse(debonoYaml);
 
     const doc = await vscode.workspace.openTextDocument(debonoYamlUri);
