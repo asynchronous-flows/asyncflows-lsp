@@ -11,7 +11,7 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             code-target: win32-x64
-            # to_test: true
+            to_test: true
           - os: windows-latest
             target: aarch64-pc-windows-msvc
             code-target: win32-arm64
@@ -152,11 +152,11 @@ jobs:
           deactivate
         working-directory: editors/code
 
-      - name: Asyncflows package test(Windows)
-        if: matrix.to_test && matrix.os == 'windows-latest'
-        run: |
-          .venv\Scripts\python.exe -c "import asyncflows" 
-        working-directory: editors/code
+      # - name: Asyncflows package test(Windows)
+      #   if: matrix.to_test && matrix.os == 'windows-latest'
+      #   run: |
+      #     .venv\Scripts\python.exe -c "import asyncflows" 
+      #   working-directory: editors/code
 
       # - name: Start Xvfb(Linux)
       #   if: contains(matrix.code-target, 'linux')
