@@ -17,7 +17,7 @@ suite('Extension Test Suite 1', () => {
     if (process.platform == 'win32') {
       debonoYaml = decodeURIComponent(debonoYaml);
     }
-    const debonoYamlUri = vscode.Uri.parse(debonoYaml);
+    const debonoYamlUri = vscode.Uri.file(debonoYaml);
 
     const doc = await vscode.workspace.openTextDocument(debonoYamlUri);
     (await vscode.window.showTextDocument(doc)).edit((edit) => {
