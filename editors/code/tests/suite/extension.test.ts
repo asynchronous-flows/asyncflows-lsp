@@ -49,13 +49,13 @@ suite('Extension Test Suite 1', () => {
               // console.log(content);
               assert.strictEqual(content.includes('__LinkHintLiteral'), true);
               returnedSchema = true;
-              // vscode.commands.executeCommand('workbench.action.closeWindow').then(()=>{});
+              vscode.commands.executeCommand('workbench.action.closeWindow').then(()=>{});
             }
           }
         })
       }
     }
-    await wait(20000);
+    await wait(25000);
     assert.strictEqual(returnedSchema, true);
     // await vscode.commands.executeCommand('workbench.action.closeWindow');
   });

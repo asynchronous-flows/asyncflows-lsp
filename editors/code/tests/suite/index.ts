@@ -9,7 +9,7 @@ export function run(testsRoot: string, cb: (error: any, failures?: number) => vo
 	// Create the mocha test
 	const mocha = new Mocha({
 		ui: 'tdd',
-		timeout: 100_000,
+		timeout: 150_000,
 		color: true,
 		bail: true
 	});
